@@ -1,0 +1,164 @@
+import React, { createContext, useState, useContext } from 'react';
+import { endPoint, socket } from '../constants/endpoints';
+import axios from 'axios';
+import { uploadFile } from '../utils/fileUpload';
+
+const PostContext = createContext();
+
+export const usePost = () => useContext(PostContext);
+
+export const PostProvider = ({ children }) => {
+    const [posts, setPosts] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const fetchPosts = async () => {
+        setLoading(true);
+        try {
+            const response = await axios.get(`${endPoint}/api/posts`);
+            setPosts(response.data);
+        } catch (err) {
+            setError(err.response?.data?.message || 'Error fetching posts');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const createPost = async (content, mediaFiles) => {
+        setLoading(true);
+        try {
+            let uploadedFiles = [];
+            
+            if (mediaFiles.length > 0) {
+                // Upload each file
+                for (const file of mediaFiles) {
+                    try {
+                        const fileName = await uploadFile(file);
+                        uploadedFiles.push({
+                            type: 'image',
+                            url: `${endPoint}/uploads/${fileName}`
+                        });
+                    } catch (uploadError) {
+                        console.error('File upload error:', uploadError);
+                    }
+                }
+            }
+
+            // Create post
+            const response = await axios.post(`${endPoint}/api/posts`, {
+                content,
+                media: uploadedFiles
+            });
+
+            setPosts(prev => [response.data, ...prev]);
+            return true;
+        } catch (err) {
+            console.log('Create post error:', ...err);
+            setError(err.response?.data?.message || 'Error creating post');
+            return false;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const likePost = async (postId) => {
+        try {
+            const response = await axios.post(`${endPoint}/api/posts/${postId}/like`);
+            setPosts(prev => prev.map(post => 
+                post._id === postId ? response.data : post
+            ));
+            return true;
+        } catch (err) {
+            setError(err.response?.data?.message);
+            return false;
+        }
+    };
+
+    const unlikePost = async (postId) => {
+        try {
+            const response = await axios.post(`${endPoint}/api/posts/${postId}/unlike`);
+            setPosts(prev => prev.map(post => 
+                post._id === postId ? response.data : post
+            ));
+            return true;
+        } catch (err) {
+            console.log('Unlike post error:', err);
+            setError(err.response?.data?.message);
+            return false;
+        }
+    };
+
+    const addComment = async (postId, content) => {
+        try {
+            const response = await axios.post(`${endPoint}/api/posts/${postId}/comments`, {
+                content
+            });
+            setPosts(prev => prev.map(post => 
+                post._id === postId ? response.data : post
+            ));
+            return response.data;
+        } catch (err) {
+            setError(err.response?.data?.message);
+            return null;
+        }
+    };
+
+    const addReply = async (postId, commentId, content) => {
+        try {
+            const response = await axios.post(
+                `${endPoint}/api/posts/${postId}/comments/${commentId}/replies`,
+                { content }
+            );
+            setPosts(prev => prev.map(post => 
+                post._id === postId ? response.data : post
+            ));
+            return response.data;
+        } catch (err) {
+            setError(err.response?.data?.message);
+            return null;
+        }
+    };
+
+    const getPostCommentUser =async (userid) => {
+        const response = await axios.get(`${endPoint}/api/users/${userid}`);
+        return response.data;
+    };
+
+   
+    const deletePost = async (postId) => {
+        try {
+            await axios.delete(`${endPoint}/api/posts/${postId}`);
+            
+            setPosts(prev => prev.filter(p => {
+                return p._id !== postId;
+            }));
+        } catch (err) {
+            console.log('Delete post error:', err.response?.data?.message);
+            setError(err.response?.data?.message);
+        }
+    };
+
+    React.useEffect(() => {
+        socket.on("postDeleted", (postId) => {
+            setPosts(prev => prev.filter(p => p._id !== postId));
+        });
+    }, []);
+
+    return (
+        <PostContext.Provider value={{
+            posts,
+            loading,
+            error,
+            fetchPosts,
+            createPost,
+            likePost,
+            addComment,
+            addReply,
+            unlikePost,
+            getPostCommentUser,
+            deletePost
+        }}>
+            {children}
+        </PostContext.Provider>
+    );
+};
