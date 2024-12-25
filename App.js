@@ -14,6 +14,8 @@ import { MessageProvider } from "./context/MessageContext";
 import * as Notifications from "expo-notifications";
 import * as Updates from "expo-updates";
 import { enableScreens } from "react-native-screens";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+
 enableScreens();
 
 const Stack = createStackNavigator();
@@ -79,15 +81,17 @@ export default function App() {
   }, []);
 
   return (
-    <SafeAreaProvider>
-      <AuthProvider>
-        <PostProvider>
-          <MessageProvider>
-            <StatusBar style="light" backgroundColor={colors.card} />
-            <AppNavigator />
-          </MessageProvider>
-        </PostProvider>
-      </AuthProvider>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <AuthProvider>
+          <PostProvider>
+            <MessageProvider>
+              <StatusBar style="light" backgroundColor={colors.card} />
+              <AppNavigator />
+            </MessageProvider>
+          </PostProvider>
+        </AuthProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
