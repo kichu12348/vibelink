@@ -133,7 +133,7 @@ export const AuthProvider = ({ children }) => {
             
             return true;
         } catch (err) {
-            setError(err.response?.data?.message || 'Invalid credentials');
+            setError(err.response?.data?.message || err.message);
             return false;
         } finally {
             setLoading(false);
@@ -162,7 +162,7 @@ export const AuthProvider = ({ children }) => {
             
             return true;
         } catch (err) {
-            setError(err.response?.data?.message || 'Registration failed');
+            setError(err.response?.data?.message || err.message);
             return false;
         } finally {
             setLoading(false);
