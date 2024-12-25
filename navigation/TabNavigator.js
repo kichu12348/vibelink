@@ -15,17 +15,54 @@ import { Platform, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useAuth } from "../context/AuthContext";
 import { BlurView } from "expo-blur";
 import AllChatsScreen from "../screens/AllChatsScreen";
+import * as Notifications from 'expo-notifications';
+import { useMessage } from "../context/MessageContext";
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+});
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
 function Tabs({ navigation }) {
   const { signOut } = useAuth();
+  const {setActiveChat}=useMessage();
+
+
+  React.useEffect(() => {
+    const subscription = Notifications.addNotificationResponseReceivedListener(
+      response => {
+        const { conversationId, receiverId, username, profileImage,participants} =
+          response.notification.request.content.data || {};
+        if (conversationId && receiverId) {
+          setActiveChat({
+            conversationId,
+            receiverId,
+            username,
+            profileImage,
+            participants
+          });
+          navigation.navigate("single-chat", {
+            conversationId,
+            receiverId,
+            username,
+            profileImage,
+            participants
+          });
+        }
+      }
+    );
+    return () => subscription.remove();
+  }, [navigation]);
 
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        ...TransitionPresets.ShiftTransition,
         tabBarShowLabel: false,
         tabBarHideOnKeyboard: true,
         tabBarStyle: {
@@ -152,6 +189,7 @@ export default function TabNavigator({ navigation }) {
       });
     }
   }, [token, currentUser]);
+
 
   return (
     <Stack.Navigator

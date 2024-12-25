@@ -3,8 +3,8 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Image,
   TextInput,
+  FlatList,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -12,14 +12,22 @@ import React, { useEffect, useState } from "react";
 import { useMessage } from "../context/MessageContext";
 import { colors } from "../constants/primary";
 import { useAuth } from "../context/AuthContext";
+import { StatusBar } from "expo-status-bar";
+import { Image } from "expo-image";
 
-
-const defaultAvatar ="https://storage.googleapis.com/vibe-link-public/default-user.jpg";
+const defaultAvatar =
+  "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
 
 const AllChatsScreen = ({ navigation }) => {
-  const { conversations, fetchConversations, setActiveChat, searchUsers,setMessages} = useMessage();
+  const {
+    conversations,
+    fetchConversations,
+    setActiveChat,
+    searchUsers,
+    setMessages,
+  } = useMessage();
   const { currentUser } = useAuth(); // Move this hook to component level
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
 
@@ -29,9 +37,10 @@ const AllChatsScreen = ({ navigation }) => {
 
   // Move getOtherParticipant function inside component and use currentUser from hook
   const getOtherParticipant = (conversation) => {
-    return conversation.participants.find(
-      p => p.user._id !== currentUser._id
-    )?.user || conversation.participants[0].user;
+    return (
+      conversation.participants.find((p) => p.user._id !== currentUser._id)
+        ?.user || conversation.participants[0].user
+    );
   };
 
   const handleSearch = async (text) => {
@@ -61,16 +70,17 @@ const AllChatsScreen = ({ navigation }) => {
   const handleChatPress = (conversation) => {
     setActiveChat(conversation);
     const otherParticipant = getOtherParticipant(conversation);
-    navigation.navigate("single-chat", { 
-        conversationId: conversation._id,
-        receiverId: otherParticipant._id,
-        username: otherParticipant.username,
-        profileImage: otherParticipant.profileImage,
-     });
+    navigation.navigate("single-chat", {
+      conversationId: conversation._id,
+      receiverId: otherParticipant._id,
+      username: otherParticipant.username,
+      profileImage: otherParticipant.profileImage,
+    });
   };
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar style="light" backgroundColor={colors.background} />
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -93,46 +103,55 @@ const AllChatsScreen = ({ navigation }) => {
       </View>
 
       {isSearching ? (
-        <View style={styles.searchResults}>
-          {searchResults.map((user) => (
+        <FlatList
+          data={searchResults}
+          keyExtractor={(item) => item._id}
+          contentContainerStyle={styles.searchResults}
+          renderItem={({ item }) => (
             <TouchableOpacity
-              key={user._id}
               style={styles.chatItem}
-              onPress={() => startNewChat(user)}
+              onPress={() => startNewChat(item)}
             >
               <Image
-                source={{ uri: user.profileImage }}
+                source={{ uri: item.profileImage || defaultAvatar }}
                 style={styles.avatar}
+                cachePolicy={"none"}
               />
-              <Text style={styles.username}>{user.username}</Text>
+              <Text style={styles.username}>{item.username}</Text>
             </TouchableOpacity>
-          ))}
-        </View>
+          )}
+        />
       ) : (
-        <View style={styles.chatList}>
-          {conversations.map((conv) => (
-            <TouchableOpacity
-              key={conv._id}
-              style={styles.chatItem}
-              onPress={() => {
-                handleChatPress(conv);
-            }}
-            >
-              <Image
-                source={{ uri: getOtherParticipant(conv).profileImage || defaultAvatar}}
-                style={styles.avatar}
-              />
-              <View style={styles.chatInfo}>
-                <Text style={styles.username}>
-                  {getOtherParticipant(conv).username}
-                </Text>
-                <Text style={styles.lastMessage}>
-                  {conv.lastMessage?.content || "Start a conversation"}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
+        <FlatList
+          data={conversations}
+          keyExtractor={(item) => item._id}
+          contentContainerStyle={styles.chatList}
+          renderItem={({ item }) => {
+            const otherParticipant = getOtherParticipant(item);
+            return (
+              <TouchableOpacity
+                style={styles.chatItem}
+                onPress={() => handleChatPress(item)}
+              >
+                <Image
+                  source={{
+                    uri: otherParticipant.profileImage || defaultAvatar,
+                  }}
+                  style={styles.avatar}
+                  cachePolicy={"none"}
+                />
+                <View style={styles.chatInfo}>
+                  <Text style={styles.username}>
+                    {otherParticipant.username}
+                  </Text>
+                  <Text style={styles.lastMessage}>
+                    {item.lastMessage?.content || "Start a conversation"}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            );
+          }}
+        />
       )}
     </SafeAreaView>
   );

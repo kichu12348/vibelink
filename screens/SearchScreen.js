@@ -6,7 +6,6 @@ import {
   FlatList, 
   TouchableOpacity, 
   Text, 
-  Image,
   Modal
 } from 'react-native';
 import { colors, fontSizes } from '../constants/primary';
@@ -15,6 +14,7 @@ import axios from 'axios';
 import { endPoint } from '../constants/endpoints';
 import ViewUserOProfile from '../utils/ViewUserOProfile';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 
 const SearchScreen = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -46,6 +46,7 @@ const SearchScreen = () => {
             : require('../defaultImages/default-user.jpg')
         }
         style={styles.userImage}
+        cachePolicy={'none'}
       />
       <View style={styles.userInfo}>
         <Text style={styles.username}>@{item.username}</Text>

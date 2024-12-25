@@ -20,12 +20,13 @@ const AddPostScreen = ({ navigation }) => {
   const [mediaFiles, setMediaFiles] = useState([]);
   const { createPost, loading } = usePost();
 
+
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
       allowsEditing: true,
       aspect: [4, 3],
-      quality: 1,
+      quality: 0.5,
     });
     if (!result.canceled) {
       setMediaFiles([...mediaFiles, result.assets[0]]);

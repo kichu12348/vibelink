@@ -5,43 +5,78 @@ import {
   TouchableOpacity,
   Text,
   StyleSheet,
-  ScrollView,
+  FlatList,
   KeyboardAvoidingView,
   Platform,
-  Image,
+  Animated,
+  Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "../constants/primary";
 import { useMessage } from "../context/MessageContext";
 import { useAuth } from "../context/AuthContext";
+import * as ImagePicker from "expo-image-picker";
+import { BlurView } from "expo-blur";
+import { Image } from "expo-image";
+import { StatusBar } from "expo-status-bar";
+import MessageItem from "../components/MessageItem";
+import bgImage from "../images/backImage.jpeg";
+import ViewPostScreen from "./ViewPostScreen";
 
+const defaultAvatar =
+  "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
 
-const defaultAvatar ="https://storage.googleapis.com/vibe-link-public/default-user.jpg";
+const ListEmptyComponent = React.memo(() => (
+  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+    <Text style={{ color: colors.textSecondary }}>No messages yet</Text>
+  </View>
+));
 
 export default function DMsScreen({ route, navigation }) {
-  navigation.on
+  navigation.on;
   const { conversationId, receiverId, username, profileImage } = route.params;
-  const { messages, sendMessage, fetchMessages, activeChat, socket,setActiveChat } = useMessage();
+  const {
+    messages,
+    sendMessage,
+    fetchMessages,
+    activeChat,
+    socket,
+    setActiveChat,
+    uploadImageToServer,
+  } = useMessage();
   const { currentUser } = useAuth();
   const [text, setText] = useState("");
+  const [imageUri, setImageUri] = useState("");
+  const [postModalVisible, setPostModalVisible] = useState(false);
+  const [postContent, setPostContent] = useState(null);
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
 
   const scrollViewRef = React.useRef();
 
   useEffect(() => {
     if (conversationId && socket) {
       fetchMessages(conversationId);
-      socket.emit('joinChat', conversationId);
-      
+      socket.emit("joinChat", conversationId);
+
+      // Listen for new messages
+      const handleNewMessage = (data) => {
+        setMessages((prev) => [...prev, data.message]);
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      };
+
+      socket.on("message", handleNewMessage);
+
       return () => {
-        socket.emit('leaveChat', conversationId);
+        socket.emit("leaveChat", conversationId);
+        socket.off("message", handleNewMessage);
       };
     }
   }, [conversationId, socket]);
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener('transitionStart', (e) => {
-      if(e.data.closing){
+    const unsubscribe = navigation.addListener("transitionStart", (e) => {
+      if (e.data.closing) {
         setActiveChat(null);
       }
     });
@@ -49,118 +84,293 @@ export default function DMsScreen({ route, navigation }) {
     return unsubscribe;
   }, [navigation]);
 
-
-  const handleSend = () => {
-    if (!text.trim()) return;
-    sendMessage(conversationId, text.trim(), receiverId);
-    setText('');
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+    });
+    if (!result.canceled) {
+      const finalUrl = await uploadImageToServer(result.assets[0].uri);
+      setImageUri(finalUrl);
+    }
   };
 
+  const handleSend = () => {
+    if (!text.trim() && !imageUri) return;
+    sendMessage(conversationId, text.trim(), receiverId, imageUri);
+    scrollViewRef.current.scrollToEnd({ animated: true });
+    setText("");
+    setImageUri("");
+  };
+
+  const scrollToBottom = () => {
+    scrollViewRef.current?.scrollToEnd({ animated: true });
+  };
+
+  const handlePostClick = (post) => {
+    setPostContent(post);
+    setPostModalVisible(true);
+  };
+
+  const renderItem = React.useCallback(
+    ({ item }) => {
+      const isOwn = item.sender._id === currentUser._id;
+      return <MessageItem 
+      message={item}
+       isOwn={isOwn}
+       onClickPost={handlePostClick}
+       />;
+
+    },
+    [currentUser._id]
+  );
+
+  // Memoize the content container style
+  const contentContainerStyle = React.useMemo(() => ({
+    padding: 16,
+    paddingBottom: 100
+  }), []);
+
+
+  useEffect(() => {
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd();
+    }, 200);
+  },[]);
+
+
+  const keyExtractor = React.useCallback(item => item._id, []);
+
+ 
+
+  // Memoize the background component
+  const BackgroundComponent = React.useMemo(() => (
+    <Image
+      source={bgImage} 
+      style={{ 
+        flex: 1,
+        ...StyleSheet.absoluteFillObject,
+
+      }}
+      contentFit="cover"
+      
+    />
+  ), []);
+
+  // Memoize the input container blur view
+  const InputBlurView = React.useMemo(() => (
+    <BlurView
+      intensity={60}
+      tint="dark"
+      style={styles.blurBackground}
+      experimentalBlurMethod="dimezisBlurView"
+      blurReductionFactor={16}
+    />
+  ), []);
+
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => {
-            navigation.goBack();
-            setActiveChat(null);
-          }}
-          style={styles.backButton}
-        >
-          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>
-          {activeChat?.participants.find(p => p.user._id !== currentUser._id)?.user.username || username||"Error :("}
-        </Text>
-        <Image
-          source={{ uri: profileImage || defaultAvatar }}
-          style={styles.profileImage}
-        />
-      </View>
-    <KeyboardAvoidingView style={{flex: 1}} 
-          behavior={Platform.OS === "ios" ? "padding" : undefined} 
+    <>
+    <StatusBar 
+    translucent
+    backgroundColor="transparent"
+    style="light"
+     />
+    {BackgroundComponent}
+    <SafeAreaView style={styles.container}>
+        
+
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={() => {
+              navigation.goBack();
+              setActiveChat(null);
+            }}
+            style={styles.backButton}
+          >
+            <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>
+            {activeChat?.participants.find(
+              (p) => p.user._id !== currentUser._id
+            )?.user.username ||
+              username ||
+              "Error :("}
+          </Text>
+          <Image
+            source={{ uri: profileImage || defaultAvatar }}
+            style={styles.profileImage}
+          />
+        </View>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
           keyboardVerticalOffset={0}
-    >
-      <ScrollView style={styles.messagesContainer}
-      onContentSizeChange={() => {scrollViewRef.current.scrollToEnd({ animated: true })}}
-      ref={scrollViewRef}
-      >
-        {messages.map((message) => (
-          <View
-            key={message._id}
+        >
+          <FlatList
+            data={messages}
+            keyExtractor={keyExtractor}
+            contentContainerStyle={contentContainerStyle}
+            showsVerticalScrollIndicator={false}
+            ref={scrollViewRef}
+            onLayout={() =>
+              scrollViewRef.current.scrollToEnd({ animated: true })
+            }
+            renderItem={renderItem}
+          />
+          <Animated.View
             style={[
-              styles.messageBubble,
-              message.sender._id === currentUser._id && styles.ownMessage,
+              styles.scrollButton,
+              {
+                opacity: fadeAnim,
+                transform: [
+                  {
+                    scale: fadeAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0.8, 1],
+                    }),
+                  },
+                ],
+              },
             ]}
           >
-            <Text style={styles.messageText}>{message.content}</Text>
-            <Text style={styles.timestamp}>
-              {new Date(message.createdAt).toLocaleTimeString()}
-            </Text>
+            <TouchableOpacity
+              onPress={scrollToBottom}
+              style={styles.scrollButtonTouchable}
+            >
+              <Ionicons
+                name="arrow-down"
+                size={24}
+                color={colors.textPrimary}
+              />
+            </TouchableOpacity>
+          </Animated.View>
+          <View style={styles.posRelative}>
+            {imageUri !== "" && (
+              <TouchableOpacity
+                onPress={() => setImageUri("")}
+                style={{
+                  position: "absolute",
+                  bottom: 60,
+                  left: 10,
+                }}
+              >
+                <Image
+                  source={{ uri: imageUri }}
+                  style={{
+                    width: 50,
+                    height: 50,
+                    borderRadius: 8,
+                    marginBottom: 8,
+                  }}
+                />
+              </TouchableOpacity>
+            )}
+            <View style={styles.inputWrapper}>
+              <View style={styles.floatingContainer}>
+                {InputBlurView}
+                <View style={styles.inputContainer}>
+                  {imageUri !== "" && (
+                    <View
+                      style={{
+                        position: "absolute",
+                        bottom: 60,
+                        left: 10,
+                      }}
+                    >
+                      <Image
+                        source={{ uri: imageUri }}
+                        style={{
+                          width: 50,
+                          height: 50,
+                          borderRadius: 8,
+                          marginBottom: 8,
+                        }}
+                      />
+                    </View>
+                  )}
+                  <TouchableOpacity
+                    onPress={pickImage}
+                    style={{
+                      padding: 8,
+                    }}
+                  >
+                    <Ionicons
+                      name="image"
+                      size={24}
+                      color={colors.textPrimary}
+                    />
+                  </TouchableOpacity>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Message..."
+                    placeholderTextColor={colors.textSecondary}
+                    value={text}
+                    onChangeText={setText}
+                    multiline
+                    numberOfLines={3}
+                  />
+                  <TouchableOpacity
+                    style={styles.sendButton}
+                    onPress={handleSend}
+                  >
+                    <Ionicons
+                      name="send"
+                      size={24}
+                      color={colors.textPrimary}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
           </View>
-        ))}
-      </ScrollView>
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Message..."
-          placeholderTextColor={colors.textSecondary}
-          value={text}
-          onChangeText={setText}
-        />
-        <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
-          <Text style={styles.sendButtonText}>Send</Text>
-        </TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
-    </SafeAreaView>
+        </KeyboardAvoidingView>
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={postModalVisible}
+          onRequestClose={() => setPostModalVisible(false)}
+        >
+          {postContent && <ViewPostScreen
+            post={postContent}
+            close={() => setPostModalVisible(false)}
+          />}
+        </Modal>
+      </SafeAreaView>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: "transparent",
   },
   messagesContainer: {
     flex: 1,
     padding: 16,
   },
-  messageBubble: {
-    backgroundColor: colors.card,
-    padding: 12,
-    marginBottom: 8,
-    borderRadius: 16,
-    maxWidth: "80%",
-    alignSelf: "flex-start",
+  floatingContainer: {
+    borderRadius: 30,
+    width: "98%",
+    alignSelf: "center",
+    overflow: "hidden",
   },
-  ownMessage: {
-    backgroundColor: colors.primary,
-    alignSelf: "flex-end",
-  },
-  messageText: {
-    color: colors.textPrimary,
-    fontSize: 16,
-  },
-  timestamp: {
-    color: colors.textSecondary,
-    fontSize: 12,
-    marginTop: 4,
+  blurBackground: {
+    ...StyleSheet.absoluteFillObject,
   },
   inputContainer: {
     flexDirection: "row",
-    padding: 12,
-    backgroundColor: colors.card,
-    alignItems: "flex-start",
+    padding: 5,
+    alignItems: "flex-end",
     justifyContent: "space-between",
-    height: 60,
+    maxHeight: 200,
   },
   input: {
     flex: 1,
     color: colors.textPrimary,
-    backgroundColor: colors.background,
+    backgroundColor: "transparent",
     borderRadius: 20,
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 12,
     marginRight: 8,
   },
   sendButton: {
@@ -168,6 +378,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 8,
+    alignItems: "center",
+    justifyContent: "center",
   },
   sendButtonText: {
     color: colors.textPrimary,
@@ -176,7 +388,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 16,
+    paddingHorizontal: 16,
   },
   backButton: {
     marginRight: 16,
@@ -192,5 +404,38 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginLeft: 20,
   },
+  posRelative: {
+    position: "relative",
+    height: 10,
+  },
+  scrollButton: {
+    position: "absolute",
+    right: 20,
+    bottom: 80,
+    zIndex: 2,
+  },
+  scrollButtonTouchable: {
+    backgroundColor: colors.primary,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  inputWrapper: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    marginBottom: 5,
+    width: "100%",
+  },
 });
-

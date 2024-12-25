@@ -1,8 +1,9 @@
 // EditProfileModal.js
 import React from 'react';
-import { SafeAreaView, View, Text, TouchableOpacity, TextInput, Image } from 'react-native';
+import { SafeAreaView, View, Text, TouchableOpacity, TextInput} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../constants/primary';
+import { Image } from 'expo-image';
 
 const EditProfileModal = ({ 
   styles, 
@@ -33,6 +34,7 @@ const EditProfileModal = ({
           <Image 
             source={editImage ? { uri: editImage } : (image ? { uri: image } : require("../defaultImages/default-user.jpg"))}
             style={styles.editProfileImage}
+            cachePolicy={"none"}
           />
           <TouchableOpacity onPress={handlePickEditImage} style={styles.changePhotoButton}>
             <Text style={styles.changePhotoText}>Change Profile Photo</Text>

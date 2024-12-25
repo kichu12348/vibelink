@@ -11,6 +11,10 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as NavigationBar from "expo-navigation-bar";
 import { Platform } from "react-native";
 import { MessageProvider } from "./context/MessageContext";
+import * as Notifications from "expo-notifications";
+import * as Updates from "expo-updates";
+import { enableScreens } from "react-native-screens";
+enableScreens();
 
 const Stack = createStackNavigator();
 
@@ -25,20 +29,27 @@ const MyTheme = {
   },
 };
 
+// Configure notifications
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
+
 function AppNavigator() {
   const { token, currentUser } = useAuth();
   return (
-    <SafeAreaProvider>
-      <NavigationContainer theme={MyTheme}>
-        <Stack.Navigator
-          screenOptions={{ headerShown: false }}
-          initialRouteName={token && currentUser ? "MainApp" : "Auth"}
-        >
-          <Stack.Screen name="Auth" component={AuthStack} />
-          <Stack.Screen name="MainApp" component={TabNavigator} />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </SafeAreaProvider>
+    <NavigationContainer theme={MyTheme}>
+      <Stack.Navigator
+        screenOptions={{ headerShown: false }}
+        initialRouteName={token && currentUser ? "MainApp" : "Auth"}
+      >
+        <Stack.Screen name="Auth" component={AuthStack} />
+        <Stack.Screen name="MainApp" component={TabNavigator} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
 
@@ -49,16 +60,34 @@ export default function App() {
 
   React.useLayoutEffect(() => {
     if (Platform.OS === "android") setNavigationBarColor();
+
+    // Check for updates
+    async function checkForUpdates() {
+      if (__DEV__) return;
+      try {
+        const update = await Updates.checkForUpdateAsync();
+        if (update.isAvailable) {
+          await Updates.fetchUpdateAsync();
+          await Updates.reloadAsync();
+        }
+      } catch (error) {
+        console.log("Update error:", error.message);
+      }
+    }
+
+    checkForUpdates();
   }, []);
 
   return (
-    <AuthProvider>
-      <PostProvider>
-        <MessageProvider>
-          <StatusBar style="light" backgroundColor={colors.card} />
-          <AppNavigator />
-        </MessageProvider>
-      </PostProvider>
-    </AuthProvider>
+    <SafeAreaProvider>
+      <AuthProvider>
+        <PostProvider>
+          <MessageProvider>
+            <StatusBar style="light" backgroundColor={colors.card} />
+            <AppNavigator />
+          </MessageProvider>
+        </PostProvider>
+      </AuthProvider>
+    </SafeAreaProvider>
   );
 }

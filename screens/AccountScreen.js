@@ -9,6 +9,7 @@ import {
   Dimensions,
   Modal,
   FlatList,
+  SafeAreaView,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { colors } from "../constants/primary";
@@ -22,7 +23,7 @@ import { endPoint } from "../constants/endpoints";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import EditProfileModal from "../utils/editProfile";
 import ViewUserOProfile from "../utils/ViewUserOProfile";
-import { SafeAreaView } from "react-native-safe-area-context";
+//import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function AccountScreen() {
   const bottomTabBarHeight = useBottomTabBarHeight();
@@ -30,8 +31,8 @@ export default function AccountScreen() {
   const { currentUser, setCurrentUser } = useAuth();
   const [image, setImage] = useState(currentUser?.profileImage);
   const [bio, setBio] = useState(currentUser?.bio);
-  const [followers, setFollowers] = useState(currentUser?.followers);
-  const [following, setFollowing] = useState(currentUser?.following);
+  const [followers, setFollowers] = useState(null);
+  const [following, setFollowing] = useState(null);
   const [posts, setPosts] = useState(
     postContext.posts.filter((post) => post?.user._id === currentUser?._id)
   );
@@ -58,8 +59,34 @@ export default function AccountScreen() {
   }, [postContext.posts]);
 
   React.useEffect(() => {
-    setFollowers(currentUser?.followers);
-    setFollowing(currentUser?.following);
+    async function fetchFollowers() {
+      let followers = await Promise.all(
+        currentUser?.followers.map(async (follower) => {
+          if (typeof follower === "object") return follower;
+          const data = await postContext.getPostCommentUser(follower);
+          return data;
+        })
+      )
+
+      setFollowers(followers);
+    }
+
+
+    async function fetchFollowing() {
+      let following = await Promise.all(
+        currentUser?.following.map(async (follow) => {
+          if (typeof follow === "object") return follow;
+          const data = await postContext.getPostCommentUser(follow);
+          return data;
+        })
+      )
+
+      setFollowing(following);
+    }
+
+    fetchFollowers();
+    fetchFollowing();
+
     setPosts(
       postContext.posts.filter((post) => post?.user?._id === currentUser?._id)
     );
@@ -153,7 +180,9 @@ export default function AccountScreen() {
     </View>
   );
 
-  const renderUserItem = ({ item }) => (
+  const renderUserItem = ({ item }) => {
+    if (!item || typeof item !=="object") return null;
+    return(
     <TouchableOpacity
       style={styles.userItem}
       onPress={() => handleUserPress(item)}
@@ -169,6 +198,7 @@ export default function AccountScreen() {
       <Text style={styles.userName}>@{item.username}</Text>
     </TouchableOpacity>
   );
+  };
 
   const renderPost = (post) => (
     <TouchableOpacity

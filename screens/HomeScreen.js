@@ -4,7 +4,6 @@ import {
   Text,
   FlatList,
   StyleSheet,
-  Image,
   RefreshControl,
   TouchableWithoutFeedback,
   Modal,
@@ -17,6 +16,8 @@ import ViewPostScreen from "./ViewPostScreen";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import ViewUserOProfile from "../utils/ViewUserOProfile";
 import { useAuth } from "../context/AuthContext";
+import { Image } from "expo-image";
+import { socket } from "../constants/endpoints";
 
 export default function HomeScreen({ navigation }) {
   const { posts, loading, fetchPosts } = usePost();
@@ -39,7 +40,6 @@ export default function HomeScreen({ navigation }) {
 
   const renderPost = ({ item }) => {
     if (!item) return null;
-
     const defaultAvatar =
       "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
     return (
@@ -67,6 +67,7 @@ export default function HomeScreen({ navigation }) {
                   uri: item.user.profileImage || defaultAvatar,
                 }}
                 style={styles.avatar}
+                cachePolicy={"none"}
               />
 
               <Text style={styles.username}>{item.user.username}</Text>
@@ -103,8 +104,9 @@ export default function HomeScreen({ navigation }) {
           <RefreshControl
             refreshing={loading}
             onRefresh={fetchPosts}
-            colors={[colors.primary, colors.secondary]}
+            colors={[colors.primary]}
             tintColor={colors.primary}
+            progressBackgroundColor={colors.background}
           />
         }
       />

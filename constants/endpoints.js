@@ -1,7 +1,7 @@
 import { io } from "socket.io-client";
 
-const endPoint = "http://192.168.1.38:3000"; // Replace with your local IP address
-const socketEndpoint = "http://192.168.1.38:3000";
+const endPoint = "http://34.47.218.65"; 
+const socketEndpoint = "http://34.47.218.65";
 
 const socket = io(socketEndpoint);
 

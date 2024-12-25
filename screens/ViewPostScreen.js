@@ -4,17 +4,27 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Image,
   TextInput,
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  Modal,
+  FlatList,
 } from "react-native";
 import { colors, fontSizes } from "../constants/primary";
 import { usePost } from "../context/PostContext";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../context/AuthContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Image } from "expo-image";
+import { BlurView } from "expo-blur";
+import { useMessage } from "../context/MessageContext";
+import { socket } from "../constants/endpoints"; // Add this import
+import * as Notifications from 'expo-notifications'; // Add this import
+
+
+const defaultAvatar = "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
+    
 
 const Comment = ({ comment, postId, setComments }) => {
   const [showReplyInput, setShowReplyInput] = useState(false);
@@ -58,6 +68,7 @@ const Comment = ({ comment, postId, setComments }) => {
             uri: comment.user.profileImage || defaultAvatar,
           }}
           style={styles.commentAvatar}
+          cachePolicy={"none"}
         />
         <Text style={styles.commentUsername}>{comment.user.username}</Text>
       </View>
@@ -93,6 +104,7 @@ const Comment = ({ comment, postId, setComments }) => {
                   reply.user.profileImage ||  defaultAvatar,
               }}
               style={styles.replyAvatar}
+              cachePolicy={"none"}
             />
             <Text style={styles.replyUsername}>{reply.user.username}</Text>
           </View>
@@ -103,9 +115,56 @@ const Comment = ({ comment, postId, setComments }) => {
   );
 };
 
+
+const ShareModal = ({ visible, onClose, onShare, conversations, currentUser }) => (
+  <Modal
+    visible={visible}
+    transparent
+    animationType="slide"
+    onRequestClose={onClose}
+  >
+    <BlurView intensity={20} style={styles.modalOverlay}>
+      <View style={styles.modalContainer}>
+        <View style={styles.modalContent}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Share with</Text>
+            <TouchableOpacity onPress={onClose}>
+              <Ionicons name="close" size={24} color={colors.textPrimary} />
+            </TouchableOpacity>
+          </View>
+          <FlatList
+            data={conversations}
+            keyExtractor={item => item?._id}
+            renderItem={({ item }) => {
+              const otherUser = item.participants.find(
+                p => p.user?._id !== currentUser._id
+              )?.user;
+              return (
+                <TouchableOpacity
+                  style={styles.shareItem}
+                  onPress={() => onShare(item, otherUser)}
+                >
+                  <Image
+                    source={{ uri: otherUser.profileImage || defaultAvatar }}
+                    style={styles.shareAvatar}
+                    contentFit="cover"
+                  />
+                  <Text style={styles.shareUsername}>{otherUser.username}</Text>
+                </TouchableOpacity>
+              );
+            }}
+          />
+        </View>
+      </View>
+    </BlurView>
+  </Modal>
+);
+
 const ViewPostScreen = ({ post, close = () => {} }) => {
   const { likePost, unlikePost, addComment, getPostCommentUser, deletePost } = usePost();
   const { currentUser } = useAuth();
+  const { conversations, sendMessage } = useMessage();
+  const [showShareModal, setShowShareModal] = useState(false);
   // Initialize comments state with empty array if post.comments is null
   const [comments, setComments] = useState([]);
   const [commentContent, setCommentContent] = useState("");
@@ -161,7 +220,6 @@ const ViewPostScreen = ({ post, close = () => {} }) => {
     } else {
       await likePost(post._id);
       setHasLiked(true);
-      setLikeCount((c) => c + 1);
     }
   };
 
@@ -179,8 +237,48 @@ const ViewPostScreen = ({ post, close = () => {} }) => {
     setCommentContent("");
   };
 
-  const defaultAvatar = "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
-    
+  const handleShare = (conversation, otherUser) => {
+    sendMessage(conversation._id, "", otherUser._id, null, post);
+    setShowShareModal(false);
+  };
+
+  useEffect(() => {
+    if (socket) {  // Add null check
+        socket.on("postUpdated", (updatedPost) => {
+            if (updatedPost._id === post._id) {
+                setLikeCount(updatedPost.likes.length);
+                setHasLiked(updatedPost.likes.includes(currentUser?._id));
+            }
+        });
+
+        return () => {
+            socket.off("postUpdated");
+        };
+    }
+  }, [post._id, currentUser?._id]);
+
+  useEffect(() => {
+    // Request notification permissions
+    const requestPermissions = async () => {
+        const { status } = await Notifications.requestPermissionsAsync();
+        if (status !== 'granted') {
+            console.log('Notification permissions not granted');
+        }
+    };
+
+    requestPermissions();
+
+    // Add notification response handler
+    const notificationListener = Notifications.addNotificationResponseReceivedListener(response => {
+        const postId = response.notification.request.content.data.postId;
+        // Handle notification tap here
+        console.log('Notification tapped:', postId);
+    });
+
+    return () => {
+        Notifications.removeNotificationSubscription(notificationListener);
+    };
+  }, []);
 
   return (
     <KeyboardAvoidingView
@@ -201,11 +299,12 @@ const ViewPostScreen = ({ post, close = () => {} }) => {
             <Image
               source={{
                 uri:
-                  post.user.profileImage || defaultAvatar
+                  post.user?.profileImage || defaultAvatar
                }}
               style={styles.avatar}
+              cachePolicy={"none"}
             />
-            <Text style={styles.username}>{post.user.username}</Text>
+            <Text style={styles.username}>{post.user?.username||""}</Text>
           </View>
 
           <Text style={styles.content}>{post.content}</Text>
@@ -214,7 +313,7 @@ const ViewPostScreen = ({ post, close = () => {} }) => {
             <Image
               source={{ uri: post.image }}
               style={styles.postImage}
-              resizeMode="cover"
+              contentFit="cover"
             />
           )}
 
@@ -227,7 +326,13 @@ const ViewPostScreen = ({ post, close = () => {} }) => {
               />
               <Text style={styles.actionText}>{likeCount || 0}</Text>
             </TouchableOpacity>
-            {post.user._id === currentUser?._id && (
+            <TouchableOpacity 
+              onPress={() => setShowShareModal(true)} 
+              style={styles.actionButton}
+            >
+              <Ionicons name="share-outline" size={24} color={colors.textPrimary} />
+            </TouchableOpacity>
+            {post.user?._id === currentUser?._id && (
               <TouchableOpacity onPress={async () => {
                 await deletePost(post._id);
                 close();
@@ -264,6 +369,13 @@ const ViewPostScreen = ({ post, close = () => {} }) => {
           <Ionicons name="send" size={24} color={colors.primary} />
         </TouchableOpacity>
       </View>
+      <ShareModal
+        visible={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        onShare={handleShare}
+        conversations={conversations}
+        currentUser={currentUser}
+      />
     </KeyboardAvoidingView>
   );
 };
@@ -422,6 +534,63 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     alignItems: "center",
     padding: 8,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContainer: {
+    backgroundColor: 'transparent',
+    width: '100%',
+    height: '60%',
+  },
+  modalContent: {
+    backgroundColor: colors.card,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    height: '100%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.textPrimary,
+  },
+  shareItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: colors.background,
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  shareAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 12,
+  },
+  shareUsername: {
+    color: colors.textPrimary,
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  closeButton: {
+    padding: 15,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  closeButtonText: {
+    color: colors.primary,
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

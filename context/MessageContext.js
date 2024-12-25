@@ -3,7 +3,12 @@ import { useAuth } from './AuthContext';
 import * as Notifications from 'expo-notifications';
 import axios from 'axios';
 import io from 'socket.io-client';
-import { endPoint as API_URL } from '../constants/endpoints';
+import { endPoint as API_URL} from '../constants/endpoints';
+import { uploadFile } from '../utils/fileUpload';
+import { AppState } from 'react-native';
+import * as Device from 'expo-device';
+import Constants from 'expo-constants';
+
 
 
 // Set up notifications handler
@@ -15,6 +20,22 @@ Notifications.setNotificationHandler({
   }),
 });
 
+async function registerForPushNotificationsAsync() {
+  let token;
+  if (Device.isDevice) {
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+    if (existingStatus !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+    if (finalStatus === 'granted') {
+      token = (await Notifications.getExpoPushTokenAsync()).data;
+    }
+  }
+  return token;
+}
+
 const MessageContext = createContext();
 
 export function MessageProvider({ children }) {
@@ -24,16 +45,47 @@ export function MessageProvider({ children }) {
   const { currentUser, token } = useAuth();
   const [socket, setSocket] = useState(null);
 
-  // Socket connection
+  // Register once and optionally send token to your backend
+  useEffect(() => {
+    registerForPushNotificationsAsync().then(async pushToken => {
+      if (pushToken && currentUser) {
+        try {
+          await axios.post(
+            `${API_URL}/api/users/push-token`,
+            { token: pushToken },
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+        } catch (error) {
+          console.log('Error saving push token:', error.response?.data || error.message);
+        }
+      }
+    });
+  }, [currentUser]);
+
+  // Initialize socket once when provider mounts
   useEffect(() => {
     if (!currentUser?._id) return;
 
     const newSocket = io(API_URL);
     setSocket(newSocket);
 
-    newSocket.emit('join', currentUser._id);
-    
-    newSocket.on('newMessage', async ({ message, conversation }) => {
+    newSocket.on('connect', () => {
+      newSocket.emit('join', currentUser._id);
+    });
+
+    return () => {
+      if (newSocket) {
+        newSocket.disconnect();
+      }
+    };
+  }, [currentUser?._id]);
+
+  // Handle messages and notifications separately
+  useEffect(() => {
+    if (!socket || !currentUser) return;
+
+    const handleNewMessage = async ({ message, conversation }) => {
+      
       // Update messages if in current chat
       if (activeChat?._id === conversation._id) {
         setMessages(prev => [...prev, message]);
@@ -50,28 +102,35 @@ export function MessageProvider({ children }) {
         return [conversation, ...prev];
       });
 
-      // Show notification
-      if (activeChat?._id !== conversation._id) {
+      // Show notification only if not in the active chat
+      if (AppState.currentState === 'active' && activeChat?._id !== conversation._id) {
         const sender = conversation.participants.find(
           p => p.user._id !== currentUser._id
         )?.user;
 
-        const { status } = await Notifications.requestPermissionsAsync();
-        if (status === 'granted') {
-          await Notifications.scheduleNotificationAsync({
-            content: {
-              title: sender?.username || 'New message',
-              body: message.content || 'Sent you a message',
-              data: { conversationId: conversation._id },
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: sender?.username || 'New message',
+            body: message.content || 'Sent you a message',
+            data: {
+              conversationId: conversation._id,
+              receiverId: sender?._id,
+              username: sender?.username,
+              profileImage: sender?.profileImage,
+              participants: conversation.participants,
             },
-            trigger: null,
-          });
-        }
+          },
+          trigger: null
+        });
       }
-    });
+    };
 
-    return () => newSocket.disconnect();
-  }, [currentUser, activeChat]);
+    socket.on('newMessage', handleNewMessage);
+
+    return () => {
+      socket.off('newMessage', handleNewMessage);
+    };
+  }, [socket, currentUser, activeChat]);
 
   // API functions
   const fetchConversations = useCallback(async () => {
@@ -107,11 +166,19 @@ export function MessageProvider({ children }) {
     }
   }, [token]);
 
-  const sendMessage = async (conversationId, content, receiverId) => {
+  const sendMessage = async (conversationId, content, receiverId, media, sharedPost = null) => {
     try {
+      if (!content.trim() && !media && !sharedPost) return;
+      
       const { data } = await axios.post(
         `${API_URL}/api/messages`, 
-        { conversationId, content, receiverId },
+        { 
+          conversationId, 
+          content: content.trim(), 
+          receiverId,
+          media,
+          sharedPost: sharedPost?._id
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
@@ -138,6 +205,21 @@ export function MessageProvider({ children }) {
     }
   };
 
+
+
+  async function uploadImageToServer(imageUri){
+    const fileName=await uploadFile({uri:imageUri});
+    const res=await axios.post(`${API_URL}/api/messages/upload`,{filename:fileName});
+    return res.data.url;
+  }
+
+
+  useEffect(()=>{
+    if(currentUser){
+      fetchConversations();
+    }
+  },[currentUser]);
+
   return (
     <MessageContext.Provider value={{
       conversations,
@@ -149,7 +231,8 @@ export function MessageProvider({ children }) {
       fetchConversations,
       fetchMessages,
       searchUsers,
-      socket
+      socket,
+      uploadImageToServer
     }}>
       {children}
     </MessageContext.Provider>

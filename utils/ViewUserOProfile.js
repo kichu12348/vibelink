@@ -4,12 +4,11 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Image,
   ScrollView,
   Dimensions,
   Modal,
+  SafeAreaView,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../context/AuthContext";
 import { usePost } from "../context/PostContext";
 import axios from "axios";
@@ -18,6 +17,7 @@ import { colors, fontSizes } from "../constants/primary";
 import ViewPostScreen from "../screens/ViewPostScreen";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from "expo-image";
 
 const ViewUserOProfile = ({ user, close }) => {
   const { currentUser, token, setCurrentUser } = useAuth();
@@ -104,6 +104,7 @@ const ViewUserOProfile = ({ user, close }) => {
               : require("../defaultImages/default-user.jpg")
           }
           style={styles.profileImage}
+          cachePolicy={"none"}
         />
         <Text style={styles.username}>@{user.username}</Text>
         {user.bio && <Text style={styles.bio}>{user.bio}</Text>}
@@ -130,7 +131,7 @@ const ViewUserOProfile = ({ user, close }) => {
                 <Image
                   style={styles.postImage}
                   source={{ uri: post.image }}
-                  resizeMode="cover"
+                  cachePolicy={"none"}
                 />
               ) : (
                 <Text style={styles.postContent}>{post.content}</Text>
