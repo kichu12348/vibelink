@@ -23,15 +23,10 @@ import { StatusBar } from "expo-status-bar";
 import MessageItem from "../components/MessageItem";
 import bgImage from "../images/backImage.jpeg";
 import ViewPostScreen from "./ViewPostScreen";
+import ImageViewer from "../utils/imageViewer";
 
 const defaultAvatar =
   "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
-
-const ListEmptyComponent = React.memo(() => (
-  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-    <Text style={{ color: colors.textSecondary }}>No messages yet</Text>
-  </View>
-));
 
 const SpacerItem = React.memo(() => (
   <View style={{ height: 100, backgroundColor: 'transparent' }} />
@@ -54,6 +49,9 @@ export default function DMsScreen({ route, navigation }) {
   const [imageUri, setImageUri] = useState("");
   const [postModalVisible, setPostModalVisible] = useState(false);
   const [postContent, setPostContent] = useState(null);
+  const [imageModalVisible, setImageModalVisible] = useState(false);
+  const [imageUriModal, setImageUriModal] = useState(null);
+
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
 
   const scrollViewRef = React.useRef();
@@ -129,6 +127,10 @@ export default function DMsScreen({ route, navigation }) {
           message={item}
           isOwn={isOwn}
           onClickPost={handlePostClick}
+          onClickImage={(uri)=>{
+            setImageUriModal(uri);
+            setImageModalVisible(true);
+          }}
         />
       );
     },
@@ -370,6 +372,18 @@ export default function DMsScreen({ route, navigation }) {
             post={postContent}
             close={() => setPostModalVisible(false)}
           />}
+        </Modal>
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={imageModalVisible}
+          onRequestClose={() => setImageModalVisible(false)}
+          hardwareAccelerated={true}
+        >
+          <ImageViewer
+            uri={imageUriModal}
+            close={() => setImageModalVisible(false)}
+          />
         </Modal>
       </SafeAreaView>
     </>

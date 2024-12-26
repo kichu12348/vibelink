@@ -21,7 +21,7 @@ const SharedPost = ({ post, onClickPost }) => {
     <TouchableOpacity
       style={styles.sharedPost}
       onPress={() => {
-        const p= post;
+        const p = post;
         p.user = user;
         onClickPost(p);
       }}
@@ -48,7 +48,7 @@ const SharedPost = ({ post, onClickPost }) => {
 };
 
 const MessageItem = React.memo(
-  ({ message, isOwn, onClickPost = () => {} }) => {
+  ({ message, isOwn, onClickPost = () => {},onClickImage=()=>{} }) => {
     const bubbleStyle = React.useMemo(
       () => [styles.messageBubble, isOwn && styles.ownMessage],
       [isOwn]
@@ -87,12 +87,16 @@ const MessageItem = React.memo(
     if (message.media?.url) {
       return (
         <View style={bubbleStyle}>
-          <Image
-            source={{ uri: message.media.url }}
-            style={styles.messageImage}
-            cachePolicy="memory-disk"
-            recyclingKey={message._id}
-          />
+          <TouchableOpacity
+            onPress={() => onClickImage(message.media.url)}
+          >
+            <Image
+              source={{ uri: message.media.url }}
+              style={styles.messageImage}
+              cachePolicy="memory-disk"
+              recyclingKey={message._id}
+            />
+          </TouchableOpacity>
           {message.content && (
             <Text numberOfLines={20} style={styles.messageText}>
               {message.content}
