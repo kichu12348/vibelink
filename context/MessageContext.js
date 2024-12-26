@@ -23,19 +23,34 @@ Notifications.setNotificationHandler({
 async function registerForPushNotificationsAsync() {
   let token;
   if (Device.isDevice) {
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    const { status: existingStatus } =
+      await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
-    if (existingStatus !== 'granted') {
+
+    if (existingStatus !== "granted") {
       const { status } = await Notifications.requestPermissionsAsync();
       finalStatus = status;
     }
-    if (finalStatus === 'granted') {
+
+    if (finalStatus === "granted") {
       token = (await Notifications.getExpoPushTokenAsync()).data;
+
+      // Add Android-specific notification settings
+      if (Platform.OS === "android") {
+        await Notifications.setNotificationChannelAsync("default", {
+          name: "Default",
+          importance: Notifications.AndroidImportance.MAX,
+          vibrationPattern: [0, 250, 250, 250],
+          lightColor: "#FF231F7C", // LED light color
+        });
+      }
     }
+  } else {
+   return null;
   }
+
   return token;
 }
-
 const MessageContext = createContext();
 
 export function MessageProvider({ children }) {

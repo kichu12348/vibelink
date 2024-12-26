@@ -33,6 +33,10 @@ const ListEmptyComponent = React.memo(() => (
   </View>
 ));
 
+const SpacerItem = React.memo(() => (
+  <View style={{ height: 100, backgroundColor: 'transparent' }} />
+));
+
 export default function DMsScreen({ route, navigation }) {
   navigation.on;
   const { conversationId, receiverId, username, profileImage } = route.params;
@@ -112,35 +116,49 @@ export default function DMsScreen({ route, navigation }) {
   };
 
   const renderItem = React.useCallback(
-    ({ item }) => {
-      const isOwn = item.sender._id === currentUser._id;
-      return <MessageItem 
-      message={item}
-       isOwn={isOwn}
-       onClickPost={handlePostClick}
-       />;
-
+    ({ item, index }) => {
+      if (index === messages.length) {
+        return <SpacerItem />;
+      }
+      if (!item?.sender) {
+        return null;
+      }
+      const isOwn = item?.sender?._id === currentUser?._id;
+      return (
+        <MessageItem 
+          message={item}
+          isOwn={isOwn}
+          onClickPost={handlePostClick}
+        />
+      );
     },
-    [currentUser._id]
+    [currentUser?._id, messages.length]
   );
 
-  // Memoize the content container style
+  // Calculate proper bottom padding to account for input box
   const contentContainerStyle = React.useMemo(() => ({
     padding: 16,
-    paddingBottom: 100
+    paddingBottom: 90, // Increase this value to ensure messages are visible above input
   }), []);
 
-
+  // Modified scroll behavior
   useEffect(() => {
-    setTimeout(() => {
-      scrollViewRef.current?.scrollToEnd();
-    }, 200);
-  },[]);
+    const timer = setTimeout(() => {
+      if (messages.length > 0 && scrollViewRef.current) {
+        scrollViewRef.current.scrollToEnd({ animated: false });
+      }
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
+  // Handle new messages scroll
+  useEffect(() => {
+    if (messages.length > 0 && scrollViewRef.current) {
+      scrollViewRef.current.scrollToEnd({ animated: true });
+    }
+  }, [messages]);
 
   const keyExtractor = React.useCallback(item => item._id, []);
-
- 
 
   // Memoize the background component
   const BackgroundComponent = React.useMemo(() => (
@@ -166,6 +184,22 @@ export default function DMsScreen({ route, navigation }) {
       blurReductionFactor={16}
     />
   ), []);
+
+  useEffect(()=>{
+    if(activeChat){
+      socket.emit('addUserToList',{
+        userId:currentUser._id,
+        activeId:activeChat._id
+      });
+    }
+
+    return ()=> socket.emit('removeUserFromList',currentUser._id);
+      
+  },[activeChat]);
+  
+  const listData = React.useMemo(() => {
+    return [...messages, { _id: 'spacer', type: 'spacer' }];
+  }, [messages]);
 
   return (
     <>
@@ -203,18 +237,21 @@ export default function DMsScreen({ route, navigation }) {
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === "ios" ? "padding" : undefined}
-          keyboardVerticalOffset={0}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
         >
           <FlatList
-            data={messages}
+            data={listData}
             keyExtractor={keyExtractor}
             contentContainerStyle={contentContainerStyle}
             showsVerticalScrollIndicator={false}
             ref={scrollViewRef}
-            onLayout={() =>
-              scrollViewRef.current.scrollToEnd({ animated: true })
-            }
+            onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
+            onLayout={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
             renderItem={renderItem}
+            maintainVisibleContentPosition={{
+              minIndexForVisible: 0,
+              autoscrollToTopThreshold: 10,
+            }}
           />
           <Animated.View
             style={[
@@ -437,5 +474,7 @@ const styles = StyleSheet.create({
     right: 0,
     marginBottom: 5,
     width: "100%",
+    backgroundColor: 'transparent',
+    zIndex: 1000, // Ensure input stays on top
   },
 });
