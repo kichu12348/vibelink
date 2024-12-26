@@ -9,12 +9,13 @@ import { colors } from "./constants/primary";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as NavigationBar from "expo-navigation-bar";
-import { Platform } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 import { MessageProvider } from "./context/MessageContext";
 import * as Notifications from "expo-notifications";
 import * as Updates from "expo-updates";
 import { enableScreens } from "react-native-screens";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { View, ActivityIndicator } from "react-native";
 
 enableScreens();
 
@@ -41,7 +42,16 @@ Notifications.setNotificationHandler({
 });
 
 function AppNavigator() {
-  const { token, currentUser } = useAuth();
+  const { token, currentUser, authChecking } = useAuth();
+
+  if (authChecking) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    )
+  }
+
   return (
     <NavigationContainer theme={MyTheme}>
       <Stack.Navigator
@@ -81,7 +91,7 @@ export default function App() {
   }, []);
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={styles.flex1}>
       <SafeAreaProvider>
         <AuthProvider>
           <PostProvider>
@@ -95,3 +105,15 @@ export default function App() {
     </GestureHandlerRootView>
   );
 }
+
+const styles=StyleSheet.create({
+  container:{
+    flex:1,
+    justifyContent:'center',
+    alignItems:'center',
+    backgroundColor:colors.background
+  },
+  flex1:{
+    flex:1
+  }
+})

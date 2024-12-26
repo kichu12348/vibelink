@@ -199,7 +199,7 @@ export default function DMsScreen({ route, navigation }) {
   
   const listData = React.useMemo(() => {
     return [...messages, { _id: 'spacer', type: 'spacer' }];
-  }, [messages]);
+  }, [messages]);// eslint-disable-line
 
   return (
     <>

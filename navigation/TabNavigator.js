@@ -41,11 +41,11 @@ function Tabs({ navigation }) {
           response.notification.request.content.data || {};
         if (conversationId && receiverId) {
           setActiveChat({
-            conversationId,
+            _id: conversationId,
+            participants, // ensures activeChat has the "_id" property
             receiverId,
             username,
             profileImage,
-            participants
           });
           navigation.navigate("single-chat", {
             conversationId,

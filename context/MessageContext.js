@@ -116,28 +116,6 @@ export function MessageProvider({ children }) {
         }
         return [conversation, ...prev];
       });
-
-      // Show notification only if not in the active chat
-      if (AppState.currentState === 'active' && activeChat?._id !== conversation._id) {
-        const sender = conversation.participants.find(
-          p => p.user._id !== currentUser._id
-        )?.user;
-
-        await Notifications.scheduleNotificationAsync({
-          content: {
-            title: sender?.username || 'New message',
-            body: message.content || 'Sent you a message',
-            data: {
-              conversationId: conversation._id,
-              receiverId: sender?._id,
-              username: sender?.username,
-              profileImage: sender?.profileImage,
-              participants: conversation.participants,
-            },
-          },
-          trigger: null
-        });
-      }
     };
 
     socket.on('newMessage', handleNewMessage);

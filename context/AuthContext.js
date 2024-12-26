@@ -14,6 +14,7 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [token, setToken] = useState(null);
+    const [authChecking, setAuthChecking] = useState(true);
 
 
     const checkUser = async () => {
@@ -40,10 +41,11 @@ export const AuthProvider = ({ children }) => {
                     }
                     setToken(token);
                 } catch (err) {
-                    console.log('Error fetching user details:', err.message);
+                    console.log('Error fetching user details:', err.response?.data || err.message);
                 }
             }
         }
+        setAuthChecking(false);
     };
 
 
@@ -192,7 +194,8 @@ export const AuthProvider = ({ children }) => {
             signUp,
             signOut,
             token,
-            setCurrentUser
+            setCurrentUser,
+            authChecking
         }}>
             {children}
         </AuthContext.Provider>
