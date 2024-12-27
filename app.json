@@ -3,7 +3,7 @@
     "name": "vibelink",
     "slug": "vibelink",
     "scheme": "vibelink",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -27,7 +27,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.kichu12348.vibelink",
-      "runtimeVersion": "1.2.0",
+      "runtimeVersion": "1.2.1",
       "googleServicesFile": "./google-services.json"
     },
     "web": {

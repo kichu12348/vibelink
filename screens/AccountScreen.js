@@ -254,7 +254,7 @@ export default function AccountScreen() {
 
           <Text style={styles.name}>@{currentUser?.username}</Text>
           <Text style={styles.bio}>
-            {bio.length > 50 ? bio.slice(0, 50) + "..." : bio}
+            {bio}
           </Text>
         </View>
 
