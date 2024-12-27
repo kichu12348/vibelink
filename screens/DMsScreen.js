@@ -11,7 +11,10 @@ import {
   Animated,
   Modal,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "../constants/primary";
 import { useMessage } from "../context/MessageContext";
@@ -29,7 +32,7 @@ const defaultAvatar =
   "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
 
 const SpacerItem = React.memo(() => (
-  <View style={{ height: 100, backgroundColor: 'transparent' }} />
+  <View style={{ height: 100, backgroundColor: "transparent" }} />
 ));
 
 export default function DMsScreen({ route, navigation }) {
@@ -123,11 +126,11 @@ export default function DMsScreen({ route, navigation }) {
       }
       const isOwn = item?.sender?._id === currentUser?._id;
       return (
-        <MessageItem 
+        <MessageItem
           message={item}
           isOwn={isOwn}
           onClickPost={handlePostClick}
-          onClickImage={(uri)=>{
+          onClickImage={(uri) => {
             setImageUriModal(uri);
             setImageModalVisible(true);
           }}
@@ -136,22 +139,26 @@ export default function DMsScreen({ route, navigation }) {
     },
     [currentUser?._id, messages.length]
   );
-
+ const insets = useSafeAreaInsets();
   // Calculate proper bottom padding to account for input box
-  const contentContainerStyle = React.useMemo(() => ({
-    padding: 16,
-    paddingBottom: 90, // Increase this value to ensure messages are visible above input
-  }), []);
+  const contentContainerStyle = React.useMemo(
+    () => ({
+      padding: 16,
+      paddingBottom: 90, // Increase this value to ensure messages are visible above input
+      paddingTop: 50+insets.top,
+    }),
+    []
+  );
 
   // Modified scroll behavior
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (messages.length > 0 && scrollViewRef.current) {
-        scrollViewRef.current.scrollToEnd({ animated: false });
-      }
-    }, 100);
-    return () => clearTimeout(timer);
-  }, []);
+  // useEffect(() => {
+  //   const timer = setTimeout(() => {
+  //     if (messages.length > 0 && scrollViewRef.current) {
+  //       scrollViewRef.current.scrollToEnd({ animated: true });
+  //     }
+  //   }, 100);
+  //   return () => clearTimeout(timer);
+  // }, []);
 
   // Handle new messages scroll
   useEffect(() => {
@@ -160,82 +167,93 @@ export default function DMsScreen({ route, navigation }) {
     }
   }, [messages]);
 
-  const keyExtractor = React.useCallback(item => item._id, []);
+  const keyExtractor = React.useCallback((item) => item._id, []);
 
   // Memoize the background component
-  const BackgroundComponent = React.useMemo(() => (
-    <Image
-      source={bgImage} 
-      style={{ 
-        flex: 1,
-        ...StyleSheet.absoluteFillObject,
-
-      }}
-      contentFit="cover"
-      
-    />
-  ), []);
+  const BackgroundComponent = React.useMemo(
+    () => (
+      <Image
+        source={bgImage}
+        style={{
+          flex: 1,
+          ...StyleSheet.absoluteFillObject,
+        }}
+        contentFit="cover"
+      />
+    ),
+    []
+  );
 
   // Memoize the input container blur view
-  const InputBlurView = React.useMemo(() => (
-    <BlurView
-      intensity={60}
-      tint="dark"
-      style={styles.blurBackground}
-      experimentalBlurMethod="dimezisBlurView"
-      blurReductionFactor={16}
-    />
-  ), []);
+  const InputBlurView = React.useMemo(
+    () => (
+      <BlurView
+        intensity={60}
+        tint="dark"
+        style={styles.blurBackground}
+        experimentalBlurMethod="dimezisBlurView"
+        blurReductionFactor={16}
+      />
+    ),
+    []
+  );
 
-  useEffect(()=>{
-    if(activeChat){
-      socket.emit('addUserToList',{
-        userId:currentUser._id,
-        activeId:activeChat._id
+  useEffect(() => {
+    if (activeChat) {
+      socket.emit("addUserToList", {
+        userId: currentUser._id,
+        activeId: activeChat._id,
       });
     }
 
-    return ()=> socket.emit('removeUserFromList',currentUser._id);
-      
-  },[activeChat]);
-  
+    return () => socket.emit("removeUserFromList", currentUser._id);
+  }, [activeChat]);
+
   const listData = React.useMemo(() => {
-    return [...messages, { _id: 'spacer', type: 'spacer' }];
-  }, [messages]);// eslint-disable-line
+    return [...messages, { _id: "spacer", type: "spacer" }];
+  }, [messages]); // eslint-disable-line
+
+ 
 
   return (
     <>
-    <StatusBar 
-    translucent
-    backgroundColor="transparent"
-    style="light"
-     />
-    {BackgroundComponent}
-    <SafeAreaView style={styles.container}>
-        
-
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => {
-              navigation.goBack();
-              setActiveChat(null);
-            }}
-            style={styles.backButton}
-          >
-            <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>
-            {activeChat?.participants.find(
-              (p) => p.user._id !== currentUser._id
-            )?.user.username ||
-              username ||
-              "Error :("}
-          </Text>
-          <Image
-            source={{ uri: profileImage || defaultAvatar }}
-            style={styles.profileImage}
-          />
-        </View>
+      <StatusBar translucent backgroundColor="transparent" style="light" />
+      {BackgroundComponent}
+      <View style={[styles.container, { paddingBottom: insets.bottom }]}>
+        <BlurView
+          style={[styles.headerContainer, { paddingTop: insets.top }]}
+          intensity={20}
+          tint="dark"
+          experimentalBlurMethod="dimezisBlurView"
+          blurReductionFactor={16}
+        >
+          <View style={styles.header}>
+            <TouchableOpacity
+              onPress={() => {
+                navigation.goBack();
+                setActiveChat(null);
+              }}
+              style={styles.backButton}
+            >
+              <Ionicons
+                name="arrow-back"
+                size={24}
+                color={colors.textPrimary}
+              />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>
+              {activeChat?.participants.find(
+                (p) => p.user._id !== currentUser._id
+              )?.user.username ||
+                username ||
+                "Error :("}
+            </Text>
+            <Image
+              source={{ uri: profileImage || defaultAvatar }}
+              style={styles.profileImage}
+            />
+          </View>
+        </BlurView>
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -247,8 +265,12 @@ export default function DMsScreen({ route, navigation }) {
             contentContainerStyle={contentContainerStyle}
             showsVerticalScrollIndicator={false}
             ref={scrollViewRef}
-            onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
-            onLayout={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
+            onContentSizeChange={() =>
+              scrollViewRef.current?.scrollToEnd({ animated: true })
+            }
+            onLayout={() =>
+              scrollViewRef.current?.scrollToEnd({ animated: true })
+            }
             renderItem={renderItem}
             maintainVisibleContentPosition={{
               minIndexForVisible: 0,
@@ -368,10 +390,12 @@ export default function DMsScreen({ route, navigation }) {
           visible={postModalVisible}
           onRequestClose={() => setPostModalVisible(false)}
         >
-          {postContent && <ViewPostScreen
-            post={postContent}
-            close={() => setPostModalVisible(false)}
-          />}
+          {postContent && (
+            <ViewPostScreen
+              post={postContent}
+              close={() => setPostModalVisible(false)}
+            />
+          )}
         </Modal>
         <Modal
           animationType="fade"
@@ -385,7 +409,7 @@ export default function DMsScreen({ route, navigation }) {
             close={() => setImageModalVisible(false)}
           />
         </Modal>
-      </SafeAreaView>
+      </View>
     </>
   );
 }
@@ -441,6 +465,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 16,
   },
+  headerContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 100,
+    paddingBottom: 10,
+  },
   backButton: {
     marginRight: 16,
   },
@@ -488,7 +520,7 @@ const styles = StyleSheet.create({
     right: 0,
     marginBottom: 5,
     width: "100%",
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
     zIndex: 1000, // Ensure input stays on top
   },
 });

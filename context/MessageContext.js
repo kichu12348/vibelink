@@ -5,9 +5,7 @@ import axios from 'axios';
 import io from 'socket.io-client';
 import { endPoint as API_URL} from '../constants/endpoints';
 import { uploadFile } from '../utils/fileUpload';
-import { AppState } from 'react-native';
 import * as Device from 'expo-device';
-import Constants from 'expo-constants';
 
 
 

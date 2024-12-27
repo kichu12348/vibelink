@@ -53,7 +53,7 @@ export default function AccountScreen() {
       const p = postContext.posts.filter(
         (post) => post?.user?._id === currentUser?._id
       );
-      setPostCount(p.length||0);
+      setPostCount(p.length || 0);
       return p;
     });
   }, [postContext.posts]);
@@ -66,11 +66,10 @@ export default function AccountScreen() {
           const data = await postContext.getPostCommentUser(follower);
           return data;
         })
-      )
+      );
 
       setFollowers(followers);
     }
-
 
     async function fetchFollowing() {
       let following = await Promise.all(
@@ -79,7 +78,7 @@ export default function AccountScreen() {
           const data = await postContext.getPostCommentUser(follow);
           return data;
         })
-      )
+      );
 
       setFollowing(following);
     }
@@ -90,7 +89,7 @@ export default function AccountScreen() {
     setPosts(
       postContext.posts.filter((post) => post?.user?._id === currentUser?._id)
     );
-    setPostCount(posts.length||0);
+    setPostCount(posts.length || 0);
   }, [currentUser]);
 
   // Sample posts data - multiple of 3 for clean rows
@@ -173,7 +172,7 @@ export default function AccountScreen() {
   };
 
   // Modify StatBox to be touchable
-  const StatBox = ({ label, value}) => (
+  const StatBox = ({ label, value }) => (
     <View style={styles.statBox}>
       <Text style={styles.statValue}>{value}</Text>
       <Text style={styles.statLabel}>{label}</Text>
@@ -181,23 +180,23 @@ export default function AccountScreen() {
   );
 
   const renderUserItem = ({ item }) => {
-    if (!item || typeof item !=="object") return null;
-    return(
-    <TouchableOpacity
-      style={styles.userItem}
-      onPress={() => handleUserPress(item)}
-    >
-      <Image
-        source={
-          item.profileImage
-            ? { uri: item.profileImage }
-            : require("../defaultImages/default-user.jpg")
-        }
-        style={styles.userImage}
-      />
-      <Text style={styles.userName}>@{item.username}</Text>
-    </TouchableOpacity>
-  );
+    if (!item || typeof item !== "object") return null;
+    return (
+      <TouchableOpacity
+        style={styles.userItem}
+        onPress={() => handleUserPress(item)}
+      >
+        <Image
+          source={
+            item.profileImage
+              ? { uri: item.profileImage }
+              : require("../defaultImages/default-user.jpg")
+          }
+          style={styles.userImage}
+        />
+        <Text style={styles.userName}>@{item.username}</Text>
+      </TouchableOpacity>
+    );
   };
 
   const renderPost = (post) => (
@@ -240,7 +239,7 @@ export default function AccountScreen() {
         contentContainerStyle={{ paddingBottom: bottomTabBarHeight + 5 }}
       >
         <View style={styles.header}>
-          <TouchableOpacity onPress={pickImage}>
+          <View>
             <View style={styles.imageContainer}>
               <Image
                 source={
@@ -250,14 +249,13 @@ export default function AccountScreen() {
                 }
                 style={styles.profileImage}
               />
-              <View style={styles.editIconContainer}>
-                <Ionicons name="camera" size={20} color={colors.background} />
-              </View>
             </View>
-          </TouchableOpacity>
+          </View>
 
           <Text style={styles.name}>@{currentUser?.username}</Text>
-          <Text style={styles.bio}>{bio}</Text>
+          <Text style={styles.bio}>
+            {bio.length > 50 ? bio.slice(0, 50) + "..." : bio}
+          </Text>
         </View>
 
         <View style={styles.statsContainer}>
@@ -265,14 +263,14 @@ export default function AccountScreen() {
           <TouchableOpacity onPress={() => openFollowModal("followers")}>
             <StatBox
               label="Followers"
-              value={followers?.length||0}
+              value={followers?.length || 0}
               onPress={() => openFollowModal("followers")}
             />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => openFollowModal("following")}>
             <StatBox
               label="Following"
-              value={following?.length||0}
+              value={following?.length || 0}
               onPress={() => openFollowModal("following")}
             />
           </TouchableOpacity>
