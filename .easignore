@@ -1,0 +1,13 @@
+node_modules/**/*
+.expo/*
+npm-debug.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+web-build/
+.DS_Store
+# Do NOT ignore google-services.json as it's needed for Android builds
+# google-services.json
