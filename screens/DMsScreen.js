@@ -151,14 +151,14 @@ export default function DMsScreen({ route, navigation }) {
   );
 
   // Modified scroll behavior
-  // useEffect(() => {
-  //   const timer = setTimeout(() => {
-  //     if (messages.length > 0 && scrollViewRef.current) {
-  //       scrollViewRef.current.scrollToEnd({ animated: true });
-  //     }
-  //   }, 100);
-  //   return () => clearTimeout(timer);
-  // }, []);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (messages.length > 0 && scrollViewRef.current) {
+        scrollViewRef.current.scrollToEnd({ animated: false });
+      }
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Handle new messages scroll
   useEffect(() => {
