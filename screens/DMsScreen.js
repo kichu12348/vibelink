@@ -9,8 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Animated,
-  Modal,
-  AppState,
+  Modal
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -274,15 +273,9 @@ export default function DMsScreen({ route, navigation }) {
         activeId: activeChat._id,
       });
     }
-    const subscription = AppState.addEventListener("change", (nextAppState) => {
-      if (nextAppState === "background") {
-        socket.emit("removeUserFromList", currentUser._id);
-      }
-    });
 
     return () => {
       socket.emit("removeUserFromList", currentUser._id);
-      subscription.remove();
     };
   }, [activeChat]);
 
