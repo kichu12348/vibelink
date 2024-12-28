@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   View,
   TextInput,
@@ -10,11 +10,9 @@ import {
   Platform,
   Animated,
   Modal,
+  AppState,
 } from "react-native";
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "../constants/primary";
 import { useMessage } from "../context/MessageContext";
@@ -35,6 +33,61 @@ const SpacerItem = React.memo(() => (
   <View style={{ height: 100, backgroundColor: "transparent" }} />
 ));
 
+const TypingIndicator = () => {
+  const [dots] = useState([
+    new Animated.Value(0),
+    new Animated.Value(0),
+    new Animated.Value(0),
+  ]);
+
+  useEffect(() => {
+    const animations = dots.map((dot, index) => {
+      return Animated.sequence([
+        Animated.delay(index * 200),
+        Animated.loop(
+          Animated.sequence([
+            Animated.timing(dot, {
+              toValue: 1,
+              duration: 400,
+              useNativeDriver: true,
+            }),
+            Animated.timing(dot, {
+              toValue: 0,
+              duration: 400,
+              useNativeDriver: true,
+            }),
+          ])
+        ),
+      ]);
+    });
+
+    Animated.parallel(animations).start();
+  }, []);
+
+  return (
+    <View style={styles.typingContainer}>
+      {dots.map((dot, index) => (
+        <Animated.View
+          key={index}
+          style={[
+            styles.typingDot,
+            {
+              transform: [
+                {
+                  translateY: dot.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0, -6],
+                  }),
+                },
+              ],
+            },
+          ]}
+        />
+      ))}
+    </View>
+  );
+};
+
 export default function DMsScreen({ route, navigation }) {
   navigation.on;
   const { conversationId, receiverId, username, profileImage } = route.params;
@@ -54,6 +107,8 @@ export default function DMsScreen({ route, navigation }) {
   const [postContent, setPostContent] = useState(null);
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [imageUriModal, setImageUriModal] = useState(null);
+  const [isTyping, setIsTyping] = useState(false);
+  const typingTimeoutRef = useRef(null);
 
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
 
@@ -72,9 +127,23 @@ export default function DMsScreen({ route, navigation }) {
 
       socket.on("message", handleNewMessage);
 
+      socket.on("userTyping", ({ userId }) => {
+        if (userId !== currentUser._id) {
+          setIsTyping(true);
+        }
+      });
+
+      socket.on("userStopTyping", ({ userId }) => {
+        if (userId !== currentUser._id) {
+          setIsTyping(false);
+        }
+      });
+
       return () => {
         socket.emit("leaveChat", conversationId);
         socket.off("message", handleNewMessage);
+        socket.off("userTyping");
+        socket.off("userStopTyping");
       };
     }
   }, [conversationId, socket]);
@@ -139,13 +208,13 @@ export default function DMsScreen({ route, navigation }) {
     },
     [currentUser?._id, messages.length]
   );
- const insets = useSafeAreaInsets();
+  const insets = useSafeAreaInsets();
   // Calculate proper bottom padding to account for input box
   const contentContainerStyle = React.useMemo(
     () => ({
       padding: 16,
       paddingBottom: 90, // Increase this value to ensure messages are visible above input
-      paddingTop: 50+insets.top,
+      paddingTop: 50 + insets.top,
     }),
     []
   );
@@ -205,15 +274,44 @@ export default function DMsScreen({ route, navigation }) {
         activeId: activeChat._id,
       });
     }
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
+      if (nextAppState === "background") {
+        socket.emit("removeUserFromList", currentUser._id);
+      }
+    });
 
-    return () => socket.emit("removeUserFromList", currentUser._id);
+    return () => {
+      socket.emit("removeUserFromList", currentUser._id);
+      subscription.remove();
+    };
   }, [activeChat]);
 
   const listData = React.useMemo(() => {
     return [...messages, { _id: "spacer", type: "spacer" }];
   }, [messages]); // eslint-disable-line
 
- 
+  const TYPING_DELAY_MS = 2000;
+  let lastTypingTime = 0;
+
+  const emitTyping = () => {
+    const now = Date.now();
+    // Only emit if enough time has passed since last typing event
+    if (now - lastTypingTime > 1000) {
+      socket.emit("typing", { conversationId, userId: currentUser._id });
+      lastTypingTime = now;
+    }
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    typingTimeoutRef.current = setTimeout(() => {
+      socket.emit("stopTyping", { conversationId, userId: currentUser._id });
+    }, TYPING_DELAY_MS);
+  };
+
+  const handleTextChange = (newText) => {
+    setText(newText);
+    emitTyping();
+  };
 
   return (
     <>
@@ -325,10 +423,12 @@ export default function DMsScreen({ route, navigation }) {
                 />
               </TouchableOpacity>
             )}
-            <View style={styles.inputWrapper}>
-              <View style={styles.floatingContainer}>
+            <View style={[styles.inputWrapper]}>
+              {isTyping && <TypingIndicator />}
+              <View style={[styles.floatingContainer]}>
                 {InputBlurView}
                 <View style={styles.inputContainer}>
+                
                   {imageUri !== "" && (
                     <View
                       style={{
@@ -365,7 +465,7 @@ export default function DMsScreen({ route, navigation }) {
                     placeholder="Message..."
                     placeholderTextColor={colors.textSecondary}
                     value={text}
-                    onChangeText={setText}
+                    onChangeText={handleTextChange}
                     multiline
                     numberOfLines={3}
                   />
@@ -521,6 +621,34 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     width: "100%",
     backgroundColor: "transparent",
-    zIndex: 1000, // Ensure input stays on top
+    zIndex: 1000,
+  },
+  typingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "flex-start",
+    width: 50,
+    marginHorizontal: 16,
+    marginBottom: 8,
+    zIndex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    padding: 10,
+    borderRadius: 16,
+  },
+  typingDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.textPrimary,
+    marginHorizontal: 2,
+    shadowColor: colors.textPrimary,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
 });
