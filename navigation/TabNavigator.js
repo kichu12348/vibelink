@@ -1,8 +1,5 @@
 import React from "react";
-import {
-  createBottomTabNavigator,
-  TransitionPresets,
-} from "@react-navigation/bottom-tabs";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
 import HomeScreen from "../screens/HomeScreen";
@@ -11,12 +8,13 @@ import AddPostScreen from "../screens/AddPostScreen";
 import AccountScreen from "../screens/AccountScreen";
 import DMsScreen from "../screens/DMsScreen";
 import { colors } from "../constants/primary";
-import { Platform, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Platform, StyleSheet, TouchableOpacity, Modal } from "react-native";
 import { useAuth } from "../context/AuthContext";
 import { BlurView } from "expo-blur";
 import AllChatsScreen from "../screens/AllChatsScreen";
-import * as Notifications from 'expo-notifications';
+import * as Notifications from "expo-notifications";
 import { useMessage } from "../context/MessageContext";
+import Settings from "../components/settings";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -30,15 +28,20 @@ const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
 function Tabs({ navigation }) {
-  const { signOut } = useAuth();
-  const {setActiveChat}=useMessage();
+  const { setActiveChat } = useMessage();
 
+  const [settingsOpen, setSettingsOpen] = React.useState(false);
 
   React.useEffect(() => {
     const subscription = Notifications.addNotificationResponseReceivedListener(
-      response => {
-        const { conversationId, receiverId, username, profileImage,participants} =
-          response.notification.request.content.data || {};
+      (response) => {
+        const {
+          conversationId,
+          receiverId,
+          username,
+          profileImage,
+          participants,
+        } = response.notification.request.content.data || {};
         if (conversationId && receiverId) {
           setActiveChat({
             _id: conversationId,
@@ -52,7 +55,7 @@ function Tabs({ navigation }) {
             receiverId,
             username,
             profileImage,
-            participants
+            participants,
           });
         }
       }
@@ -61,28 +64,28 @@ function Tabs({ navigation }) {
   }, [navigation]);
 
   return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        tabBarShowLabel: false,
-        tabBarHideOnKeyboard: true,
-        tabBarStyle: {
-          ...Platform.select({
-            ios: {
-              height: 80,
-            },
-            android: {
-              height: 70,
-            },
-          }),
-          position: "absolute",
-          paddingBottom: 10,
-          paddingTop: 8,
-          borderTopWidth: 0,
-        },
+    <>
+      <Tab.Navigator
+        screenOptions={({ route }) => ({
+          tabBarShowLabel: false,
+          tabBarHideOnKeyboard: true,
+          tabBarStyle: {
+            ...Platform.select({
+              ios: {
+                height: 80,
+              },
+              android: {
+                height: 70,
+              },
+            }),
+            position: "absolute",
+            paddingBottom: 10,
+            paddingTop: 8,
+            borderTopWidth: 0,
+          },
 
-        tabBarBackground: () => {
-          return (
-            
+          tabBarBackground: () => {
+            return (
               <BlurView
                 intensity={80}
                 blurReductionFactor={12}
@@ -95,87 +98,105 @@ function Tabs({ navigation }) {
                 tint="dark"
                 experimentalBlurMethod="dimezisBlurView"
               />
-          
-          );
-        },
+            );
+          },
 
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.textSecondary,
-        tabBarIconStyle:{
-          alignSelf:'center'
-        },
-        headerStyle: {
-          backgroundColor: colors.card,
-          elevation: 0,
-          shadowOpacity: 0,
-        },
-        headerTintColor: colors.textPrimary,
-        headerRight: () => {
-          if (route.name === "Profile") {
-            return (
-              <TouchableOpacity onPress={signOut} style={{ marginRight: 15 }}>
-                <Ionicons
-                  name="log-out-outline"
-                  size={30}
-                  color={colors.textPrimary}
-                />
-              </TouchableOpacity>
-            );
-          }
-          if (route.name === "Feed") {
-            return (
-              <TouchableOpacity
-                onPress={() => navigation.navigate("DMs")}
-                style={{ marginRight: 15 }}
-              >
-                <Ionicons
-                  name="chatbubbles-outline"
-                  size={30}
-                  color={colors.textPrimary}
-                />
-              </TouchableOpacity>
-            );
-          }
-        },
-      })}
-    >
-      <Tab.Screen
-        name="Feed"
-        component={HomeScreen}
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home-outline" size={size} color={color} />
-          ),
+          tabBarActiveTintColor: colors.primary,
+          tabBarInactiveTintColor: colors.textSecondary,
+          tabBarIconStyle: {
+            alignSelf: "center",
+          },
+          headerStyle: {
+            backgroundColor: colors.card,
+            elevation: 0,
+            shadowOpacity: 0,
+          },
+          headerTintColor: colors.textPrimary,
+          headerRight: () => {
+            if (route.name === "Profile") {
+              return (
+                <TouchableOpacity
+                  onPress={() => setSettingsOpen(true)}
+                  style={{ marginRight: 15 }}
+                >
+                  <Ionicons
+                    name="settings-outline"
+                    size={30}
+                    color={colors.textPrimary}
+                  />
+                </TouchableOpacity>
+              );
+            }
+            if (route.name === "Feed") {
+              return (
+                <TouchableOpacity
+                  onPress={() => navigation.navigate("DMs")}
+                  style={{ marginRight: 15 }}
+                >
+                  <Ionicons
+                    name="chatbubbles-outline"
+                    size={30}
+                    color={colors.textPrimary}
+                  />
+                </TouchableOpacity>
+              );
+            }
+          },
+        })}
+      >
+        <Tab.Screen
+          name="Feed"
+          component={HomeScreen}
+          options={{
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="home-outline" size={size} color={color} />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="Search"
+          component={SearchScreen}
+          options={{
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="search-outline" size={size} color={color} />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="Add Post"
+          component={AddPostScreen}
+          options={{
+            tabBarIcon: ({ color }) => (
+              <Ionicons name="add-circle-outline" size={30} color={color} />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="Profile"
+          component={AccountScreen}
+          options={{
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="person-outline" size={size} color={color} />
+            ),
+          }}
+        />
+      </Tab.Navigator>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={settingsOpen}
+        onRequestClose={() => {
+          setSettingsOpen(false);
         }}
-      />
-      <Tab.Screen
-        name="Search"
-        component={SearchScreen}
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="search-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Add Post"
-        component={AddPostScreen}
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="add-circle-outline" size={30} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Profile"
-        component={AccountScreen}
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-outline" size={size} color={color} />
-          ),
-        }}
-      />
-    </Tab.Navigator>
+        hardwareAccelerated={true}
+      >
+        <Settings
+          close={() => {
+            setSettingsOpen(false);
+          }}
+        />
+      </Modal>
+    </>
   );
 }
 
@@ -189,7 +210,6 @@ export default function TabNavigator({ navigation }) {
       });
     }
   }, [token, currentUser]);
-
 
   return (
     <Stack.Navigator

@@ -1,13 +1,18 @@
-import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
-import { useAuth } from './AuthContext';
-import * as Notifications from 'expo-notifications';
-import axios from 'axios';
-import io from 'socket.io-client';
-import { endPoint as API_URL} from '../constants/endpoints';
-import { uploadFile } from '../utils/fileUpload';
-import * as Device from 'expo-device';
-
-
+import React, {
+  createContext,
+  useState,
+  useContext,
+  useEffect,
+  useCallback,
+} from "react";
+import { useAuth } from "./AuthContext";
+import * as Notifications from "expo-notifications";
+import axios from "axios";
+import io from "socket.io-client";
+import { endPoint as API_URL } from "../constants/endpoints";
+import { uploadFile } from "../utils/fileUpload";
+import * as Device from "expo-device";
+import { Platform } from "react-native";
 
 // Set up notifications handler
 Notifications.setNotificationHandler({
@@ -19,12 +24,13 @@ Notifications.setNotificationHandler({
 });
 
 async function registerForPushNotificationsAsync() {
-  let token;
+  //console.log(1);
+  let token=null;
   if (Device.isDevice) {
     const { status: existingStatus } =
       await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
-
+    //console.log(2);
     if (existingStatus !== "granted") {
       const { status } = await Notifications.requestPermissionsAsync();
       finalStatus = status;
@@ -32,8 +38,6 @@ async function registerForPushNotificationsAsync() {
 
     if (finalStatus === "granted") {
       token = (await Notifications.getExpoPushTokenAsync()).data;
-
-      // Add Android-specific notification settings
       if (Platform.OS === "android") {
         await Notifications.setNotificationChannelAsync("default", {
           name: "Default",
@@ -42,11 +46,11 @@ async function registerForPushNotificationsAsync() {
           lightColor: "#FF231F7C", // LED light color
         });
       }
+     
     }
   } else {
-   return null;
+    return null;
   }
-
   return token;
 }
 const MessageContext = createContext();
@@ -60,7 +64,7 @@ export function MessageProvider({ children }) {
 
   // Register once and optionally send token to your backend
   useEffect(() => {
-    registerForPushNotificationsAsync().then(async pushToken => {
+    registerForPushNotificationsAsync().then(async (pushToken) => {
       if (pushToken && currentUser) {
         try {
           await axios.post(
@@ -69,7 +73,10 @@ export function MessageProvider({ children }) {
             { headers: { Authorization: `Bearer ${token}` } }
           );
         } catch (error) {
-          console.log('Error saving push token:', error.response?.data || error.message);
+          console.log(
+            "Error saving push token:",
+            error.response?.data || error.message
+          );
         }
       }
     });
@@ -82,8 +89,8 @@ export function MessageProvider({ children }) {
     const newSocket = io(API_URL);
     setSocket(newSocket);
 
-    newSocket.on('connect', () => {
-      newSocket.emit('join', currentUser._id);
+    newSocket.on("connect", () => {
+      newSocket.emit("join", currentUser._id);
     });
 
     return () => {
@@ -98,15 +105,14 @@ export function MessageProvider({ children }) {
     if (!socket || !currentUser) return;
 
     const handleNewMessage = async ({ message, conversation }) => {
-      
       // Update messages if in current chat
       if (activeChat?._id === conversation._id) {
-        setMessages(prev => [...prev, message]);
+        setMessages((prev) => [...prev, message]);
       }
-      
+
       // Update conversations list
-      setConversations(prev => {
-        const existingIndex = prev.findIndex(c => c._id === conversation._id);
+      setConversations((prev) => {
+        const existingIndex = prev.findIndex((c) => c._id === conversation._id);
         if (existingIndex > -1) {
           const updated = [...prev];
           updated[existingIndex] = conversation;
@@ -116,115 +122,137 @@ export function MessageProvider({ children }) {
       });
     };
 
-    socket.on('newMessage', handleNewMessage);
+    socket.on("newMessage", handleNewMessage);
 
     return () => {
-      socket.off('newMessage', handleNewMessage);
+      socket.off("newMessage", handleNewMessage);
     };
   }, [socket, currentUser, activeChat]);
 
   // API functions
   const fetchConversations = useCallback(async () => {
     try {
-      const { data } = await axios.get(`${API_URL}/api/messages/conversations`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const { data } = await axios.get(
+        `${API_URL}/api/messages/conversations`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setConversations(data);
     } catch (error) {
-      console.log('Error fetching conversations:', error.message);
+      console.log("Error fetching conversations:", error.message);
     }
   }, [token]);
 
-  const fetchMessages = useCallback(async (conversationId) => {
-    try {
-      if (!conversationId) {
-        console.log('No conversationId provided');
-        return;
-      }
-      
-      const { data } = await axios.get(`${API_URL}/api/messages/${conversationId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      if (Array.isArray(data)) {
-        setMessages(data);
-      } else {
+  const fetchMessages = useCallback(
+    async (conversationId) => {
+      try {
+        if (!conversationId) {
+          console.log("No conversationId provided");
+          return;
+        }
+
+        const { data } = await axios.get(
+          `${API_URL}/api/messages/${conversationId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        if (Array.isArray(data)) {
+          setMessages(data);
+        } else {
+          setMessages([]);
+        }
+      } catch (error) {
+        console.log(
+          "Error fetching messages:",
+          error.response?.data || error.message
+        );
         setMessages([]);
       }
-    } catch (error) {
-      console.log('Error fetching messages:', error.response?.data || error.message);
-      setMessages([]);
-    }
-  }, [token]);
+    },
+    [token]
+  );
 
-  const sendMessage = async (conversationId, content, receiverId, media, sharedPost = null) => {
+  const sendMessage = async (
+    conversationId,
+    content,
+    receiverId,
+    media,
+    sharedPost = null
+  ) => {
     try {
       if (!content.trim() && !media && !sharedPost) return;
-      
+
       const { data } = await axios.post(
-        `${API_URL}/api/messages`, 
-        { 
-          conversationId, 
-          content: content.trim(), 
+        `${API_URL}/api/messages`,
+        {
+          conversationId,
+          content: content.trim(),
           receiverId,
           media,
-          sharedPost: sharedPost?._id
+          sharedPost: sharedPost?._id,
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       // Update local state
       if (!conversationId) {
-        setConversations(prev => [data.conversation, ...prev]);
+        setConversations((prev) => [data.conversation, ...prev]);
       }
-      setMessages(prev => [...prev, data.message]);
+      setMessages((prev) => [...prev, data.message]);
       return data;
     } catch (error) {
-      console.log('Error sending message:', error.response?.data);
+      console.log("Error sending message:", error.response?.data);
     }
   };
 
   const searchUsers = async (query) => {
     try {
-      const { data } = await axios.get(`${API_URL}/api/users/search?q=${query}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const { data } = await axios.get(
+        `${API_URL}/api/users/search?q=${query}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       return data;
     } catch (error) {
-      console.error('Error searching users:', error);
+      console.error("Error searching users:", error);
       return [];
     }
   };
 
-
-
-  async function uploadImageToServer(imageUri){
-    const fileName=await uploadFile({uri:imageUri});
-    const res=await axios.post(`${API_URL}/api/messages/upload`,{filename:fileName});
+  async function uploadImageToServer(imageUri) {
+    const fileName = await uploadFile({ uri: imageUri });
+    const res = await axios.post(`${API_URL}/api/messages/upload`, {
+      filename: fileName,
+    });
     return res.data.url;
   }
 
-
-  useEffect(()=>{
-    if(currentUser){
+  useEffect(() => {
+    if (currentUser) {
       fetchConversations();
     }
-  },[currentUser]);
+  }, [currentUser]);
 
   return (
-    <MessageContext.Provider value={{
-      conversations,
-      activeChat,
-      setActiveChat,
-      messages,
-      setMessages,
-      sendMessage,
-      fetchConversations,
-      fetchMessages,
-      searchUsers,
-      socket,
-      uploadImageToServer
-    }}>
+    <MessageContext.Provider
+      value={{
+        conversations,
+        activeChat,
+        setActiveChat,
+        messages,
+        setMessages,
+        sendMessage,
+        fetchConversations,
+        fetchMessages,
+        searchUsers,
+        socket,
+        uploadImageToServer,
+      }}
+    >
       {children}
     </MessageContext.Provider>
   );
