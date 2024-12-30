@@ -29,7 +29,7 @@ const AddPostScreen = ({ navigation }) => {
       quality: 0.5,
     });
     if (!result.canceled) {
-      setMediaFiles([...mediaFiles, result.assets[0]]);
+      setMediaFiles([result.assets[0]]);
     }
   };
 
@@ -62,13 +62,10 @@ const AddPostScreen = ({ navigation }) => {
 
       {mediaFiles.length > 0 && (
         <View style={styles.mediaPreview}>
-          {mediaFiles.map((file, index) => (
-            <Image 
-              key={index} 
-              source={{ uri: file.uri }} 
+            <Image  
+              source={{ uri: mediaFiles[0].uri }} 
               style={styles.previewImage} 
             />
-          ))}
         </View>
       )}
 

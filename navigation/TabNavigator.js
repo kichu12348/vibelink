@@ -43,6 +43,7 @@ function Tabs({ navigation }) {
     const post = await getPost(postId);
     if(post){
       setPostContent(post);
+      navigation.navigate("Tabs");
       setPostOpen(p=>{
         if(!p) {
           return true;

@@ -113,55 +113,69 @@ const Comment = ({ comment, postId, setComments }) => {
   );
 };
 
-const ShareModal = ({
-  visible,
-  onClose,
-  onShare,
-  conversations,
-  currentUser,
-}) => (
-  <Modal
-    visible={visible}
-    transparent
-    animationType="slide"
-    onRequestClose={onClose}
-  >
-    <BlurView intensity={20} style={styles.modalOverlay}>
-      <View style={styles.modalContainer}>
-        <View style={styles.modalContent}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Share with</Text>
-            <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={24} color={colors.textPrimary} />
-            </TouchableOpacity>
+const ShareModal = ({ visible, onClose, onShare, conversations, currentUser }) => {
+  const firstRowUsers = conversations.slice(0, Math.min(3, conversations.length));
+  const remainingUsers = conversations.slice(Math.min(3, conversations.length));
+
+  const renderUserItem = (conversation) => {
+    const otherUser = conversation.participants.find(
+      (p) => p.user?._id !== currentUser._id
+    )?.user;
+    return (
+      <TouchableOpacity
+        style={styles.shareGridItem}
+        onPress={() => onShare(conversation, otherUser)}
+      >
+        <Image
+          source={{ uri: otherUser.profileImage || defaultAvatar }}
+          style={styles.shareGridAvatar}
+          contentFit="cover"
+        />
+        <Text style={styles.shareGridUsername} numberOfLines={1}>
+          {otherUser.username}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+    >
+      <BlurView intensity={20} style={styles.modalOverlay}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Share with</Text>
+              <TouchableOpacity onPress={onClose}>
+                <Ionicons name="close" size={24} color={colors.textPrimary} />
+              </TouchableOpacity>
+            </View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View style={styles.firstRow}>
+                {firstRowUsers.map((item, index) => (
+                  <View key={item._id} style={{flex: 1}}>
+                    {renderUserItem(item)}
+                  </View>
+                ))}
+              </View>
+              <View style={styles.shareGrid}>
+                {remainingUsers.map((item) => (
+                  <View key={item._id} style={styles.gridItemContainer}>
+                    {renderUserItem(item)}
+                  </View>
+                ))}
+              </View>
+            </ScrollView>
           </View>
-          <FlatList
-            data={conversations}
-            keyExtractor={(item) => item?._id}
-            renderItem={({ item }) => {
-              const otherUser = item.participants.find(
-                (p) => p.user?._id !== currentUser._id
-              )?.user;
-              return (
-                <TouchableOpacity
-                  style={styles.shareItem}
-                  onPress={() => onShare(item, otherUser)}
-                >
-                  <Image
-                    source={{ uri: otherUser.profileImage || defaultAvatar }}
-                    style={styles.shareAvatar}
-                    contentFit="cover"
-                  />
-                  <Text style={styles.shareUsername}>{otherUser.username}</Text>
-                </TouchableOpacity>
-              );
-            }}
-          />
         </View>
-      </View>
-    </BlurView>
-  </Modal>
-);
+      </BlurView>
+    </Modal>
+  );
+};
 
 const ViewPostScreen = ({ post, close = () => {} }) => {
   const { likePost, unlikePost, addComment, getPostCommentUser, deletePost } =
@@ -375,8 +389,6 @@ const ViewPostScreen = ({ post, close = () => {} }) => {
                 intensity={20}
                 style={styles.blur}
                 tint="dark"
-                experimentalBlurMethod="dimezisBlurView"
-                blurReductionFactor={12}
               />
               <TextInput
                 style={styles.commentInput}
@@ -474,7 +486,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     overflow: "hidden",
     position: "relative",
-    marginBottom: Platform.OS === "android" ? 10 : 0,
+    marginBottom: Platform.OS === "android" ? 5 : 0,
   },
   commentInput: {
     flex: 1,
@@ -621,7 +633,7 @@ const styles = StyleSheet.create({
   },
   blur: {
     position: "absolute",
-    backgroundColor: "rgba(0,0,0,0.3)",
+    backgroundColor:Platform.OS === "ios" ? "rgba(35, 37, 47, 0.3)" : "rgba(35, 37, 47, 0.8)",
     ...StyleSheet.absoluteFillObject,
   },
   floatingContainer: {
@@ -637,6 +649,38 @@ const styles = StyleSheet.create({
   },
   scrollViewContent: {
     paddingBottom: 150,
+  },
+  firstRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    marginBottom: 8,
+    paddingHorizontal: 8,
+  },
+  shareGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: 8,
+  },
+  gridItemContainer: {
+    width: '33.33%',
+    padding: 4,
+  },
+  shareGridItem: {
+    alignItems: 'center',
+    padding: 12,
+    flex: 1,
+  },
+  shareGridAvatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginBottom: 8,
+  },
+  shareGridUsername: {
+    color: colors.textPrimary,
+    fontSize: 14,
+    fontWeight: "500",
+    textAlign: 'center',
   },
 });
 
