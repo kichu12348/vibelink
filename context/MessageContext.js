@@ -64,23 +64,38 @@ export function MessageProvider({ children }) {
 
   // Register once and optionally send token to your backend
   useEffect(() => {
-    registerForPushNotificationsAsync().then(async (pushToken) => {
-      if (pushToken && currentUser) {
+    let timeoutId;
+    
+    const handleRegister = async () => {
+      if (currentUser) {
         try {
-          await axios.post(
-            `${API_URL}/api/users/push-token`,
-            { token: pushToken },
-            { headers: { Authorization: `Bearer ${token}` } }
-          );
+          const pushToken = await registerForPushNotificationsAsync();
+          if (pushToken) {
+            await axios.post(
+              `${API_URL}/api/users/push-token`,
+              { token: pushToken },
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+          }
         } catch (error) {
           console.log(
-            "Error saving push token:",
+            "Error handling push registration:",
             error.response?.data || error.message
           );
         }
+      } else {
+        timeoutId = setTimeout(handleRegister, 5000);
       }
-    });
-  }, [currentUser]);
+    };
+
+    handleRegister();
+    
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [token]);
 
   // Initialize socket once when provider mounts
   useEffect(() => {

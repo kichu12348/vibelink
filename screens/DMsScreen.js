@@ -441,29 +441,6 @@ export default function DMsScreen({ route, navigation }) {
             onScroll={handleScroll}
             scrollEventThrottle={16}
           />
-          {showScrollButton && (
-            <Animated.View style={[styles.scrollButton, { opacity: fadeAnim }]}>
-              <Animated.View
-                style={[
-                  styles.scrollButtonTouchable,
-                  {
-                    transform: [{ scale: scaleAnim }, { rotate: spin }],
-                  },
-                ]}
-              >
-                <TouchableOpacity
-                  onPress={handleScrollToBottom}
-                  style={styles.buttonInner}
-                >
-                  <Ionicons
-                    name="arrow-down"
-                    size={24}
-                    color={colors.textPrimary}
-                  />
-                </TouchableOpacity>
-              </Animated.View>
-            </Animated.View>
-          )}
           <View style={styles.posRelative}>
             {imageUri !== "" && (
               <TouchableOpacity
@@ -487,6 +464,31 @@ export default function DMsScreen({ route, navigation }) {
             )}
             <View style={[styles.inputWrapper]}>
               {isTyping && <TypingIndicator />}
+              {showScrollButton && (
+                <Animated.View
+                  style={[styles.scrollButton, { opacity: fadeAnim }]}
+                >
+                  <Animated.View
+                    style={[
+                      styles.scrollButtonTouchable,
+                      {
+                        transform: [{ scale: scaleAnim }, { rotate: spin }],
+                      },
+                    ]}
+                  >
+                    <TouchableOpacity
+                      onPress={handleScrollToBottom}
+                      style={styles.buttonInner}
+                    >
+                      <Ionicons
+                        name="arrow-down"
+                        size={24}
+                        color={colors.textPrimary}
+                      />
+                    </TouchableOpacity>
+                  </Animated.View>
+                </Animated.View>
+              )}
               <View style={[styles.floatingContainer]}>
                 {InputBlurView}
                 <View style={styles.inputContainer}>

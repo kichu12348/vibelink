@@ -20,11 +20,10 @@ import { Image } from "expo-image";
 import { BlurView } from "expo-blur";
 import { useMessage } from "../context/MessageContext";
 import { socket } from "../constants/endpoints"; // Add this import
-import * as Notifications from 'expo-notifications'; // Add this import
+import * as Notifications from "expo-notifications"; // Add this import
 
-
-const defaultAvatar = "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
-    
+const defaultAvatar =
+  "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
 
 const Comment = ({ comment, postId, setComments }) => {
   const [showReplyInput, setShowReplyInput] = useState(false);
@@ -57,8 +56,8 @@ const Comment = ({ comment, postId, setComments }) => {
     setShowReplyInput(false);
   };
 
-  const defaultAvatar = "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
-    
+  const defaultAvatar =
+    "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
 
   return (
     <View style={styles.commentContainer}>
@@ -100,8 +99,7 @@ const Comment = ({ comment, postId, setComments }) => {
           <View style={styles.commentHeader}>
             <Image
               source={{
-                uri:
-                  reply.user.profileImage ||  defaultAvatar,
+                uri: reply.user.profileImage || defaultAvatar,
               }}
               style={styles.replyAvatar}
               cachePolicy={"none"}
@@ -115,8 +113,13 @@ const Comment = ({ comment, postId, setComments }) => {
   );
 };
 
-
-const ShareModal = ({ visible, onClose, onShare, conversations, currentUser }) => (
+const ShareModal = ({
+  visible,
+  onClose,
+  onShare,
+  conversations,
+  currentUser,
+}) => (
   <Modal
     visible={visible}
     transparent
@@ -134,10 +137,10 @@ const ShareModal = ({ visible, onClose, onShare, conversations, currentUser }) =
           </View>
           <FlatList
             data={conversations}
-            keyExtractor={item => item?._id}
+            keyExtractor={(item) => item?._id}
             renderItem={({ item }) => {
               const otherUser = item.participants.find(
-                p => p.user?._id !== currentUser._id
+                (p) => p.user?._id !== currentUser._id
               )?.user;
               return (
                 <TouchableOpacity
@@ -161,7 +164,8 @@ const ShareModal = ({ visible, onClose, onShare, conversations, currentUser }) =
 );
 
 const ViewPostScreen = ({ post, close = () => {} }) => {
-  const { likePost, unlikePost, addComment, getPostCommentUser, deletePost } = usePost();
+  const { likePost, unlikePost, addComment, getPostCommentUser, deletePost } =
+    usePost();
   const { currentUser } = useAuth();
   const { conversations, sendMessage } = useMessage();
   const [showShareModal, setShowShareModal] = useState(false);
@@ -216,7 +220,6 @@ const ViewPostScreen = ({ post, close = () => {} }) => {
     if (hasLiked) {
       await unlikePost(post._id);
       setHasLiked(false);
-      setLikeCount((c) => (c > 0 ? c - 1 : 0));
     } else {
       await likePost(post._id);
       setHasLiked(true);
@@ -243,140 +246,162 @@ const ViewPostScreen = ({ post, close = () => {} }) => {
   };
 
   useEffect(() => {
-    if (socket) {  // Add null check
-        socket.on("postUpdated", (updatedPost) => {
-            if (updatedPost._id === post._id) {
-                setLikeCount(updatedPost.likes.length);
-                setHasLiked(updatedPost.likes.includes(currentUser?._id));
-            }
-        });
+    if (socket) {
+      // Add null check
+      socket.on("postUpdated", (updatedPost) => {
+        if (updatedPost._id === post._id) {
+          setLikeCount(updatedPost.likes.length);
+          setHasLiked(updatedPost.likes.includes(currentUser?._id));
+        }
+      });
 
-        return () => {
-            socket.off("postUpdated");
-        };
+      return () => {
+        socket.off("postUpdated");
+      };
     }
   }, [post._id, currentUser?._id]);
 
   useEffect(() => {
     // Request notification permissions
     const requestPermissions = async () => {
-        const { status } = await Notifications.requestPermissionsAsync();
-        if (status !== 'granted') {
-            console.log('Notification permissions not granted');
-        }
+      const { status } = await Notifications.requestPermissionsAsync();
+      if (status !== "granted") {
+        console.log("Notification permissions not granted");
+      }
     };
 
     requestPermissions();
-
-    // Add notification response handler
-    const notificationListener = Notifications.addNotificationResponseReceivedListener(response => {
-        const postId = response.notification.request.content.data.postId;
-        // Handle notification tap here
-        console.log('Notification tapped:', postId);
-    });
-
-    return () => {
-        Notifications.removeNotificationSubscription(notificationListener);
-    };
   }, []);
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      style={[styles.container, { paddingVertical: insets.top + 8 }]}
+    <View
+      style={[
+        styles.container,
+        { paddingBottom: insets.bottom, paddingTop: insets.top },
+      ]}
     >
-      <View style={styles.header}>
-        <TouchableOpacity onPress={close}>
-          <Ionicons name="close" size={30} color={colors.textPrimary} />
-        </TouchableOpacity>
-      </View>
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}
+        style={styles.container}
       >
-        <View style={styles.postContainer}>
-          <View style={styles.postHeader}>
-            <Image
-              source={{
-                uri:
-                  post.user?.profileImage || defaultAvatar
-               }}
-              style={styles.avatar}
-              cachePolicy={"none"}
-            />
-            <Text style={styles.username}>{post.user?.username||""}</Text>
-          </View>
-
-          <Text style={styles.content}>{post.content}</Text>
-
-          {post.image && (
-            <Image
-              source={{ uri: post.image }}
-              style={styles.postImage}
-              contentFit="cover"
-            />
-          )}
-
-          <View style={styles.actions}>
-            <TouchableOpacity onPress={handleLike} style={styles.actionButton}>
-              <Ionicons
-                name={hasLiked ? "heart" : "heart-outline"}
-                size={24}
-                color={hasLiked ? colors.primary : colors.textPrimary}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={close}>
+            <Ionicons name="close" size={30} color={colors.textPrimary} />
+          </TouchableOpacity>
+        </View>
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollViewContent}
+        >
+          <View style={styles.postContainer}>
+            <View style={styles.postHeader}>
+              <Image
+                source={{
+                  uri: post.user?.profileImage || defaultAvatar,
+                }}
+                style={styles.avatar}
+                cachePolicy={"none"}
               />
-              <Text style={styles.actionText}>{likeCount || 0}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              onPress={() => setShowShareModal(true)} 
-              style={styles.actionButton}
-            >
-              <Ionicons name="share-outline" size={24} color={colors.textPrimary} />
-            </TouchableOpacity>
-            {post.user?._id === currentUser?._id && (
-              <TouchableOpacity onPress={async () => {
-                await deletePost(post._id);
-                close();
-              }}>
-                <Ionicons name="trash-outline" size={24} color={colors.textPrimary} />
-              </TouchableOpacity>
+              <Text style={styles.username}>{post.user?.username || ""}</Text>
+            </View>
+
+            <Text style={styles.content}>{post.content}</Text>
+
+            {post.image && (
+              <Image
+                source={{ uri: post.image }}
+                style={styles.postImage}
+                contentFit="cover"
+              />
             )}
+
+            <View style={styles.actions}>
+              <TouchableOpacity
+                onPress={handleLike}
+                style={styles.actionButton}
+              >
+                <Ionicons
+                  name={hasLiked ? "heart" : "heart-outline"}
+                  size={24}
+                  color={hasLiked ? colors.primary : colors.textPrimary}
+                />
+                <Text style={styles.actionText}>{likeCount || 0}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setShowShareModal(true)}
+                style={styles.actionButton}
+              >
+                <Ionicons
+                  name="share-outline"
+                  size={24}
+                  color={colors.textPrimary}
+                />
+              </TouchableOpacity>
+              {post.user?._id === currentUser?._id && (
+                <TouchableOpacity
+                  onPress={async () => {
+                    await deletePost(post._id);
+                    close();
+                  }}
+                >
+                  <Ionicons
+                    name="trash-outline"
+                    size={24}
+                    color={colors.textPrimary}
+                  />
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+
+          <View style={styles.commentsSection}>
+            <Text style={styles.commentsHeader}>Comments</Text>
+            {comments.map((comment, index) => (
+              <Comment
+                key={index}
+                comment={comment}
+                postId={post._id}
+                setComments={setComments}
+              />
+            ))}
+          </View>
+        </ScrollView>
+        <View style={styles.floatConatinerContainer}>
+          <View style={styles.floatingContainer}>
+            <View style={styles.commentInputContainer}>
+              <BlurView
+                intensity={20}
+                style={styles.blur}
+                tint="dark"
+                experimentalBlurMethod="dimezisBlurView"
+                blurReductionFactor={12}
+              />
+              <TextInput
+                style={styles.commentInput}
+                placeholder="Write a comment..."
+                placeholderTextColor={colors.textSecondary}
+                value={commentContent}
+                onChangeText={setCommentContent}
+                multiline
+                numberOfLines={4}
+              />
+              <TouchableOpacity onPress={handleComment}>
+                <Ionicons name="send" size={24} color={colors.primary} />
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-
-        <View style={styles.commentsSection}>
-          <Text style={styles.commentsHeader}>Comments</Text>
-          {comments.map((comment, index) => (
-            <Comment
-              key={index}
-              comment={comment}
-              postId={post._id}
-              setComments={setComments}
-            />
-          ))}
-        </View>
-      </ScrollView>
-
-      <View style={styles.commentInputContainer}>
-        <TextInput
-          style={styles.commentInput}
-          placeholder="Write a comment..."
-          value={commentContent}
-          onChangeText={setCommentContent}
-          multiline
-          numberOfLines={4}
+        <ShareModal
+          visible={showShareModal}
+          onClose={() => setShowShareModal(false)}
+          onShare={handleShare}
+          conversations={conversations}
+          currentUser={currentUser}
         />
-        <TouchableOpacity onPress={handleComment}>
-          <Ionicons name="send" size={24} color={colors.primary} />
-        </TouchableOpacity>
-      </View>
-      <ShareModal
-        visible={showShareModal}
-        onClose={() => setShowShareModal(false)}
-        onShare={handleShare}
-        conversations={conversations}
-        currentUser={currentUser}
-      />
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </View>
   );
 };
 
@@ -442,17 +467,19 @@ const styles = StyleSheet.create({
   commentInputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    backgroundColor: colors.card,
+    justifyContent: "space-between",
+    width: "99%",
+    alignSelf: "center",
+    padding: 5,
+    borderRadius: 20,
+    overflow: "hidden",
+    position: "relative",
+    marginBottom: Platform.OS === "android" ? 10 : 0,
   },
   commentInput: {
     flex: 1,
     marginRight: 12,
     padding: 8,
-    backgroundColor: colors.background,
-    borderRadius: 20,
     color: colors.textPrimary,
     maxHeight: 100,
   },
@@ -537,35 +564,35 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "flex-end",
   },
   modalContainer: {
-    backgroundColor: 'transparent',
-    width: '100%',
-    height: '60%',
+    backgroundColor: "transparent",
+    width: "100%",
+    height: "60%",
   },
   modalContent: {
     backgroundColor: colors.card,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
-    height: '100%',
+    height: "100%",
   },
   modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 20,
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.textPrimary,
   },
   shareItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 16,
     backgroundColor: colors.background,
     borderRadius: 12,
@@ -580,17 +607,36 @@ const styles = StyleSheet.create({
   shareUsername: {
     color: colors.textPrimary,
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   closeButton: {
     padding: 15,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 10,
   },
   closeButtonText: {
     color: colors.primary,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
+  },
+  blur: {
+    position: "absolute",
+    backgroundColor: "rgba(0,0,0,0.3)",
+    ...StyleSheet.absoluteFillObject,
+  },
+  floatingContainer: {
+    position: "absolute",
+    bottom: 0,
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+  },
+  floatConatinerContainer: {
+    height: 1,
+    position: "relative",
+  },
+  scrollViewContent: {
+    paddingBottom: 150,
   },
 });
 

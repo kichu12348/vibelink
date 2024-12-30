@@ -2,7 +2,6 @@ import React, { createContext, useState, useContext } from 'react';
 import { endPoint, socket } from '../constants/endpoints';
 import axios from 'axios';
 import { uploadFile } from '../utils/fileUpload';
-import * as Notifications from 'expo-notifications';
 
 const PostContext = createContext();
 
@@ -11,14 +10,6 @@ export const usePost = () => useContext(PostContext);
 //rmahadevan575
 //u7fwzN5NWaUrQEl3
 
-// Set up notifications configuration
-Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-        shouldShowAlert: true,
-        shouldPlaySound: true,
-        shouldSetBadge: false,
-    }),
-});
 
 export const PostProvider = ({ children }) => {
     const [posts, setPosts] = useState([]);
@@ -151,6 +142,18 @@ export const PostProvider = ({ children }) => {
         }
     };
 
+
+    async function getPost(postId){
+        try{
+            const response = await axios.get(`${endPoint}/api/posts/${postId}`);
+            return response.data;
+        } catch(err){
+            console.log('Get post error:', err.response?.data?.message);
+            setError(err.response?.data?.message);
+            return null;
+        }
+    }
+
     React.useEffect(() => {
         socket.on("postDeleted", (postId) => {
             setPosts(prev => prev.filter(p => p._id !== postId));
@@ -163,17 +166,6 @@ export const PostProvider = ({ children }) => {
             ));
         });
 
-        socket.on("postLiked", (notification) => {
-            // Show notification when someone likes a post
-            Notifications.scheduleNotificationAsync({
-                content: {
-                    title: 'New Like!',
-                    body: `${notification.likedBy.username} liked your post: "${notification.post.content}"`,
-                    data: { postId: notification.postId },
-                },
-                trigger: null, // Show immediately
-            });
-        });
 
         // Cleanup
         return () => {
@@ -196,7 +188,8 @@ export const PostProvider = ({ children }) => {
             addReply,
             unlikePost,
             getPostCommentUser,
-            deletePost
+            deletePost,
+            getPost
         }}>
             {children}
         </PostContext.Provider>

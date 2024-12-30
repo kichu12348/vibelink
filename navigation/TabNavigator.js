@@ -15,6 +15,8 @@ import AllChatsScreen from "../screens/AllChatsScreen";
 import * as Notifications from "expo-notifications";
 import { useMessage } from "../context/MessageContext";
 import Settings from "../components/settings";
+import { usePost } from "../context/PostContext";
+import ViewPostScreen from "../screens/ViewPostScreen";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -29,8 +31,26 @@ const Stack = createStackNavigator();
 
 function Tabs({ navigation }) {
   const { setActiveChat } = useMessage();
+  const {getPost}=usePost();
 
   const [settingsOpen, setSettingsOpen] = React.useState(false);
+  const [postOpen, setPostOpen] = React.useState(false);
+  const [postContent, setPostContent] = React.useState(null);
+
+
+  async function handlePostNotifClicked(postId){
+    if(!postId) return;
+    const post = await getPost(postId);
+    if(post){
+      setPostContent(post);
+      setPostOpen(p=>{
+        if(!p) {
+          return true;
+        }
+      });
+    }
+
+  }
 
   React.useEffect(() => {
     const subscription = Notifications.addNotificationResponseReceivedListener(
@@ -41,7 +61,11 @@ function Tabs({ navigation }) {
           username,
           profileImage,
           participants,
+          PostId,
         } = response.notification.request.content.data || {};
+        if(PostId){
+          handlePostNotifClicked(PostId);
+        } // do something with PostId
         if (conversationId && receiverId) {
           setActiveChat({
             _id: conversationId,
@@ -196,6 +220,17 @@ function Tabs({ navigation }) {
           }}
         />
       </Modal>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={postOpen}
+        onRequestClose={() => {
+          setPostOpen(false);
+        }}
+        hardwareAccelerated={true}
+        >
+          <ViewPostScreen post={postContent} close={()=>setPostOpen(false)}/>
+        </Modal>
     </>
   );
 }
