@@ -15,6 +15,8 @@ export const PostProvider = ({ children }) => {
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [isPostOpen, setIsPostOpen] = useState(false);
+    const [postContent, setPostContent] = useState(null);
 
     const fetchPosts = async () => {
         setLoading(true);
@@ -189,7 +191,11 @@ export const PostProvider = ({ children }) => {
             unlikePost,
             getPostCommentUser,
             deletePost,
-            getPost
+            getPost,
+            isPostOpen,
+            setIsPostOpen,
+            postContent,
+            setPostContent
         }}>
             {children}
         </PostContext.Provider>

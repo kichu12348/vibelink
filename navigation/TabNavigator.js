@@ -29,28 +29,19 @@ Notifications.setNotificationHandler({
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
-function Tabs({ navigation }) {
+function Tabs({ navigation, route }) {
   const { setActiveChat } = useMessage();
-  const {getPost}=usePost();
+  const { getPost, setIsPostOpen, setPostContent } = usePost();
 
   const [settingsOpen, setSettingsOpen] = React.useState(false);
-  const [postOpen, setPostOpen] = React.useState(false);
-  const [postContent, setPostContent] = React.useState(null);
 
-
-  async function handlePostNotifClicked(postId){
-    if(!postId) return;
+  async function handlePostNotifClicked(postId) {
+    if (!postId) return;
     const post = await getPost(postId);
-    if(post){
+    if (post) {
       setPostContent(post);
-      navigation.navigate("Tabs");
-      setPostOpen(p=>{
-        if(!p) {
-          return true;
-        }
-      });
+      setIsPostOpen(true);
     }
-
   }
 
   React.useEffect(() => {
@@ -64,7 +55,7 @@ function Tabs({ navigation }) {
           participants,
           PostId,
         } = response.notification.request.content.data || {};
-        if(PostId){
+        if (PostId) {
           handlePostNotifClicked(PostId);
         } // do something with PostId
         if (conversationId && receiverId) {
@@ -221,23 +212,14 @@ function Tabs({ navigation }) {
           }}
         />
       </Modal>
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={postOpen}
-        onRequestClose={() => {
-          setPostOpen(false);
-        }}
-        hardwareAccelerated={true}
-        >
-          <ViewPostScreen post={postContent} close={()=>setPostOpen(false)}/>
-        </Modal>
     </>
   );
 }
 
 export default function TabNavigator({ navigation }) {
   const { token, currentUser } = useAuth();
+  const { setIsPostOpen, isPostOpen, postContent } = usePost();
+
   React.useEffect(() => {
     if (!token || !currentUser) {
       navigation.reset({
@@ -248,14 +230,32 @@ export default function TabNavigator({ navigation }) {
   }, [token, currentUser]);
 
   return (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Stack.Screen name="Tabs" component={Tabs} />
-      <Stack.Screen name="DMs" component={AllChatsScreen} />
-      <Stack.Screen name="single-chat" component={DMsScreen} />
-    </Stack.Navigator>
+    <>
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: false,
+        }}
+      >
+        <Stack.Screen name="Tabs" component={Tabs} />
+        <Stack.Screen name="DMs" component={AllChatsScreen} />
+        <Stack.Screen name="single-chat" component={DMsScreen} />
+      </Stack.Navigator>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isPostOpen}
+        onRequestClose={() => {
+          setIsPostOpen(false);
+        }}
+        hardwareAccelerated={true}
+      >
+        {postContent && (
+          <ViewPostScreen
+            post={postContent}
+            close={() => setIsPostOpen(false)}
+          />
+        )}
+      </Modal>
+    </>
   );
 }
