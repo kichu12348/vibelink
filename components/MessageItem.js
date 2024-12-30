@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Modal } from "react-native";
 import { Image } from "expo-image";
 import { colors } from "../constants/primary";
 import { usePost } from "../context/PostContext";
+import { BlurView } from "expo-blur";
 const defaultAvatar =
   "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
 
@@ -26,6 +27,13 @@ const SharedPost = ({ post, onClickPost }) => {
         onClickPost(p);
       }}
     >
+      <BlurView 
+      intensity={80} 
+      style={styles.blur} 
+      tint="dark"
+      experimentalBlurMethod="dimezisBlurView"
+      blurReductionFactor={5}
+      />
       <View style={styles.sharedPostHeader}>
         <Image
           source={{ uri: user?.profileImage || defaultAvatar }}
@@ -48,7 +56,7 @@ const SharedPost = ({ post, onClickPost }) => {
 };
 
 const MessageItem = React.memo(
-  ({ message, isOwn, onClickPost = () => {},onClickImage=()=>{} }) => {
+  ({ message, isOwn, onClickPost = () => {}, onClickImage = () => {} }) => {
     const bubbleStyle = React.useMemo(
       () => [styles.messageBubble, isOwn && styles.ownMessage],
       [isOwn]
@@ -87,9 +95,7 @@ const MessageItem = React.memo(
     if (message.media?.url) {
       return (
         <View style={bubbleStyle}>
-          <TouchableOpacity
-            onPress={() => onClickImage(message.media.url)}
-          >
+          <TouchableOpacity onPress={() => onClickImage(message.media.url)}>
             <Image
               source={{ uri: message.media.url }}
               style={styles.messageImage}
@@ -153,12 +159,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
   },
   sharedPost: {
-    backgroundColor: colors.background,
     borderRadius: 10,
     padding: 10,
     marginVertical: 5,
     width: 250,
     minHeight: 350,
+    position: "relative",
+    overflow: "hidden",
   },
   sharedPostHeader: {
     flexDirection: "row",
@@ -189,6 +196,15 @@ const styles = StyleSheet.create({
   postContainer: {
     marginVertical: 5,
     maxWidth: 400,
+    overflow: "hidden",
+  },
+  blur: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    ...StyleSheet.absoluteFillObject,
   },
 });
 

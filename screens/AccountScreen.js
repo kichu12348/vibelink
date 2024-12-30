@@ -522,13 +522,6 @@ const styles = StyleSheet.create({
     padding: 8,
     backgroundColor: colors.card,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.card,
-    padding: 10,
-    marginVertical: 10,
-    borderRadius: 5,
-  },
   modalContainer: {
     flex: 1,
     backgroundColor: colors.background,

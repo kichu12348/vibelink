@@ -9,7 +9,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   Animated,
-  Modal
+  Modal,
+  Dimensions,
+  useAnimatedValue,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -28,9 +30,7 @@ import ImageViewer from "../utils/imageViewer";
 const defaultAvatar =
   "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
 
-const SpacerItem = React.memo(() => (
-  <View style={{ height: 100, backgroundColor: "transparent" }} />
-));
+const SpacerItem = () => <View style={styles.height} />;
 
 const TypingIndicator = () => {
   const [dots] = useState([
@@ -108,8 +108,10 @@ export default function DMsScreen({ route, navigation }) {
   const [imageUriModal, setImageUriModal] = useState(null);
   const [isTyping, setIsTyping] = useState(false);
   const typingTimeoutRef = useRef(null);
-
-  const fadeAnim = React.useRef(new Animated.Value(0)).current;
+  const [showScrollButton, setShowScrollButton] = useState(false);
+  const scaleAnim = useAnimatedValue(1);
+  const rotateAnim = useAnimatedValue(0);
+  const fadeAnim = useAnimatedValue(0);
 
   const scrollViewRef = React.useRef();
 
@@ -160,6 +162,7 @@ export default function DMsScreen({ route, navigation }) {
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
+      quality: 0.5,
     });
     if (!result.canceled) {
       const finalUrl = await uploadImageToServer(result.assets[0].uri);
@@ -170,13 +173,9 @@ export default function DMsScreen({ route, navigation }) {
   const handleSend = () => {
     if (!text.trim() && !imageUri) return;
     sendMessage(conversationId, text.trim(), receiverId, imageUri);
-    scrollViewRef.current.scrollToEnd({ animated: true });
     setText("");
     setImageUri("");
-  };
-
-  const scrollToBottom = () => {
-    scrollViewRef.current?.scrollToEnd({ animated: true });
+    scrollViewRef.current.scrollToEnd({ animated: true });
   };
 
   const handlePostClick = (post) => {
@@ -186,9 +185,6 @@ export default function DMsScreen({ route, navigation }) {
 
   const renderItem = React.useCallback(
     ({ item, index }) => {
-      if (index === messages.length) {
-        return <SpacerItem />;
-      }
       if (!item?.sender) {
         return null;
       }
@@ -211,8 +207,7 @@ export default function DMsScreen({ route, navigation }) {
   // Calculate proper bottom padding to account for input box
   const contentContainerStyle = React.useMemo(
     () => ({
-      padding: 16,
-      paddingBottom: 90, // Increase this value to ensure messages are visible above input
+      paddingHorizontal: 16, // Increase this value to ensure messages are visible above input
       paddingTop: 50 + insets.top,
     }),
     []
@@ -231,7 +226,7 @@ export default function DMsScreen({ route, navigation }) {
   // Handle new messages scroll
   useEffect(() => {
     if (messages.length > 0 && scrollViewRef.current) {
-      scrollViewRef.current.scrollToEnd({ animated: true });
+      smoothScrollToEnd();
     }
   }, [messages]);
 
@@ -279,10 +274,6 @@ export default function DMsScreen({ route, navigation }) {
     };
   }, [activeChat]);
 
-  const listData = React.useMemo(() => {
-    return [...messages, { _id: "spacer", type: "spacer" }];
-  }, [messages]); // eslint-disable-line
-
   const TYPING_DELAY_MS = 2000;
   let lastTypingTime = 0;
 
@@ -305,6 +296,85 @@ export default function DMsScreen({ route, navigation }) {
     setText(newText);
     emitTyping();
   };
+
+  function smoothScrollToEnd() {
+    scrollViewRef.current?.scrollToEnd({ animated: true });
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  }
+
+  const handleScroll = (event) => {
+    const offsetY = event.nativeEvent.contentOffset.y;
+    const contentHeight = event.nativeEvent.contentSize.height;
+    const scrollViewHeight = event.nativeEvent.layoutMeasurement.height;
+    const isScrolledUp = contentHeight - offsetY - scrollViewHeight > 1500;
+
+    if (isScrolledUp && !showScrollButton) {
+      setShowScrollButton(true);
+      Animated.spring(fadeAnim, {
+        toValue: 1,
+        useNativeDriver: true,
+        friction: 4,
+      }).start();
+    } else if (!isScrolledUp && showScrollButton) {
+      Animated.spring(fadeAnim, {
+        toValue: 0,
+        useNativeDriver: true,
+        friction: 4,
+      }).start(() => {
+        setShowScrollButton(false);
+      });
+    }
+  };
+
+  const animateButtonPress = () => {
+    Animated.sequence([
+      Animated.parallel([
+        Animated.sequence([
+          Animated.spring(scaleAnim, {
+            toValue: 1.3,
+            useNativeDriver: true,
+            friction: 3,
+          }),
+          Animated.spring(scaleAnim, {
+            toValue: 0,
+            useNativeDriver: true,
+            friction: 5,
+          }),
+        ]),
+        Animated.timing(rotateAnim, {
+          toValue: 4,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+      ]),
+    ]).start(() => {
+      // Reset animations
+      Animated.timing(rotateAnim, {
+        toValue: 0,
+        duration: 0,
+        useNativeDriver: true,
+      }).start();
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 0,
+        useNativeDriver: true,
+      }).start();
+
+      setShowScrollButton(false);
+    });
+  };
+
+  const handleScrollToBottom = () => {
+    animateButtonPress();
+    scrollViewRef.current?.scrollToEnd({ animated: true });
+  };
+
+  const spin = rotateAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "360deg"],
+  });
 
   return (
     <>
@@ -351,7 +421,7 @@ export default function DMsScreen({ route, navigation }) {
           keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
         >
           <FlatList
-            data={listData}
+            data={messages}
             keyExtractor={keyExtractor}
             contentContainerStyle={contentContainerStyle}
             showsVerticalScrollIndicator={false}
@@ -367,34 +437,33 @@ export default function DMsScreen({ route, navigation }) {
               minIndexForVisible: 0,
               autoscrollToTopThreshold: 10,
             }}
+            ListFooterComponent={SpacerItem}
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
           />
-          <Animated.View
-            style={[
-              styles.scrollButton,
-              {
-                opacity: fadeAnim,
-                transform: [
+          {showScrollButton && (
+            <Animated.View style={[styles.scrollButton, { opacity: fadeAnim }]}>
+              <Animated.View
+                style={[
+                  styles.scrollButtonTouchable,
                   {
-                    scale: fadeAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [0.8, 1],
-                    }),
+                    transform: [{ scale: scaleAnim }, { rotate: spin }],
                   },
-                ],
-              },
-            ]}
-          >
-            <TouchableOpacity
-              onPress={scrollToBottom}
-              style={styles.scrollButtonTouchable}
-            >
-              <Ionicons
-                name="arrow-down"
-                size={24}
-                color={colors.textPrimary}
-              />
-            </TouchableOpacity>
-          </Animated.View>
+                ]}
+              >
+                <TouchableOpacity
+                  onPress={handleScrollToBottom}
+                  style={styles.buttonInner}
+                >
+                  <Ionicons
+                    name="arrow-down"
+                    size={24}
+                    color={colors.textPrimary}
+                  />
+                </TouchableOpacity>
+              </Animated.View>
+            </Animated.View>
+          )}
           <View style={styles.posRelative}>
             {imageUri !== "" && (
               <TouchableOpacity
@@ -421,7 +490,6 @@ export default function DMsScreen({ route, navigation }) {
               <View style={[styles.floatingContainer]}>
                 {InputBlurView}
                 <View style={styles.inputContainer}>
-                
                   {imageUri !== "" && (
                     <View
                       style={{
@@ -589,6 +657,9 @@ const styles = StyleSheet.create({
     right: 20,
     bottom: 80,
     zIndex: 2,
+    justifyContent: "center",
+    alignItems: "center",
+    width: Dimensions.get("window").width * 0.9,
   },
   scrollButtonTouchable: {
     backgroundColor: colors.primary,
@@ -597,14 +668,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
   },
   inputWrapper: {
     position: "absolute",
@@ -643,5 +706,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+  },
+  height: {
+    height: 150,
+  },
+  buttonInner: {
+    width: "100%",
+    height: "100%",
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
