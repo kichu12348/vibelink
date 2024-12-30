@@ -18,8 +18,7 @@
       "supportsTablet": true,
       "runtimeVersion": {
         "policy": "appVersion"
-      },
-      "jsEngine": "jsc"
+      }
     },
     "android": {
       "adaptiveIcon": {
