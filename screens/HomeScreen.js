@@ -1,26 +1,22 @@
 import React, { useEffect, useState } from "react";
 import {
   View,
-  Text,
   FlatList,
   StyleSheet,
   RefreshControl,
-  TouchableWithoutFeedback,
   Modal,
-  TouchableOpacity,
 } from "react-native";
-import { colors, fontSizes } from "../constants/primary";
-import { globalStyles } from "../constants/styles";
+import { colors } from "../constants/primary";
 import { usePost } from "../context/PostContext";
 import ViewPostScreen from "./ViewPostScreen";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import ViewUserOProfile from "../utils/ViewUserOProfile";
 import { useAuth } from "../context/AuthContext";
-import { Image } from "expo-image";
-import { socket } from "../constants/endpoints";
+import RenderPost from "../components/RenderPost";
+import CommentsModal from "../components/CommentsModal";
 
 export default function HomeScreen({ navigation }) {
-  const { posts, loading, fetchPosts } = usePost();
+  const { posts, loading, fetchPosts, addComment, addReply } = usePost();
   const bottomTabBarHeight = useBottomTabBarHeight();
   const { currentUser } = useAuth();
 
@@ -28,6 +24,8 @@ export default function HomeScreen({ navigation }) {
   const [postContent, setPostContent] = useState(null);
   const [isUserProfileOpen, setIsUserProfileOpen] = useState(false);
   const [item, setItem] = useState(null);
+  const [isCommentsVisible, setIsCommentsVisible] = useState(false);
+  const [selectedPost, setSelectedPost] = useState(null);
 
   useEffect(() => {
     fetchPosts();
@@ -38,65 +36,38 @@ export default function HomeScreen({ navigation }) {
     setPostContent(null);
   };
 
-  const renderPost = ({ item }) => {
-    if (!item) return null;
-    const defaultAvatar =
-      "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
-    return (
-      <TouchableWithoutFeedback
-        onPress={() => {
-          setIsPostVisible(true);
-          setPostContent(item);
-        }}
-      >
-        <View style={[globalStyles.card, styles.post]}>
-          <View style={styles.postHeader}>
-            <TouchableOpacity 
-            style={styles.postHeader}
-            onPress={()=>{
-              if(item.user._id === currentUser._id){
-                navigation.navigate("Profile");
-                return;
-              }
-              setIsUserProfileOpen(true);
-              setItem(item);
-            }}
-            >
-              <Image
-                source={{
-                  uri: item.user.profileImage || defaultAvatar,
-                }}
-                style={styles.avatar}
-                cachePolicy={"none"}
-              />
+  const handlePostPress = (post) => {
+    setIsPostVisible(true);
+    setPostContent(post);
+  };
 
-              <Text style={styles.username}>{item.user.username}</Text>
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.content}>{item.content}</Text>
-          {item.image && (
-            <Image
-              source={{ uri: item.image ?? null }}
-              style={styles.postImage}
-            />
-          )}
-          <View style={styles.postFooter}>
-            <Text style={styles.stats}>
-              {item.likes.length || 0} likes • {item.comments.length || 0}{" "}
-              comments
-            </Text>
-          </View>
-          
-        </View>
-      </TouchableWithoutFeedback>
-    );
+  const handleProfilePress = (post) => {
+    if (post.user._id === currentUser._id) {
+      navigation.navigate("Profile");
+      return;
+    }
+    setIsUserProfileOpen(true);
+    setItem(post);
+  };
+
+  const handleOpenComments = (post) => {
+    if (!post) return;
+    setSelectedPost(post);
+    setIsCommentsVisible(true);
   };
 
   return (
     <View style={styles.container}>
       <FlatList
         data={posts}
-        renderItem={renderPost}
+        renderItem={({ item }) => (
+          <RenderPost
+            item={item}
+            onPostPress={handlePostPress}
+            onProfilePress={handleProfilePress}
+            openComments={handleOpenComments}
+          />
+        )}
         keyExtractor={(item) => item._id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: bottomTabBarHeight + 5 }}
@@ -122,17 +93,36 @@ export default function HomeScreen({ navigation }) {
         )}
       </Modal>
       <Modal
-            visible={isUserProfileOpen}
-            animationType="slide"
-            onRequestClose={() => setIsUserProfileOpen(false)}
-            hardwareAccelerated={true}
-            transparent={true}
-          >
-            {item && <ViewUserOProfile
+        visible={isUserProfileOpen}
+        animationType="slide"
+        onRequestClose={() => setIsUserProfileOpen(false)}
+        hardwareAccelerated={true}
+        transparent={true}
+      >
+        {item && (
+          <ViewUserOProfile
             user={item.user}
-            close={()=>setIsUserProfileOpen(false)}
-            />}
-          </Modal>
+            close={() => setIsUserProfileOpen(false)}
+          />
+        )}
+      </Modal>
+      <Modal
+        visible={isCommentsVisible}
+        animationType="slide"
+        onRequestClose={() => setIsCommentsVisible(false)}
+        transparent={true}
+      >
+        {selectedPost && (
+          <CommentsModal
+            visible={isCommentsVisible}
+            close={() => setIsCommentsVisible(false)}
+            post={selectedPost}
+            currentUser={currentUser}
+            addComment={addComment}
+            addReply={addReply}
+          />
+        )}
+      </Modal>
     </View>
   );
 }
@@ -143,45 +133,5 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     padding: 16,
     paddingVertical: 0,
-  },
-  post: {
-    marginBottom: 16,
-    width: "100%",
-    height: "auto",
-  },
-  postHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  username: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.md,
-    fontWeight: "600",
-  },
-  content: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.md,
-    marginBottom: 12,
-  },
-  postImage: {
-    width: "100%",
-    height: 300,
-    borderRadius: 10,
-    marginVertical: 8,
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginRight: 10,
-  },
-  postFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  stats: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.sm,
   },
 });

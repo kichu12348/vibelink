@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useLayoutEffect } from "react";
 import {
   View,
   TextInput,
@@ -26,7 +26,6 @@ import MessageItem from "../components/MessageItem";
 import bgImage from "../images/backImage.jpeg";
 import ViewPostScreen from "./ViewPostScreen";
 import ImageViewer from "../utils/imageViewer";
-
 const defaultAvatar =
   "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
 
@@ -380,7 +379,17 @@ export default function DMsScreen({ route, navigation }) {
     <>
       <StatusBar translucent backgroundColor="transparent" style="light" />
       {BackgroundComponent}
-      <View style={[styles.container, { paddingBottom: insets.bottom }]}>
+      <View
+        style={[
+          styles.container,
+          {
+            paddingBottom: Platform.select({
+              ios: insets.bottom,
+              android: insets.bottom + 10,
+            }),
+          },
+        ]}
+      >
         <BlurView
           style={[styles.headerContainer, { paddingTop: insets.top }]}
           intensity={20}
@@ -489,7 +498,7 @@ export default function DMsScreen({ route, navigation }) {
                   </Animated.View>
                 </Animated.View>
               )}
-              <View style={[styles.floatingContainer]}>
+              <View style={styles.floatingContainer}>
                 {InputBlurView}
                 <View style={styles.inputContainer}>
                   {imageUri !== "" && (
@@ -652,7 +661,7 @@ const styles = StyleSheet.create({
   },
   posRelative: {
     position: "relative",
-    height: 10,
+    height: 1,
   },
   scrollButton: {
     position: "absolute",
@@ -676,7 +685,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    marginBottom: 5,
+    marginBottom: Platform.OS === "ios" ? 5 : 0,
     width: "100%",
     backgroundColor: "transparent",
     zIndex: 1000,

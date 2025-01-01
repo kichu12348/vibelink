@@ -68,8 +68,8 @@ function AppNavigator() {
 export default function App() {
   React.useEffect(() => {
     const setNavigationBarColor = async () => {
-      if(Platform.OS === "android") {
-      await NavigationBar.setVisibilityAsync("hidden");
+      if (Platform.OS === "android") {
+        await NavigationBar.setVisibilityAsync("hidden");
       }
     };
     setNavigationBarColor();

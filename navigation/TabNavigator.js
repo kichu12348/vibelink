@@ -29,7 +29,7 @@ Notifications.setNotificationHandler({
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
-function Tabs({ navigation, route }) {
+function Tabs({ navigation }) {
   const { setActiveChat } = useMessage();
   const { getPost, setIsPostOpen, setPostContent } = usePost();
 
@@ -98,6 +98,11 @@ function Tabs({ navigation, route }) {
             paddingBottom: 10,
             paddingTop: 8,
             borderTopWidth: 0,
+            elevation: 6, // higher elevation on Android
+            shadowColor: "#000", // subtle shadow on iOS
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.3,
+            shadowRadius: 4,
           },
 
           tabBarBackground: () => {
