@@ -164,7 +164,7 @@ const CommentsModal = ({ close, post, currentUser, addComment, addReply }) => {
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : undefined}
             style={styles.keyboardView}
-            keyboardVerticalOffset={Platform.OS === "ios" ? 110 : 0}
+            keyboardVerticalOffset={Platform.OS === "ios" ? 180 : 0}
           >
             <ScrollView
               style={styles.commentsScroll}
