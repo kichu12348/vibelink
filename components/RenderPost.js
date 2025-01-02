@@ -1,4 +1,4 @@
-import React, { useState, memo, useEffect, useRef } from "react";
+import React, { useState, memo, useEffect, useRef,useLayoutEffect } from "react";
 import {
   View,
   Text,
@@ -13,6 +13,8 @@ import { colors, fontSizes } from "../constants/primary";
 import { globalStyles } from "../constants/styles";
 import { usePost } from "../context/PostContext";
 import { useAuth } from "../context/AuthContext";
+import axios from "axios";
+import { endPoint } from "../constants/endpoints";
 
 // Wrapper component to handle hooks
 const PostContainer = ({
@@ -57,6 +59,21 @@ const RenderPost = memo(
 
     const likeAnimation = useRef(new Animated.Value(0)).current;
     const [showLikeAnimation, setShowLikeAnimation] = useState(false);
+    const [color,setColor] = useState(colors.card);
+
+    async function getColor(){
+      console.log("col");
+      if(!item.image) return;
+      const res = await axios.post(`${endPoint}/api/posts/getColor`, {url:item.image});
+      setColor(res.data.rgb);
+    };
+
+    useLayoutEffect(()=>{
+      getColor();
+    },[])
+
+
+    
 
     const animateHeartLike = () => {
       setShowLikeAnimation(true);
@@ -110,7 +127,7 @@ const RenderPost = memo(
 
     return (
       <TouchableWithoutFeedback onPress={() => onPostPress(item)}>
-        <View style={[globalStyles.card, styles.post]}>
+        <View style={[globalStyles.card, styles.post,{backgroundColor:color}]}>
           <TouchableOpacity
             style={styles.postHeader}
             onPress={() => onProfilePress(item)}

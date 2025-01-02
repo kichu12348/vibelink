@@ -425,9 +425,9 @@ export default function DMsScreen({ route, navigation }) {
           </View>
         </BlurView>
         <KeyboardAvoidingView
-          style={{ flex: 1 }}
+          style={{ flex: 1}}
           behavior={Platform.OS === "ios" ? "padding" : undefined}
-          keyboardVerticalOffset={0}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 5 : 0}
         >
           <FlatList
             data={messages}
@@ -471,7 +471,7 @@ export default function DMsScreen({ route, navigation }) {
                 />
               </TouchableOpacity>
             )}
-            <View style={[styles.inputWrapper]}>
+            <View style={styles.inputWrapper}>
               {isTyping && <TypingIndicator />}
               {showScrollButton && (
                 <Animated.View
@@ -685,9 +685,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    marginBottom: Platform.OS === "ios" ? 5 : 0,
     width: "100%",
-    backgroundColor: "transparent",
     zIndex: 1000,
   },
   typingContainer: {
