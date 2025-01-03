@@ -1,33 +1,38 @@
-import React, { useState } from 'react';
-import { 
-  View, 
-  TextInput, 
-  StyleSheet, 
-  FlatList, 
-  TouchableOpacity, 
-  Text, 
-  Modal
-} from 'react-native';
-import { colors, fontSizes } from '../constants/primary';
-import { useAuth } from '../context/AuthContext';
-import axios from 'axios';
-import { endPoint } from '../constants/endpoints';
-import ViewUserOProfile from '../utils/ViewUserOProfile';
-import { Ionicons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
+import React, { useState } from "react";
+import {
+  View,
+  TextInput,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  Text,
+  Modal,
+} from "react-native";
+import { colors, fontSizes } from "../constants/primary";
+import axios from "axios";
+import { endPoint } from "../constants/endpoints";
+import ViewUserOProfile from "../utils/ViewUserOProfile";
+import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const SearchScreen = () => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
+
+  const inset = useSafeAreaInsets();
+
   const handleSearch = async (text) => {
     setSearchQuery(text);
     if (text.trim().length > 0) {
       try {
-        const { data } = await axios.get(`${endPoint}/api/users/search?keyword=${text}`);
+        const { data } = await axios.get(
+          `${endPoint}/api/users/search?keyword=${text}`
+        );
         setSearchResults(data);
       } catch (error) {
-        console.log('Search error:', error);
+        console.log("Search error:", error);
       }
     } else {
       setSearchResults([]);
@@ -35,18 +40,18 @@ const SearchScreen = () => {
   };
 
   const renderUserItem = ({ item }) => (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={styles.userItem}
       onPress={() => setSelectedUser(item)}
     >
-      <Image 
+      <Image
         source={
-          item.profileImage 
+          item.profileImage
             ? { uri: item.profileImage }
-            : require('../defaultImages/default-user.jpg')
+            : require("../defaultImages/default-user.jpg")
         }
         style={styles.userImage}
-        cachePolicy={'none'}
+        cachePolicy={"memory-disk"}
       />
       <View style={styles.userInfo}>
         <Text style={styles.username}>@{item.username}</Text>
@@ -62,7 +67,12 @@ const SearchScreen = () => {
   return (
     <View style={styles.container}>
       <View style={styles.searchContainer}>
-        <Ionicons name="search" size={20} color={colors.textSecondary} style={styles.searchIcon} />
+        <Ionicons
+          name="search"
+          size={20}
+          color={colors.textSecondary}
+          style={styles.searchIcon}
+        />
         <TextInput
           style={styles.searchInput}
           placeholder="Search users..."
@@ -75,8 +85,14 @@ const SearchScreen = () => {
       <FlatList
         data={searchResults}
         renderItem={renderUserItem}
-        keyExtractor={item => item._id}
-        contentContainerStyle={styles.resultsList}
+        keyExtractor={(item) => item._id}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[
+          styles.resultsList,
+          {
+            paddingBottom: inset.bottom + 100,
+          },
+        ]}
       />
 
       <Modal
@@ -102,8 +118,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: colors.card,
     margin: 16,
     padding: 12,
@@ -118,11 +134,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   resultsList: {
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 16,
   },
   userItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 12,
     borderBottomWidth: 1,
     borderBottomColor: colors.card,
@@ -138,14 +155,14 @@ const styles = StyleSheet.create({
   },
   username: {
     fontSize: fontSizes.md,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.textPrimary,
     marginBottom: 4,
   },
   userBio: {
     fontSize: fontSizes.sm,
     color: colors.textSecondary,
-  }
+  },
 });
 
 export default SearchScreen;

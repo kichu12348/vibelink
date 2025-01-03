@@ -233,7 +233,6 @@ export function MessageProvider({ children }) {
       );
       return data;
     } catch (error) {
-      console.error("Error searching users:", error);
       return [];
     }
   };

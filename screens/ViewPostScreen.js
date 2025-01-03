@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -67,7 +67,7 @@ const Comment = ({ comment, postId, setComments }) => {
             uri: comment.user.profileImage || defaultAvatar,
           }}
           style={styles.commentAvatar}
-          cachePolicy={"none"}
+          cachePolicy={"memory-disk"}
         />
         <Text style={styles.commentUsername}>{comment.user.username}</Text>
       </View>
@@ -102,7 +102,7 @@ const Comment = ({ comment, postId, setComments }) => {
                 uri: reply.user.profileImage || defaultAvatar,
               }}
               style={styles.replyAvatar}
-              cachePolicy={"none"}
+              cachePolicy={"memory-disk"}
             />
             <Text style={styles.replyUsername}>{reply.user.username}</Text>
           </View>
@@ -113,8 +113,17 @@ const Comment = ({ comment, postId, setComments }) => {
   );
 };
 
-const ShareModal = ({ visible, onClose, onShare, conversations, currentUser }) => {
-  const firstRowUsers = conversations.slice(0, Math.min(3, conversations.length));
+const ShareModal = ({
+  visible,
+  onClose,
+  onShare,
+  conversations,
+  currentUser,
+}) => {
+  const firstRowUsers = conversations.slice(
+    0,
+    Math.min(3, conversations.length)
+  );
   const remainingUsers = conversations.slice(Math.min(3, conversations.length));
 
   const renderUserItem = (conversation) => {
@@ -157,7 +166,7 @@ const ShareModal = ({ visible, onClose, onShare, conversations, currentUser }) =
             <ScrollView showsVerticalScrollIndicator={false}>
               <View style={styles.firstRow}>
                 {firstRowUsers.map((item, index) => (
-                  <View key={item._id} style={{flex: 1}}>
+                  <View key={item._id} style={{ flex: 1 }}>
                     {renderUserItem(item)}
                   </View>
                 ))}
@@ -193,6 +202,14 @@ const ViewPostScreen = ({ post, close = () => {} }) => {
     post.likes?.includes(currentUser?._id)
   );
   const insets = useSafeAreaInsets();
+
+  const timestamp = useMemo(() => {
+    return new Date(post.createdAt).toLocaleString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
+  }, [post.createdAt]);
 
   // Add useEffect to update comments when post changes
   useEffect(() => {
@@ -316,7 +333,7 @@ const ViewPostScreen = ({ post, close = () => {} }) => {
                   uri: post.user?.profileImage || defaultAvatar,
                 }}
                 style={styles.avatar}
-                cachePolicy={"none"}
+                cachePolicy={"memory-disk"}
               />
               <Text style={styles.username}>{post.user?.username || ""}</Text>
             </View>
@@ -330,7 +347,18 @@ const ViewPostScreen = ({ post, close = () => {} }) => {
                 contentFit="cover"
               />
             )}
-
+            <Text
+              style={[
+                styles.content,
+                {
+                  color: colors.textSecondary,
+                  fontSize: fontSizes.sm,
+                  marginTop: 8,
+                },
+              ]}
+            >
+              {timestamp}
+            </Text>
             <View style={styles.actions}>
               <TouchableOpacity
                 onPress={handleLike}
@@ -385,11 +413,7 @@ const ViewPostScreen = ({ post, close = () => {} }) => {
         <View style={styles.floatConatinerContainer}>
           <View style={styles.floatingContainer}>
             <View style={styles.commentInputContainer}>
-              <BlurView
-                intensity={20}
-                style={styles.blur}
-                tint="dark"
-              />
+              <BlurView intensity={20} style={styles.blur} tint="dark" />
               <TextInput
                 style={styles.commentInput}
                 placeholder="Write a comment..."
@@ -633,7 +657,8 @@ const styles = StyleSheet.create({
   },
   blur: {
     position: "absolute",
-    backgroundColor:Platform.OS === "ios" ? "rgba(35, 37, 47, 0.3)" : "rgba(35, 37, 47, 0.8)",
+    backgroundColor:
+      Platform.OS === "ios" ? "rgba(35, 37, 47, 0.3)" : "rgba(35, 37, 47, 0.8)",
     ...StyleSheet.absoluteFillObject,
   },
   floatingContainer: {
@@ -651,22 +676,22 @@ const styles = StyleSheet.create({
     paddingBottom: 150,
   },
   firstRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
+    flexDirection: "row",
+    justifyContent: "flex-start",
     marginBottom: 8,
     paddingHorizontal: 8,
   },
   shareGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     paddingHorizontal: 8,
   },
   gridItemContainer: {
-    width: '33.33%',
+    width: "33.33%",
     padding: 4,
   },
   shareGridItem: {
-    alignItems: 'center',
+    alignItems: "center",
     padding: 12,
     flex: 1,
   },
@@ -680,7 +705,7 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     fontSize: 14,
     fontWeight: "500",
-    textAlign: 'center',
+    textAlign: "center",
   },
 });
 

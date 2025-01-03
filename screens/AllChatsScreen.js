@@ -6,7 +6,7 @@ import {
   TextInput,
   FlatList,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import { useMessage } from "../context/MessageContext";
@@ -78,6 +78,8 @@ const AllChatsScreen = ({ navigation }) => {
     });
   };
 
+  const insets=useSafeAreaInsets();
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" backgroundColor={colors.background} />
@@ -106,7 +108,11 @@ const AllChatsScreen = ({ navigation }) => {
         <FlatList
           data={searchResults}
           keyExtractor={(item) => item._id}
-          contentContainerStyle={styles.searchResults}
+          style={{ flex: 1 }}
+          contentContainerStyle={{
+            padding: 16,
+            paddingBottom: insets.bottom + 16
+          }}
           renderItem={({ item }) => (
             <TouchableOpacity
               style={styles.chatItem}
@@ -115,7 +121,7 @@ const AllChatsScreen = ({ navigation }) => {
               <Image
                 source={{ uri: item.profileImage || defaultAvatar }}
                 style={styles.avatar}
-                cachePolicy={"none"}
+                cachePolicy={"memory-disk"}
               />
               <Text style={styles.username}>{item.username}</Text>
             </TouchableOpacity>
@@ -125,7 +131,11 @@ const AllChatsScreen = ({ navigation }) => {
         <FlatList
           data={conversations}
           keyExtractor={(item) => item._id}
-          contentContainerStyle={styles.chatList}
+          style={{ flex: 1 }}
+          contentContainerStyle={{
+            padding: 16,
+            paddingBottom: insets.bottom + 16
+          }}
           renderItem={({ item }) => {
             const otherParticipant = getOtherParticipant(item);
             return (
@@ -138,7 +148,7 @@ const AllChatsScreen = ({ navigation }) => {
                     uri: otherParticipant.profileImage || defaultAvatar,
                   }}
                   style={styles.avatar}
-                  cachePolicy={"none"}
+                  cachePolicy={"memory-disk"}
                 />
                 <View style={styles.chatInfo}>
                   <Text style={styles.username}>

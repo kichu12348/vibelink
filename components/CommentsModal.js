@@ -52,7 +52,7 @@ const Comment = ({ comment, postId, setComments, currentUser, addReply }) => {
         <Image
           source={{ uri: comment.user.profileImage || defaultAvatar }}
           style={styles.commentAvatar}
-          cachePolicy={"none"}
+          cachePolicy={"memory-disk"}
         />
         <Text style={styles.commentUsername}>{comment.user.username}</Text>
       </View>
@@ -86,7 +86,7 @@ const Comment = ({ comment, postId, setComments, currentUser, addReply }) => {
             <Image
               source={{ uri: reply.user.profileImage || defaultAvatar }}
               style={styles.replyAvatar}
-              cachePolicy={"none"}
+              cachePolicy={"memory-disk"}
             />
             <Text style={styles.replyUsername}>{reply.user.username}</Text>
           </View>

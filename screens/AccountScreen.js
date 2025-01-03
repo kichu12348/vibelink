@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Image,
   StyleSheet,
   ScrollView,
   Dimensions,
@@ -23,7 +22,7 @@ import { endPoint } from "../constants/endpoints";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import EditProfileModal from "../utils/editProfile";
 import ViewUserOProfile from "../utils/ViewUserOProfile";
-//import { SafeAreaView } from "react-native-safe-area-context";
+import { Image } from "expo-image";
 
 export default function AccountScreen() {
   const bottomTabBarHeight = useBottomTabBarHeight();
@@ -92,20 +91,7 @@ export default function AccountScreen() {
     setPostCount(posts.length || 0);
   }, [currentUser]);
 
-  // Sample posts data - multiple of 3 for clean rows
-
-  const pickImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaType.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-
-    if (!result.cancelled) {
-      setImage(result.uri);
-    }
-  };
+ 
 
   const openEditModal = () => {
     setEditUsername(currentUser?.username);
@@ -193,6 +179,7 @@ export default function AccountScreen() {
               : require("../defaultImages/default-user.jpg")
           }
           style={styles.userImage}
+          cachePolicy={"memory-disk"}
         />
         <Text style={styles.userName}>@{item.username}</Text>
       </TouchableOpacity>
@@ -212,7 +199,8 @@ export default function AccountScreen() {
         <Image
           source={{ uri: post.image }}
           style={styles.postImage}
-          resizeMode="cover"
+          contentFit="cover"
+          cachePolicy={"memory-disk"}
         />
       ) : (
         <Text
@@ -248,6 +236,7 @@ export default function AccountScreen() {
                     : require("../defaultImages/default-user.jpg")
                 }
                 style={styles.profileImage}
+                cachePolicy={"memory-disk"}
               />
             </View>
           </View>

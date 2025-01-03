@@ -27,12 +27,12 @@ const SharedPost = ({ post, onClickPost }) => {
         onClickPost(p);
       }}
     >
-      <BlurView 
-      intensity={80} 
-      style={styles.blur} 
-      tint="dark"
-      experimentalBlurMethod="dimezisBlurView"
-      blurReductionFactor={5}
+      <BlurView
+        intensity={80}
+        style={styles.blur}
+        tint="dark"
+        experimentalBlurMethod="dimezisBlurView"
+        blurReductionFactor={5}
       />
       <View style={styles.sharedPostHeader}>
         <Image
@@ -62,10 +62,13 @@ const MessageItem = React.memo(
       [isOwn]
     );
 
-    const timestamp = React.useMemo(
-      () => new Date(message.createdAt).toLocaleTimeString(),
-      [message.createdAt]
-    );
+    const timestamp = React.useMemo(() => {
+      const date = new Date(message.createdAt);
+      return date.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "numeric",
+      });
+    }, [message.createdAt]);
     if (!message?.content && !message?.media?.url && !message.sharedPost)
       return null;
 

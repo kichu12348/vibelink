@@ -34,7 +34,7 @@ const EditProfileModal = ({
           <Image 
             source={editImage ? { uri: editImage } : (image ? { uri: image } : require("../defaultImages/default-user.jpg"))}
             style={styles.editProfileImage}
-            cachePolicy={"none"}
+            cachePolicy={"memory-disk"}
           />
           <TouchableOpacity onPress={handlePickEditImage} style={styles.changePhotoButton}>
             <Text style={styles.changePhotoText}>Change Profile Photo</Text>

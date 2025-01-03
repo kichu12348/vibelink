@@ -62,15 +62,18 @@ const RenderPost = memo(
     const [color,setColor] = useState(colors.card);
 
     async function getColor(){
-      console.log("col");
       if(!item.image) return;
-      const res = await axios.post(`${endPoint}/api/posts/getColor`, {url:item.image});
-      setColor(res.data.rgb);
+      await axios.post(`${endPoint}/api/posts/getColor`, {url:item.image}).then((res)=>{
+        setColor(res.data.rgb);
+      }).catch((err)=>{
+        return;
+      });
+      
     };
 
     useLayoutEffect(()=>{
       getColor();
-    },[])
+    },[]) // runs when the component is mounted
 
 
     
@@ -137,7 +140,7 @@ const RenderPost = memo(
                 uri: item.user.profileImage || defaultAvatar,
               }}
               style={styles.avatar}
-              cachePolicy={"none"}
+              cachePolicy={"memory-disk"}
             />
             <Text style={styles.username}>{item.user.username}</Text>
           </TouchableOpacity>

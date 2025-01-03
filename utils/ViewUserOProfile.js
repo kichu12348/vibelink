@@ -104,7 +104,7 @@ const ViewUserOProfile = ({ user, close }) => {
               : require("../defaultImages/default-user.jpg")
           }
           style={styles.profileImage}
-          cachePolicy={"none"}
+          cachePolicy={"memory-disk"}
         />
         <Text style={styles.username}>@{user.username}</Text>
         {user.bio && <Text style={styles.bio}>{user.bio}</Text>}
@@ -131,7 +131,7 @@ const ViewUserOProfile = ({ user, close }) => {
                 <Image
                   style={styles.postImage}
                   source={{ uri: post.image }}
-                  cachePolicy={"none"}
+                  cachePolicy={"memory-disk"}
                 />
               ) : (
                 <Text style={styles.postContent}>{post.content}</Text>
