@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -23,6 +23,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import EditProfileModal from "../utils/editProfile";
 import ViewUserOProfile from "../utils/ViewUserOProfile";
 import { Image } from "expo-image";
+import { useError } from "../context/ErrorContext";
 
 export default function AccountScreen() {
   const bottomTabBarHeight = useBottomTabBarHeight();
@@ -46,6 +47,8 @@ export default function AccountScreen() {
   const [followModalType, setFollowModalType] = useState(""); // 'followers' or 'following'
   const [selectedUser, setSelectedUser] = useState(null);
   const [isUserProfileOpen, setIsUserProfileOpen] = useState(false);
+
+  const { showError } = useError();
 
   React.useEffect(() => {
     setPosts(() => {
@@ -91,8 +94,6 @@ export default function AccountScreen() {
     setPostCount(posts.length || 0);
   }, [currentUser]);
 
- 
-
   const openEditModal = () => {
     setEditUsername(currentUser?.username);
     setEditBio(currentUser?.bio);
@@ -112,38 +113,46 @@ export default function AccountScreen() {
   };
 
   const handleUploadImage = async () => {
-    const formData = new FormData();
-    formData.append("file", {
-      uri: editImage,
-      type: "image/jpeg",
-      name: "profile.jpg",
-    });
-    const uploadRes = await axios.post(`${endPoint}/api/upload`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-    return uploadRes.data?.fileName;
+    try {
+      const formData = new FormData();
+      formData.append("file", {
+        uri: editImage,
+        type: "image/jpeg",
+        name: "profile.jpg",
+      });
+      const uploadRes = await axios.post(`${endPoint}/api/upload`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      return uploadRes.data?.fileName;
+    } catch (err) {
+      showError(err.response?.data?.message || err.message);
+    }
   };
 
   const handleSaveChanges = async () => {
-    let uploadedUrl = image;
-    if (editImage) {
-      uploadedUrl = await handleUploadImage();
+    try {
+      let uploadedUrl = image;
+      if (editImage) {
+        uploadedUrl = await handleUploadImage();
+      }
+      const res = await axios.put(`${endPoint}/api/users/profile`, {
+        username: editUsername.trim(),
+        bio: editBio.trim(),
+        profileImage: uploadedUrl,
+      });
+      setImage(res.data?.profileImage);
+      setBio(editBio);
+      setCurrentUser((prev) => {
+        prev.username = editUsername.trim();
+        prev.bio = editBio.trim();
+        prev.profileImage = res.data?.profileImage;
+        return prev;
+      });
+      setIsEditModalVisible(false);
+      await AsyncStorage.setItem("user", JSON.stringify(currentUser));
+    } catch (err) {
+      showError(err.response?.data?.message || err.message);
     }
-    const res = await axios.put(`${endPoint}/api/users/profile`, {
-      username: editUsername.trim(),
-      bio: editBio.trim(),
-      profileImage: uploadedUrl,
-    });
-    setImage(res.data?.profileImage);
-    setBio(editBio);
-    setCurrentUser((prev) => {
-      prev.username = editUsername.trim();
-      prev.bio = editBio.trim();
-      prev.profileImage = res.data?.profileImage;
-      return prev;
-    });
-    setIsEditModalVisible(false);
-    await AsyncStorage.setItem("user", JSON.stringify(currentUser));
   };
 
   const openFollowModal = (type) => {
@@ -242,9 +251,7 @@ export default function AccountScreen() {
           </View>
 
           <Text style={styles.name}>@{currentUser?.username}</Text>
-          <Text style={styles.bio}>
-            {bio}
-          </Text>
+          <Text style={styles.bio}>{bio}</Text>
         </View>
 
         <View style={styles.statsContainer}>

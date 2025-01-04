@@ -14,11 +14,16 @@ import * as ImagePicker from 'expo-image-picker';
 import { colors, fontSizes } from '../constants/primary';
 import { usePost } from '../context/PostContext';
 import { Ionicons } from '@expo/vector-icons';
+import { useError } from '../context/ErrorContext';
+
+
+const MAX_CONTENT_LENGTH = 500;
 
 const AddPostScreen = ({ navigation }) => {
   const [content, setContent] = useState('');
   const [mediaFiles, setMediaFiles] = useState([]);
   const { createPost, loading } = usePost();
+  const {showError}=useError();
 
 
   const pickImage = async () => {
@@ -44,7 +49,7 @@ const AddPostScreen = ({ navigation }) => {
         navigation.navigate('Feed');
       }
     } catch (error) {
-      console.log('Post creation error:', error);
+      showError(error.message);
     }
   };
 

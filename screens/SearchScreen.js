@@ -15,6 +15,7 @@ import ViewUserOProfile from "../utils/ViewUserOProfile";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 
 const SearchScreen = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -22,6 +23,7 @@ const SearchScreen = () => {
   const [selectedUser, setSelectedUser] = useState(null);
 
   const inset = useSafeAreaInsets();
+  const tabBarHeight = useBottomTabBarHeight();
 
   const handleSearch = async (text) => {
     setSearchQuery(text);
@@ -90,7 +92,7 @@ const SearchScreen = () => {
         contentContainerStyle={[
           styles.resultsList,
           {
-            paddingBottom: inset.bottom + 100,
+            paddingBottom: tabBarHeight + inset.bottom+16,
           },
         ]}
       />

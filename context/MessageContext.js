@@ -13,6 +13,7 @@ import { endPoint as API_URL } from "../constants/endpoints";
 import { uploadFile } from "../utils/fileUpload";
 import * as Device from "expo-device";
 import { Platform } from "react-native";
+import { useError } from "./ErrorContext";
 
 // Set up notifications handler
 Notifications.setNotificationHandler({
@@ -61,6 +62,9 @@ export function MessageProvider({ children }) {
   const [messages, setMessages] = useState([]);
   const { currentUser, token } = useAuth();
   const [socket, setSocket] = useState(null);
+
+
+  const {showError}=useError();
 
   // Register once and optionally send token to your backend
   useEffect(() => {
@@ -155,7 +159,7 @@ export function MessageProvider({ children }) {
       );
       setConversations(data);
     } catch (error) {
-      console.log("Error fetching conversations:", error.message);
+      console.log("Error fetching conversations:", error.response?.data || error.message);
     }
   }, [token]);
 
@@ -219,7 +223,8 @@ export function MessageProvider({ children }) {
       setMessages((prev) => [...prev, data.message]);
       return data;
     } catch (error) {
-      console.log("Error sending message:", error.response?.data);
+      showError(error.response?.data?.message || error.message);
+      return null;
     }
   };
 

@@ -2,6 +2,7 @@ import React, { createContext, useState, useContext, useEffect } from "react";
 import { endPoint, socket } from "../constants/endpoints";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
+import { useError } from "./ErrorContext";
 
 const AuthContext = createContext();
 
@@ -15,6 +16,9 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [token, setToken] = useState(null);
   const [authChecking, setAuthChecking] = useState(true);
+
+
+  const {showError}=useError();
 
   const checkUser = async () => {
     const token = await AsyncStorage.getItem("token");
@@ -42,10 +46,7 @@ export const AuthProvider = ({ children }) => {
           }
           setToken(token);
         } catch (err) {
-          console.log(
-            "Error fetching user details:",
-            err.response?.data || err.message
-          );
+          showError(err.response?.data?.message || err.message);
         }
       }
     }
@@ -138,7 +139,7 @@ export const AuthProvider = ({ children }) => {
 
       return true;
     } catch (err) {
-      setError(err.response?.data?.message || err.message);
+      showError(err.response?.data?.message || err.message);
       return false;
     } finally {
       setLoading(false);
@@ -167,7 +168,7 @@ export const AuthProvider = ({ children }) => {
 
       return true;
     } catch (err) {
-      setError(err.response?.data?.message || err.message);
+      showError(err.response?.data?.message || err.message);
       return false;
     } finally {
       setLoading(false);
@@ -191,7 +192,7 @@ export const AuthProvider = ({ children }) => {
       setCurrentUser(null);
       setToken(null);
     } catch (err) {
-      setError("Error signing out");
+      showError(err.response?.data?.message || err.message);
     } finally {
       setLoading(false);
     }

@@ -2,6 +2,7 @@ import React, { createContext, useState, useContext } from 'react';
 import { endPoint, socket } from '../constants/endpoints';
 import axios from 'axios';
 import { uploadFile } from '../utils/fileUpload';
+import { useError } from './ErrorContext';
 
 const PostContext = createContext();
 
@@ -18,13 +19,15 @@ export const PostProvider = ({ children }) => {
     const [isPostOpen, setIsPostOpen] = useState(false);
     const [postContent, setPostContent] = useState(null);
 
+    const {showError}=useError();
+
     const fetchPosts = async () => {
         setLoading(true);
         try {
             const response = await axios.get(`${endPoint}/api/posts`);
             setPosts(response.data);
         } catch (err) {
-            setError(err.response?.data?.message || 'Error fetching posts');
+            showError(err.response?.data?.message ||err.message|| 'Error fetching posts');
         } finally {
             setLoading(false);
         }
@@ -60,7 +63,7 @@ export const PostProvider = ({ children }) => {
             return true;
         } catch (err) {
             console.log('Create post error:', ...err);
-            setError(err.response?.data?.message || 'Error creating post');
+            showError(err.response?.data?.message || 'Error creating post');
             return false;
         } finally {
             setLoading(false);
@@ -75,7 +78,7 @@ export const PostProvider = ({ children }) => {
             ));
             return true;
         } catch (err) {
-            setError(err.response?.data?.message);
+            showError(err.response?.data?.message);
             return false;
         }
     };
@@ -88,8 +91,7 @@ export const PostProvider = ({ children }) => {
             ));
             return true;
         } catch (err) {
-            console.log('Unlike post error:', err);
-            setError(err.response?.data?.message);
+            showError(err.response?.data?.message|| err.message||'Error unliking post');
             return false;
         }
     };
@@ -104,7 +106,7 @@ export const PostProvider = ({ children }) => {
             ));
             return response.data;
         } catch (err) {
-            setError(err.response?.data?.message);
+            showError(err.response?.data?.message);
             return null;
         }
     };
@@ -120,7 +122,7 @@ export const PostProvider = ({ children }) => {
             ));
             return response.data;
         } catch (err) {
-            setError(err.response?.data?.message);
+            showError(err.response?.data?.message);
             return null;
         }
     };
@@ -139,8 +141,7 @@ export const PostProvider = ({ children }) => {
                 return p._id !== postId;
             }));
         } catch (err) {
-            console.log('Delete post error:', err.response?.data?.message);
-            setError(err.response?.data?.message);
+            showError(err.response?.data?.message);
         }
     };
 
@@ -151,7 +152,7 @@ export const PostProvider = ({ children }) => {
             return response.data;
         } catch(err){
             console.log('Get post error:', err.response?.data?.message);
-            setError(err.response?.data?.message);
+            showError(err.response?.data?.message);
             return null;
         }
     }
