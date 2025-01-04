@@ -60,11 +60,15 @@ const RenderPost = memo(
     const likeAnimation = useRef(new Animated.Value(0)).current;
     const [showLikeAnimation, setShowLikeAnimation] = useState(false);
     const [color,setColor] = useState(colors.card);
+    const [shadowColor,setShadowColor] = useState("rgba(255, 255, 255, 1)");
 
     async function getColor(){
       if(!item.image) return;
       await axios.post(`${endPoint}/api/posts/getColor`, {url:item.image}).then((res)=>{
         setColor(res.data.rgb);
+        const rgba = res.data.rgb.split("(")[1].split(")")[0].split(",");
+        const shadow = `rgba(${rgba[0]},${rgba[1]},${rgba[2]},0.5)`;
+        setShadowColor(shadow);
       }).catch((err)=>{
         return;
       });
@@ -130,7 +134,7 @@ const RenderPost = memo(
 
     return (
       <TouchableWithoutFeedback onPress={() => onPostPress(item)}>
-        <View style={[globalStyles.card, styles.post,{backgroundColor:color}]}>
+        <View style={[globalStyles.card, styles.post,{backgroundColor:color,shadowColor:shadowColor}]}>
           <TouchableOpacity
             style={styles.postHeader}
             onPress={() => onProfilePress(item)}
@@ -205,14 +209,15 @@ const RenderPost = memo(
 const styles = StyleSheet.create({
   post: {
     marginBottom: 16,
-    width: "100%",
+    width: "95%",
+    alignSelf: "center",
     height: "auto",
+    zIndex: 99,
     backgroundColor: colors.card,
     borderRadius: 12,
     padding: 12,
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
