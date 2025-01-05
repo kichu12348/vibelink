@@ -4,9 +4,11 @@ import {
   StyleSheet,
   TouchableOpacity,
   Animated,
+  Modal,
+  ScrollView,
 } from "react-native";
-import React, { useRef } from "react";
-import { colors } from "../constants/primary";
+import React, { useRef, useState } from "react";
+import { colors, fontSizes } from "../constants/primary";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../context/AuthContext";
@@ -16,6 +18,11 @@ const Settings = ({ close }) => {
   const insets = useSafeAreaInsets();
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const spinAnim = useRef(new Animated.Value(0)).current;
+  const [showTerms, setShowTerms] = useState(false);
+  const [showGoofyAnim, setShowGoofyAnim] = useState(false);
+  const goofyScaleAnim = useRef(new Animated.Value(0)).current;
+  const goofyRotateAnim = useRef(new Animated.Value(0)).current;
+  const goofyBounceAnim = useRef(new Animated.Value(0)).current;
 
   async function handleSignOut() {
     close();
@@ -42,9 +49,81 @@ const Settings = ({ close }) => {
     });
   };
 
+  function showGoofyAnimation() {
+    setShowGoofyAnim(true);
+    goofyScaleAnim.setValue(0);
+    goofyRotateAnim.setValue(0);
+    goofyBounceAnim.setValue(0);
+
+    Animated.parallel([
+      Animated.sequence([
+        Animated.spring(goofyScaleAnim, {
+          toValue: 1,
+          tension: 50,
+          friction: 3,
+          useNativeDriver: true,
+        }),
+        Animated.timing(goofyScaleAnim, {
+          toValue: 1,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(goofyScaleAnim, {
+          toValue: 0,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+      ]),
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(goofyRotateAnim, {
+            toValue: 1,
+            duration: 400,
+            useNativeDriver: true,
+          }),
+          Animated.timing(goofyRotateAnim, {
+            toValue: 0,
+            duration: 400,
+            useNativeDriver: true,
+          }),
+        ]),
+        { iterations: 4 }
+      ),
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(goofyBounceAnim, {
+            toValue: 1,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+          Animated.timing(goofyBounceAnim, {
+            toValue: 0,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+        ]),
+        { iterations: 5 }
+      ),
+    ]).start(() => {
+      setTimeout(() => {
+        setShowGoofyAnim(false);
+      }, 100);
+    });
+  }
+
   const spin = spinAnim.interpolate({
     inputRange: [0, 1],
     outputRange: ["0deg", "360deg"],
+  });
+
+  const goofySpin = goofyRotateAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["-15deg", "15deg"],
+  });
+
+  const bounce = goofyBounceAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, -20],
   });
 
   return (
@@ -61,6 +140,25 @@ const Settings = ({ close }) => {
         </TouchableOpacity>
       </View>
       <View style={styles.contentContainer}>
+        <TouchableOpacity onPress={() => setShowTerms(true)}>
+          <View style={styles.signOutButton}>
+            <Ionicons
+              name="document-text-outline"
+              size={24}
+              color={colors.textPrimary}
+            />
+            <Text
+              style={[
+                styles.signOutText,
+                {
+                  color: colors.textSecondary,
+                },
+              ]}
+            >
+              View Terms & Conditions
+            </Text>
+          </View>
+        </TouchableOpacity>
         <TouchableOpacity onPress={handleSignOut}>
           <View style={styles.signOutButton}>
             <Ionicons
@@ -81,9 +179,117 @@ const Settings = ({ close }) => {
             },
           ]}
         >
-          made wiz ❤️ by Kichu
+          Made wid ❤️ by Kichu
         </Animated.Text>
       </TouchableOpacity>
+      <Modal visible={showTerms} animationType="slide" transparent={false}>
+        <View
+          style={[
+            styles.termsModalContainer,
+            { paddingTop: insets.top, paddingBottom: insets.bottom },
+          ]}
+        >
+          <View style={styles.termsHeader}>
+            <Text style={[styles.text, { fontWeight: "bold" }]}>
+              Terms & Conditions
+            </Text>
+            <TouchableOpacity
+              style={styles.termsCloseButton}
+              onPress={() => {
+                setShowTerms(false);
+                showGoofyAnimation();
+              }}
+            >
+              <Ionicons name="close" size={30} color={colors.textPrimary} />
+            </TouchableOpacity>
+          </View>
+          <ScrollView
+            style={styles.termsScrollView}
+            showsVerticalScrollIndicator={false}
+          >
+            <Text style={styles.termsText}>
+              1. By using VibeLink, you agree to send at least one text message
+              a day that could confuse even Sherlock Holmes.{"\n\n"}
+              Bonus points for sending it with an image that makes it even
+              weirder. 🕵️‍♂️💬🖼️{"\n\n"}
+              2. You promise to share images that spread joy, confusion, or
+              both.{"\n\n"}
+              If your image causes someone to laugh-snort, you win the day.
+              😂📸🎉{"\n\n"}
+              3. Sharing blurry photos “accidentally” is completely acceptable.
+              {"\n\n"}
+              We call it artistic expression, and we’re here for it. 🎨📷✨
+              {"\n\n"}
+              4. You agree to use captions that make people go, “Wait, what?”
+              every once in a while.{"\n\n"}
+              It’s good for the vibe. 🤔🖼️📜{"\n\n"}
+              5. If you send the wrong image to the wrong person, you must laugh
+              it off and pretend it was intentional.{"\n\n"}
+              It’s the VibeLink way. 🤷‍♀️📱😂{"\n\n"}
+              6. By using this app, you agree to embrace the beauty of typos in
+              your messages.{"\n\n"}
+              They’re not mistakes; they’re personality quirks. 😜✍️✨{"\n\n"}
+              7. Posting pictures of food that look way too good to eat is
+              allowed, but you’ll need to send the recipe too.{"\n\n"}
+              Sharing is caring. 🍕📸🍴{"\n\n"}
+              8. By using VibeLink, you promise not to use the app to send
+              cryptic texts like “We need to talk” unless you’re also sending a
+              picture of something harmless, like a kitten.{"\n\n"}
+              🐱💬💓{"\n\n"}
+              9. You agree to celebrate your friends’ blurry sunset photos like
+              they’re professional photographers.{"\n\n"}
+              It’s about the vibes, not the megapixels. 🌅📷💖{"\n\n"}
+              10. Sharing an image of your coffee? Cool.{"\n\n"}
+              But remember: the more ridiculous the caption, the better. ☕😂🖋️
+              {"\n\n"}
+              11. Any overuse of filters must be accompanied by a caption that
+              says, “Yes, this is 100% real and not filtered at all.”{"\n\n"}
+              Honesty is key. 😇📸🎨{"\n\n"}
+              12. You promise not to ghost your group chats.{"\n\n"}
+              If you go quiet for too long, you owe them a picture of something
+              random in your house.{"\n\n"}
+              Bonus points for creativity. 🏠📷💬{"\n\n"}
+              13. By agreeing to these terms, you understand that sending a
+              single text without an accompanying image is totally
+              acceptable—but slightly less vibey.{"\n\n"}
+              Try to balance it out. ⚖️🖼️💬{"\n\n"}
+              14. VibeLink reserves the right to cheer you up with random image
+              suggestions if your vibes seem off.{"\n\n"}
+              We can’t help it; we care too much. 💖📱🎭{"\n\n"}
+              15. By using this app, you acknowledge that sometimes the best way
+              to say something is to not say anything at all and just send a
+              perfectly random image instead.{"\n\n"}
+              🖼️🤔🌈{"\n\n"}
+            </Text>
+          </ScrollView>
+        </View>
+      </Modal>
+      {showGoofyAnim && (
+        <Animated.View
+          style={[
+            styles.goofyAnimContainer,
+            {
+              opacity: goofyScaleAnim,
+              transform: [
+                { scale: goofyScaleAnim },
+                { rotate: goofySpin },
+                { translateY: bounce },
+              ],
+            },
+          ]}
+        >
+          <View style={styles.goofyContent}>
+            <Ionicons name="rocket" size={24} color="#FFD700" />
+            <Text style={styles.goofyAnimText}>Terms Accepted YAYYY!!</Text>
+            <Ionicons name="happy" size={24} color="#FFD700" />
+          </View>
+          <View style={styles.goofyIconsRow}>
+            <Ionicons name="sparkles" size={20} color="#FF69B4" />
+            <Ionicons name="star" size={20} color="#87CEEB" />
+            <Ionicons name="heart" size={20} color="#FF69B4" />
+          </View>
+        </Animated.View>
+      )}
     </View>
   );
 };
@@ -132,5 +338,59 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: "center",
     marginBottom: 20,
+  },
+  termsModalContainer: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  termsCloseButton: {
+    alignSelf: "flex-end",
+    margin: 15,
+  },
+  termsScrollView: {
+    padding: 20,
+  },
+  termsText: {
+    color: colors.textPrimary,
+    fontSize: fontSizes.md,
+  },
+  termsHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 15,
+  },
+  goofyAnimContainer: {
+    position: "absolute",
+    bottom: 100,
+    alignSelf: "center",
+    backgroundColor: colors.card,
+    padding: 15,
+    borderRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  goofyContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  goofyIconsRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginTop: 8,
+  },
+  goofyAnimText: {
+    color: colors.textPrimary,
+    fontWeight: "bold",
+    fontSize: 16,
+    marginHorizontal: 8,
   },
 });

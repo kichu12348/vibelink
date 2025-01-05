@@ -143,6 +143,10 @@ export function MessageProvider({ children }) {
 
     socket.on("newMessage", handleNewMessage);
 
+    socket.on('deletedMessage', ({ messageId }) => {
+      setMessages((prev) => prev.filter((m) => m._id !== messageId));
+    });
+
     return () => {
       socket.off("newMessage", handleNewMessage);
     };
@@ -228,6 +232,17 @@ export function MessageProvider({ children }) {
     }
   };
 
+  const deleteMessage = async (messageId) => {
+    try {
+      await axios.delete(`${API_URL}/api/messages/${messageId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setMessages((prev) => prev.filter((m) => m._id.toString() !== messageId));
+    } catch (error) {
+      showError(error.response?.data?.message || error.message);
+    }
+  };
+
   const searchUsers = async (query) => {
     try {
       const { data } = await axios.get(
@@ -270,6 +285,7 @@ export function MessageProvider({ children }) {
         searchUsers,
         socket,
         uploadImageToServer,
+        deleteMessage,
       }}
     >
       {children}

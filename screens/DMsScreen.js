@@ -15,7 +15,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { colors } from "../constants/primary";
+import { colors, fontSizes } from "../constants/primary";
 import { useMessage } from "../context/MessageContext";
 import { useAuth } from "../context/AuthContext";
 import * as ImagePicker from "expo-image-picker";
@@ -97,6 +97,7 @@ export default function DMsScreen({ route, navigation }) {
     socket,
     setActiveChat,
     uploadImageToServer,
+    deleteMessage,
   } = useMessage();
   const { currentUser } = useAuth();
   const [text, setText] = useState("");
@@ -111,6 +112,7 @@ export default function DMsScreen({ route, navigation }) {
   const scaleAnim = useAnimatedValue(1);
   const rotateAnim = useAnimatedValue(0);
   const fadeAnim = useAnimatedValue(0);
+  const [selectedMessage, setSelectedMessage] = useState(null);
 
   const scrollViewRef = React.useRef();
 
@@ -171,8 +173,9 @@ export default function DMsScreen({ route, navigation }) {
 
   const handleSend = () => {
     if (!text.trim() && !imageUri) return;
-    sendMessage(conversationId, text.trim(), receiverId, imageUri);
+    const sendingText = text.trim();
     setText("");
+    sendMessage(conversationId, sendingText, receiverId, imageUri);
     setImageUri("");
     scrollViewRef.current.scrollToEnd({ animated: true });
   };
@@ -180,6 +183,12 @@ export default function DMsScreen({ route, navigation }) {
   const handlePostClick = (post) => {
     setPostContent(post);
     setPostModalVisible(true);
+  };
+
+  const handleDeleteMessage = () => {
+    if (!selectedMessage) return;
+    deleteMessage(selectedMessage._id);
+    setSelectedMessage(null);
   };
 
   const renderItem = React.useCallback(
@@ -196,6 +205,11 @@ export default function DMsScreen({ route, navigation }) {
           onClickImage={(uri) => {
             setImageUriModal(uri);
             setImageModalVisible(true);
+          }}
+          onLongPress={() => {
+            if (isOwn) {
+              setSelectedMessage(item);
+            }
           }}
         />
       );
@@ -425,7 +439,7 @@ export default function DMsScreen({ route, navigation }) {
           </View>
         </BlurView>
         <KeyboardAvoidingView
-          style={{ flex: 1}}
+          style={{ flex: 1 }}
           behavior={Platform.OS === "ios" ? "padding" : undefined}
           keyboardVerticalOffset={Platform.OS === "ios" ? 5 : 0}
         >
@@ -581,6 +595,57 @@ export default function DMsScreen({ route, navigation }) {
             close={() => setImageModalVisible(false)}
           />
         </Modal>
+        <Modal
+          animationType="fade"
+          transparent
+          visible={!!selectedMessage}
+          onRequestClose={() => setSelectedMessage(null)}
+        >
+          <BlurView
+            style={styles.modalContainer}
+            intensity={80}
+            tint="dark"
+            experimentalBlurMethod="dimezisBlurView"
+            blurReductionFactor={16}
+          >
+            {selectedMessage && (
+              <View style={styles.modalContent}>
+                <MessageItem
+                  message={selectedMessage}
+                  isOwn={selectedMessage?.sender?._id === currentUser?._id}
+                />
+                <Text
+                  style={[
+                    styles.modalTimestamp,
+                    {
+                      alignSelf:
+                        selectedMessage?.sender?._id === currentUser?._id
+                          ? "flex-end"
+                          : "flex-start",
+                    },
+                  ]}
+                >
+                  {new Date(selectedMessage?.createdAt).toLocaleString(
+                    "en-US",
+                    {
+                      month: "short",
+                      day: "numeric",
+                    }
+                  )}
+                </Text>
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={handleDeleteMessage}
+                >
+                  <Text style={styles.deleteButtonText}>Delete</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => setSelectedMessage(null)}>
+                  <Text style={styles.cancelText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </BlurView>
+        </Modal>
       </View>
     </>
   );
@@ -724,5 +789,46 @@ const styles = StyleSheet.create({
     height: "100%",
     justifyContent: "center",
     alignItems: "center",
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    width: "80%",
+    borderRadius: 12,
+    padding: 16,
+  },
+  modalMessage: {
+    color: colors.textPrimary,
+    fontSize: 16,
+    marginBottom: 8,
+  },
+  modalTimestamp: {
+    color: colors.textSecondary,
+    fontSize: fontSizes.md,
+    marginBottom: 8,
+  },
+  deleteButton: {
+    backgroundColor: colors.error,
+    borderRadius: 20,
+    padding: 10,
+    marginVertical: 12,
+    width: "50%",
+    alignSelf: "center",
+  },
+  deleteButtonText: {
+    color: "#fff",
+    textAlign: "center",
+    fontSize: fontSizes.md,
+    fontWeight: "600",
+  },
+  cancelText: {
+    color: colors.textPrimary,
+    textAlign: "center",
+    marginTop: 8,
+    fontSize: fontSizes.md,
   },
 });

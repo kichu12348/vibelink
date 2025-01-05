@@ -56,7 +56,7 @@ const SharedPost = ({ post, onClickPost }) => {
 };
 
 const MessageItem = React.memo(
-  ({ message, isOwn, onClickPost = () => {}, onClickImage = () => {} }) => {
+  ({ message, isOwn, onClickPost = () => {}, onClickImage = () => {}, onLongPress }) => {
     const bubbleStyle = React.useMemo(
       () => [styles.messageBubble, isOwn && styles.ownMessage],
       [isOwn]
@@ -74,7 +74,9 @@ const MessageItem = React.memo(
 
     if (message.sharedPost) {
       return (
-        <View
+        <TouchableOpacity
+          onLongPress={onLongPress}
+          activeOpacity={0.8}
           style={[
             styles.postContainer,
             isOwn ? { alignSelf: "flex-end" } : { alignSelf: "flex-start" },
@@ -91,13 +93,17 @@ const MessageItem = React.memo(
           >
             {timestamp}
           </Text>
-        </View>
+        </TouchableOpacity>
       );
     }
 
     if (message.media?.url) {
       return (
-        <View style={bubbleStyle}>
+        <TouchableOpacity
+          onLongPress={onLongPress}
+          activeOpacity={0.8}
+          style={bubbleStyle}
+        >
           <TouchableOpacity onPress={() => onClickImage(message.media.url)}>
             <Image
               source={{ uri: message.media.url }}
@@ -112,17 +118,21 @@ const MessageItem = React.memo(
             </Text>
           )}
           <Text style={styles.timestamp}>{timestamp}</Text>
-        </View>
+        </TouchableOpacity>
       );
     }
 
     return (
-      <View style={bubbleStyle}>
+      <TouchableOpacity
+        onLongPress={onLongPress}
+        activeOpacity={0.8}
+        style={bubbleStyle}
+      >
         <Text numberOfLines={20} style={styles.messageText}>
           {message.content}
         </Text>
         <Text style={styles.timestamp}>{timestamp}</Text>
-      </View>
+      </TouchableOpacity>
     );
   },
   (prevProps, nextProps) => {
