@@ -1,5 +1,5 @@
 import React from "react";
-import { createBottomTabNavigator, TransitionPresets } from "@react-navigation/bottom-tabs";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
 import HomeScreen from "../screens/HomeScreen";
@@ -83,7 +83,6 @@ function Tabs({ navigation }) {
     <>
       <Tab.Navigator
         screenOptions={({ route }) => ({
-          ...TransitionPresets.ShiftTransition,
           tabBarShowLabel: false,
           tabBarHideOnKeyboard: true,
           tabBarStyle: {
