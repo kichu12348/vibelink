@@ -151,6 +151,7 @@ const styles = StyleSheet.create({
   },
   flex1: {
     flex: 1,
+    backgroundColor: colors.background,
   },
   errorContainer: {
     flex: 1,
