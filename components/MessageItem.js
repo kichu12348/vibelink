@@ -7,7 +7,7 @@ import { BlurView } from "expo-blur";
 const defaultAvatar =
   "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
 
-const SharedPost = ({ post, onClickPost }) => {
+const SharedPost = ({ post, onClickPost, onLongPress }) => {
   const [user, setUser] = React.useState(null);
   const { getPostCommentUser } = usePost();
   React.useEffect(() => {
@@ -26,6 +26,8 @@ const SharedPost = ({ post, onClickPost }) => {
         p.user = user;
         onClickPost(p);
       }}
+      onLongPress={onLongPress}
+      activeOpacity={0.8}
     >
       <BlurView
         intensity={80}
@@ -56,7 +58,13 @@ const SharedPost = ({ post, onClickPost }) => {
 };
 
 const MessageItem = React.memo(
-  ({ message, isOwn, onClickPost = () => {}, onClickImage = () => {}, onLongPress }) => {
+  ({
+    message,
+    isOwn,
+    onClickPost = () => {},
+    onClickImage = () => {},
+    onLongPress,
+  }) => {
     const bubbleStyle = React.useMemo(
       () => [styles.messageBubble, isOwn && styles.ownMessage],
       [isOwn]
@@ -74,15 +82,17 @@ const MessageItem = React.memo(
 
     if (message.sharedPost) {
       return (
-        <TouchableOpacity
-          onLongPress={onLongPress}
-          activeOpacity={0.8}
+        <View
           style={[
             styles.postContainer,
             isOwn ? { alignSelf: "flex-end" } : { alignSelf: "flex-start" },
           ]}
         >
-          <SharedPost post={message.sharedPost} onClickPost={onClickPost} />
+          <SharedPost
+            post={message.sharedPost}
+            onClickPost={onClickPost}
+            onLongPress={onLongPress}
+          />
           <Text
             style={[
               styles.timestamp,
@@ -93,7 +103,7 @@ const MessageItem = React.memo(
           >
             {timestamp}
           </Text>
-        </TouchableOpacity>
+        </View>
       );
     }
 
@@ -104,7 +114,11 @@ const MessageItem = React.memo(
           activeOpacity={0.8}
           style={bubbleStyle}
         >
-          <TouchableOpacity onPress={() => onClickImage(message.media.url)}>
+          <TouchableOpacity
+            onPress={() => onClickImage(message.media.url)}
+            activeOpacity={0.8}
+            onLongPress={onLongPress}
+          >
             <Image
               source={{ uri: message.media.url }}
               style={styles.messageImage}
