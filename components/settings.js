@@ -6,15 +6,18 @@ import {
   Animated,
   Modal,
   ScrollView,
+  Alert,
 } from "react-native";
 import React, { useRef, useState } from "react";
 import { colors, fontSizes } from "../constants/primary";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../context/AuthContext";
+import { useMessage } from "../context/MessageContext";
 
 const Settings = ({ close }) => {
   const { signOut } = useAuth();
+  const { handleRegisterPushNotification } = useMessage();
   const insets = useSafeAreaInsets();
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const spinAnim = useRef(new Animated.Value(0)).current;
@@ -27,6 +30,15 @@ const Settings = ({ close }) => {
   async function handleSignOut() {
     close();
     await signOut();
+  }
+
+  async function handlePushNotification() {
+    const [error, token] = await handleRegisterPushNotification();
+    if (error) {
+      Alert.alert("Error", error);
+    } else if (!error && token) {
+      Alert.alert("Success", "Push Notification Registered Successfully");
+    }
   }
 
   const handleFooterPress = () => {
@@ -156,6 +168,25 @@ const Settings = ({ close }) => {
               ]}
             >
               View Terms & Conditions
+            </Text>
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={handlePushNotification}>
+          <View style={styles.signOutButton}>
+            <Ionicons
+              name="notifications-outline"
+              size={24}
+              color={colors.textPrimary}
+            />
+            <Text
+              style={[
+                styles.signOutText,
+                {
+                  color: colors.textSecondary,
+                },
+              ]}
+            >
+              Register For Push Notifications
             </Text>
           </View>
         </TouchableOpacity>

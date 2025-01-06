@@ -26,6 +26,8 @@ import MessageItem from "../components/MessageItem";
 import bgImage from "../images/backImage.jpeg";
 import ViewPostScreen from "./ViewPostScreen";
 import ImageViewer from "../utils/imageViewer";
+import * as NavigationBar from 'expo-navigation-bar';
+
 const defaultAvatar =
   "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
 
@@ -115,6 +117,31 @@ export default function DMsScreen({ route, navigation }) {
   const [selectedMessage, setSelectedMessage] = useState(null);
 
   const scrollViewRef = React.useRef();
+
+  useEffect(()=>{
+    const showNavigationBar = async () => {
+      if(Platform.OS === 'android'){
+      await NavigationBar.setVisibilityAsync("visible");
+      await NavigationBar.setBackgroundColorAsync("#000000");
+      }
+    };
+
+    const hideNavigationBar = async () => {
+      if(Platform.OS === 'android'){
+      await NavigationBar.setVisibilityAsync("hidden");
+      }
+    };
+
+    showNavigationBar();
+
+    return () => {
+      hideNavigationBar();
+    };
+
+  },[]);
+
+
+
 
   useEffect(() => {
     if (conversationId && socket) {
@@ -399,7 +426,7 @@ export default function DMsScreen({ route, navigation }) {
           {
             paddingBottom: Platform.select({
               ios: insets.bottom,
-              android: insets.bottom + 10,
+              android: insets.bottom+5,
             }),
           },
         ]}

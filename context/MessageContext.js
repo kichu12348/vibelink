@@ -66,33 +66,33 @@ export function MessageProvider({ children }) {
 
   const {showError}=useError();
 
-  // Register once and optionally send token to your backend
-  useEffect(() => {
-    let timeoutId;
+  let timeoutId;
     
-    const handleRegister = async () => {
-      if (currentUser) {
-        try {
-          const pushToken = await registerForPushNotificationsAsync();
-          if (pushToken) {
-            await axios.post(
-              `${API_URL}/api/users/push-token`,
-              { token: pushToken },
-              { headers: { Authorization: `Bearer ${token}` } }
-            );
-          }
-        } catch (error) {
-          console.log(
-            "Error handling push registration:",
-            error.response?.data || error.message
+  const handleRegisterPushNotification = async () => {
+    if (currentUser) {
+      try {
+        const pushToken = await registerForPushNotificationsAsync();
+        if (pushToken) {
+          await axios.post(
+            `${API_URL}/api/users/push-token`,
+            { token: pushToken },
+            { headers: { Authorization: `Bearer ${token}` } }
           );
         }
-      } else {
-        timeoutId = setTimeout(handleRegister, 5000);
+        return [null, pushToken];
+      } catch (error) {
+        const errorMessage = error.response?.data.message || error.message;
+        return [errorMessage,null];
       }
-    };
+    } else {
+      timeoutId = setTimeout(handleRegister, 5000);
+    }
+  };
 
-    handleRegister();
+  // Register once and optionally send token to your backend
+  useEffect(() => {
+
+    handleRegisterPushNotification();
     
     return () => {
       if (timeoutId) {
@@ -286,6 +286,7 @@ export function MessageProvider({ children }) {
         socket,
         uploadImageToServer,
         deleteMessage,
+        handleRegisterPushNotification,
       }}
     >
       {children}
