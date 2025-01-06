@@ -62,7 +62,6 @@ export const PostProvider = ({ children }) => {
             setPosts(prev => [response.data, ...prev]);
             return true;
         } catch (err) {
-            console.log('Create post error:', ...err);
             showError(err.response?.data?.message || 'Error creating post');
             return false;
         } finally {

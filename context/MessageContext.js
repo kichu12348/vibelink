@@ -12,7 +12,7 @@ import io from "socket.io-client";
 import { endPoint as API_URL } from "../constants/endpoints";
 import { uploadFile } from "../utils/fileUpload";
 import * as Device from "expo-device";
-import { Platform } from "react-native";
+import { Alert, Platform } from "react-native";
 import { useError } from "./ErrorContext";
 
 // Set up notifications handler
@@ -25,16 +25,17 @@ Notifications.setNotificationHandler({
 });
 
 async function registerForPushNotificationsAsync() {
-  //console.log(1);
   let token=null;
   if (Device.isDevice) {
     const { status: existingStatus } =
       await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
-    //console.log(2);
     if (existingStatus !== "granted") {
       const { status } = await Notifications.requestPermissionsAsync();
       finalStatus = status;
+      if(status!=="granted"){
+        return [null, "Notification permission not granted"];
+      }
     }
 
     if (finalStatus === "granted") {
@@ -50,9 +51,9 @@ async function registerForPushNotificationsAsync() {
      
     }
   } else {
-    return null;
+    return [null, "Must use physical device for Push Notifications"];
   }
-  return token;
+  return [token, null];
 }
 const MessageContext = createContext();
 
@@ -71,7 +72,8 @@ export function MessageProvider({ children }) {
   const handleRegisterPushNotification = async () => {
     if (currentUser) {
       try {
-        const pushToken = await registerForPushNotificationsAsync();
+        const [pushToken,error] = await registerForPushNotificationsAsync();
+        if (error) return [error,null];
         if (pushToken) {
           await axios.post(
             `${API_URL}/api/users/push-token`,
