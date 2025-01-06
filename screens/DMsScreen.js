@@ -12,6 +12,7 @@ import {
   Modal,
   Dimensions,
   useAnimatedValue,
+  AppState,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -26,7 +27,7 @@ import MessageItem from "../components/MessageItem";
 import bgImage from "../images/backImage.jpeg";
 import ViewPostScreen from "./ViewPostScreen";
 import ImageViewer from "../utils/imageViewer";
-import * as NavigationBar from 'expo-navigation-bar';
+import * as NavigationBar from "expo-navigation-bar";
 
 const defaultAvatar =
   "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
@@ -117,18 +118,19 @@ export default function DMsScreen({ route, navigation }) {
   const [selectedMessage, setSelectedMessage] = useState(null);
 
   const scrollViewRef = React.useRef();
+  const appState = useRef(AppState.currentState);
 
-  useEffect(()=>{
+  useLayoutEffect(() => {
     const showNavigationBar = async () => {
-      if(Platform.OS === 'android'){
-      await NavigationBar.setVisibilityAsync("visible");
-      await NavigationBar.setBackgroundColorAsync("#000000");
+      if (Platform.OS === "android") {
+        await NavigationBar.setVisibilityAsync("visible");
+        await NavigationBar.setBackgroundColorAsync(colors.background);
       }
     };
 
     const hideNavigationBar = async () => {
-      if(Platform.OS === 'android'){
-      await NavigationBar.setVisibilityAsync("hidden");
+      if (Platform.OS === "android") {
+        await NavigationBar.setVisibilityAsync("hidden");
       }
     };
 
@@ -137,11 +139,7 @@ export default function DMsScreen({ route, navigation }) {
     return () => {
       hideNavigationBar();
     };
-
-  },[]);
-
-
-
+  }, []);
 
   useEffect(() => {
     if (conversationId && socket) {
@@ -314,6 +312,35 @@ export default function DMsScreen({ route, navigation }) {
     };
   }, [activeChat]);
 
+  useEffect(() => {
+    const subscription = AppState.addEventListener(
+      "change",
+      handleAppStateChange
+    );
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+
+  const handleAppStateChange = (nextAppState) => {
+    if (
+      appState.current === "active" &&
+      (nextAppState === "inactive" || nextAppState === "background")
+    ) {
+      socket.emit("removeUserFromList", currentUser._id);
+    }
+    if (
+      (appState.current === "inactive" || appState.current === "background") &&
+      nextAppState === "active"
+    ) {
+      socket.emit("addUserToList", {
+        userId: currentUser._id,
+        activeId: activeChat._id,
+      });
+    }
+    appState.current = nextAppState;
+  };
+
   const TYPING_DELAY_MS = 2000;
   let lastTypingTime = 0;
 
@@ -426,7 +453,7 @@ export default function DMsScreen({ route, navigation }) {
           {
             paddingBottom: Platform.select({
               ios: insets.bottom,
-              android: insets.bottom+5,
+              android: insets.bottom + 5,
             }),
           },
         ]}
