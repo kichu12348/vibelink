@@ -81,6 +81,7 @@ export function MessageProvider({ children }) {
             { headers: { Authorization: `Bearer ${token}` } }
           );
         }
+        clearTimeout(timeoutId);
         return [null, pushToken];
       } catch (error) {
         const errorMessage = error.response?.data.message || error.message;
