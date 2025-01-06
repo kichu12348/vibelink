@@ -7,6 +7,11 @@ import { BlurView } from "expo-blur";
 const defaultAvatar =
   "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
 
+const OWN_MESSAGE_COLOR = colors.primary;
+const OTHER_MESSAGE_COLOR = colors.card;
+const OWN_MESSAGE_TEXT_COLOR = colors.textPrimary;
+const OTHER_MESSAGE_TEXT_COLOR = colors.textPrimary;
+
 const SharedPost = ({ post, onClickPost, onLongPress }) => {
   const [user, setUser] = React.useState(null);
   const { getPostCommentUser } = usePost();
@@ -159,7 +164,7 @@ const MessageItem = React.memo(
 
 const styles = StyleSheet.create({
   messageBubble: {
-    backgroundColor: colors.card,
+    backgroundColor: OTHER_MESSAGE_COLOR,
     padding: 12,
     marginBottom: 8,
     borderRadius: 16,
@@ -167,7 +172,7 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
   },
   ownMessage: {
-    backgroundColor: colors.primary,
+    backgroundColor: OWN_MESSAGE_COLOR,
     alignSelf: "flex-end",
   },
   messageText: {
@@ -183,7 +188,7 @@ const styles = StyleSheet.create({
     height: 200,
     width: 200,
     borderRadius: 16,
-    backgroundColor: colors.card,
+    backgroundColor: OTHER_MESSAGE_COLOR,
   },
   sharedPost: {
     borderRadius: 10,
