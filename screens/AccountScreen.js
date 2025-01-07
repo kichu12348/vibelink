@@ -30,7 +30,7 @@ export default function AccountScreen() {
   const postContext = usePost();
   const { currentUser, setCurrentUser } = useAuth();
   const [image, setImage] = useState(currentUser?.profileImage);
-  const [bio, setBio] = useState(currentUser?.bio);
+  const [bio, setBio] = useState(currentUser?.bio||""); // Added default value
   const [followers, setFollowers] = useState(null);
   const [following, setFollowing] = useState(null);
   const [posts, setPosts] = useState(
@@ -41,7 +41,7 @@ export default function AccountScreen() {
   const [postContent, setPostContent] = useState(null);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [editUsername, setEditUsername] = useState(currentUser?.username);
-  const [editBio, setEditBio] = useState(currentUser?.bio);
+  const [editBio, setEditBio] = useState(currentUser?.bio||"");// Added default value
   const [editImage, setEditImage] = useState(image);
   const [showFollowModal, setShowFollowModal] = useState(false);
   const [followModalType, setFollowModalType] = useState(""); // 'followers' or 'following'
@@ -136,15 +136,15 @@ export default function AccountScreen() {
         uploadedUrl = await handleUploadImage();
       }
       const res = await axios.put(`${endPoint}/api/users/profile`, {
-        username: editUsername.trim(),
-        bio: editBio.trim(),
+        username: editUsername?.trim(),
+        bio: editBio?.trim(),
         profileImage: uploadedUrl,
       });
       setImage(res.data?.profileImage);
       setBio(editBio);
       setCurrentUser((prev) => {
-        prev.username = editUsername.trim();
-        prev.bio = editBio.trim();
+        prev.username = editUsername?.trim();
+        prev.bio = editBio?.trim();
         prev.profileImage = res.data?.profileImage;
         return prev;
       });

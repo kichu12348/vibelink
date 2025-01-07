@@ -28,6 +28,7 @@ import bgImage from "../images/backImage.jpeg";
 import ViewPostScreen from "./ViewPostScreen";
 import ImageViewer from "../utils/imageViewer";
 import * as NavigationBar from "expo-navigation-bar";
+import ViewUserOProfile from "../utils/ViewUserOProfile";
 
 const defaultAvatar =
   "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
@@ -116,6 +117,7 @@ export default function DMsScreen({ route, navigation }) {
   const rotateAnim = useAnimatedValue(0);
   const fadeAnim = useAnimatedValue(0);
   const [selectedMessage, setSelectedMessage] = useState(null);
+  const [showUserProfile, setShowUserProfile] = useState(false);
 
   const scrollViewRef = React.useRef();
   const appState = useRef(AppState.currentState);
@@ -479,17 +481,22 @@ export default function DMsScreen({ route, navigation }) {
                 color={colors.textPrimary}
               />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>
-              {activeChat?.participants.find(
-                (p) => p.user._id !== currentUser._id
-              )?.user.username ||
-                username ||
-                "Error :("}
-            </Text>
-            <Image
-              source={{ uri: profileImage || defaultAvatar }}
-              style={styles.profileImage}
-            />
+            <TouchableOpacity
+              onPress={() => setShowUserProfile(true)}
+              style={styles.constUserButton}
+            >
+              <Text style={styles.headerTitle}>
+                {activeChat?.participants.find(
+                  (p) => p.user._id !== currentUser._id
+                )?.user.username ||
+                  username ||
+                  "Error :("}
+              </Text>
+              <Image
+                source={{ uri: profileImage || defaultAvatar }}
+                style={styles.profileImage}
+              />
+            </TouchableOpacity>
           </View>
         </BlurView>
         <KeyboardAvoidingView
@@ -700,6 +707,24 @@ export default function DMsScreen({ route, navigation }) {
             )}
           </BlurView>
         </Modal>
+        <Modal
+          animationType="slide"
+          transparent
+          visible={showUserProfile}
+          onRequestClose={() => setShowUserProfile(false)}
+          hardwareAccelerated={true}
+        >
+          {activeChat && (
+            <ViewUserOProfile
+              user={
+                activeChat?.participants.find(
+                  (p) => p.user._id !== currentUser._id
+                )?.user
+              }
+              close={() => setShowUserProfile(false)}
+            />
+          )}
+        </Modal>
       </View>
     </>
   );
@@ -884,5 +909,10 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 8,
     fontSize: fontSizes.md,
+  },
+  constUserButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

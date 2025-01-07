@@ -34,7 +34,7 @@ const SearchScreen = () => {
         );
         setSearchResults(data);
       } catch (error) {
-        console.log("Search error:", error);
+        setSearchResults([]);
       }
     } else {
       setSearchResults([]);

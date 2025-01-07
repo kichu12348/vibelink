@@ -15,6 +15,7 @@ import { usePost } from "../context/PostContext";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
 import { endPoint } from "../constants/endpoints";
+import { useError } from "../context/ErrorContext";
 
 // Wrapper component to handle hooks
 const PostContainer = ({
@@ -62,10 +63,34 @@ const RenderPost = memo(
     const [color,setColor] = useState(colors.card);
     const [shadowColor,setShadowColor] = useState("rgba(255, 255, 255, 1)");
 
+    const {showError}=useError();
+
+
+    const isColorCloseToWhite = (color) => {
+      const rgb = color.split("(")[1].split(")")[0].split(",");
+      const r = parseInt(rgb[0]);
+      const g = parseInt(rgb[1]);
+      const b = parseInt(rgb[2]);
+      const threshold = 200;
+      const res= r > threshold && g > threshold && b > threshold;
+      const toneDown = 0.5;
+      const tonedDownColor = `rgb(${r * toneDown},${g * toneDown},${b * toneDown})`;
+      const rgba = `rgba(${r},${g},${b},0.5)`;
+      return [res, tonedDownColor, rgba];
+    };
+
+
     async function getColor(){
       if(!item.image) return;
       await axios.post(`${endPoint}/api/posts/getColor`, {url:item.image}).then((res)=>{
+        const [isWhite, tonedDownColor,shadowColor] = isColorCloseToWhite(res.data.rgb);
+        if(isWhite){
+          setShadowColor(shadowColor);
+          setColor(tonedDownColor);
+          return;
+        }
         setColor(res.data.rgb);
+        
         const rgba = res.data.rgb.split("(")[1].split(")")[0].split(",");
         const shadow = `rgba(${rgba[0]},${rgba[1]},${rgba[2]},0.5)`;
         setShadowColor(shadow);
@@ -118,7 +143,7 @@ const RenderPost = memo(
           animateHeartLike();
         }
       } catch (error) {
-        console.log("Error toggling like:", error.message);
+        showError(error.message);
       }
     };
 

@@ -108,6 +108,7 @@ const AllChatsScreen = ({ navigation }) => {
         <FlatList
           data={searchResults}
           keyExtractor={(item) => item._id}
+          showsVerticalScrollIndicator={false}
           style={{ flex: 1 }}
           contentContainerStyle={{
             padding: 16,
@@ -131,6 +132,7 @@ const AllChatsScreen = ({ navigation }) => {
         <FlatList
           data={conversations}
           keyExtractor={(item) => item._id}
+          showsVerticalScrollIndicator={false}
           style={{ flex: 1 }}
           contentContainerStyle={{
             padding: 16,
