@@ -78,7 +78,8 @@ const MessageItem = React.memo(
 
     function checkIfOnlyEmoji(text) {
       const emojiOnlyRegex = /^[\p{Emoji}\u200d]*$/u;
-      return emojiOnlyRegex.test(text);
+      const test = emojiOnlyRegex.test(text);
+      return test;
     }
 
     const timestamp = React.useMemo(() => {

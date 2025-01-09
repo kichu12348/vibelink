@@ -120,16 +120,15 @@ export default function DMsScreen({ route, navigation }) {
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [sending, setSending] = useState(false);
 
   const scrollViewRef = React.useRef();
   const appState = useRef(AppState.currentState);
 
-
-
-  async function handleRefresh(){
-    if(loading) return;
+  async function handleRefresh() {
+    if (loading) return;
     setLoading(true);
-    await fetchMessages(conversationId,messages[0]?._id);
+    await fetchMessages(conversationId, messages[0]?._id);
     setLoading(false);
   }
 
@@ -154,14 +153,13 @@ export default function DMsScreen({ route, navigation }) {
     };
   }, []);
 
-
   async function initialFetch(conversationId) {
-    if(loading) return;
+    if (loading) return;
     setLoading(true);
     await fetchMessages(conversationId);
     setLoading(false);
     scrollViewRef.current?.scrollToEnd({ animated: true });
-  };
+  }
 
   useEffect(() => {
     if (conversationId && socket) {
@@ -218,12 +216,15 @@ export default function DMsScreen({ route, navigation }) {
     }
   };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!text.trim() && !imageUri) return;
     const sendingText = text.trim();
+    const sendingImage = imageUri;
     setText("");
-    sendMessage(conversationId, sendingText, receiverId, imageUri);
+    setSending(true);
     setImageUri("");
+    await sendMessage(conversationId, sendingText, receiverId, sendingImage);
+    setSending(false);
     scrollViewRef.current.scrollToEnd({ animated: true });
   };
 
@@ -282,7 +283,6 @@ export default function DMsScreen({ route, navigation }) {
     }, 100);
     return () => clearTimeout(timer);
   }, []);
-
 
   const keyExtractor = React.useCallback((item) => item._id, []);
 
@@ -637,8 +637,9 @@ export default function DMsScreen({ route, navigation }) {
                     numberOfLines={3}
                   />
                   <TouchableOpacity
-                    style={styles.sendButton}
+                    style={[styles.sendButton, sending && { opacity: 0.5 }]}
                     onPress={handleSend}
+                    disabled={sending}
                   >
                     <Ionicons
                       name="send"

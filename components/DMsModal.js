@@ -101,7 +101,7 @@ export default function DMsModal({ close, params }) {
     socket,
     setActiveChat,
     uploadImageToServer,
-    deleteMessage
+    deleteMessage,
   } = useMessage();
   const { currentUser } = useAuth();
   const [text, setText] = useState("");
@@ -119,6 +119,7 @@ export default function DMsModal({ close, params }) {
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [sending, setSending] = useState(false);
 
   const scrollViewRef = React.useRef();
   const appState = useRef(AppState.currentState);
@@ -152,11 +153,11 @@ export default function DMsModal({ close, params }) {
   }, []);
 
   async function initialFetch(conversationId) {
-    if(loading) return;
+    if (loading) return;
     setLoading(true);
     await fetchMessages(conversationId);
     setLoading(false);
-  };
+  }
 
   useEffect(() => {
     if (conversationId && socket) {
@@ -202,12 +203,15 @@ export default function DMsModal({ close, params }) {
     }
   };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!text.trim() && !imageUri) return;
     const sendingText = text.trim();
+    const sendingImage = imageUri;
     setText("");
-    sendMessage(conversationId, sendingText, receiverId, imageUri);
     setImageUri("");
+    setSending(true);
+    await sendMessage(conversationId, sendingText, receiverId, sendingImage);
+    setSending(false);
     scrollViewRef.current.scrollToEnd({ animated: true });
   };
 
@@ -620,8 +624,9 @@ export default function DMsModal({ close, params }) {
                     numberOfLines={3}
                   />
                   <TouchableOpacity
-                    style={styles.sendButton}
+                    style={[styles.sendButton, sending && { opacity: 0.5 }]}
                     onPress={handleSend}
+                    disabled={sending}
                   >
                     <Ionicons
                       name="send"
@@ -918,7 +923,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  flex1:{
-    flex:1,
-  }
+  flex1: {
+    flex: 1,
+  },
 });
