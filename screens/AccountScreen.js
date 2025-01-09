@@ -47,8 +47,11 @@ export default function AccountScreen() {
   const [followModalType, setFollowModalType] = useState(""); // 'followers' or 'following'
   const [selectedUser, setSelectedUser] = useState(null);
   const [isUserProfileOpen, setIsUserProfileOpen] = useState(false);
+  const [followerCount, setFollowerCount] = useState(currentUser?.followers.length||0); // Added default value
+  const [followingCount, setFollowingCount] = useState(currentUser?.following.length||0); // Added default value
 
   const { showError } = useError();
+
 
   React.useEffect(() => {
     setPosts(() => {
@@ -92,6 +95,12 @@ export default function AccountScreen() {
       postContext.posts.filter((post) => post?.user?._id === currentUser?._id)
     );
     setPostCount(posts.length || 0);
+  }, [currentUser]);
+
+
+  React.useEffect(() => {
+    setFollowerCount(currentUser?.followers.length || 0);
+    setFollowingCount(currentUser?.following.length || 0);
   }, [currentUser]);
 
   const openEditModal = () => {
@@ -259,14 +268,14 @@ export default function AccountScreen() {
           <TouchableOpacity onPress={() => openFollowModal("followers")}>
             <StatBox
               label="Followers"
-              value={followers?.length || 0}
+              value={followerCount}
               onPress={() => openFollowModal("followers")}
             />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => openFollowModal("following")}>
             <StatBox
               label="Following"
-              value={following?.length || 0}
+              value={followingCount}
               onPress={() => openFollowModal("following")}
             />
           </TouchableOpacity>

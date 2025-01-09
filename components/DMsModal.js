@@ -24,9 +24,9 @@ import * as ImagePicker from "expo-image-picker";
 import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
 import { StatusBar } from "expo-status-bar";
-import MessageItem from "../components/MessageItem";
+import MessageItem from "./MessageItem";
 import bgImage from "../images/backImage.jpeg";
-import ViewPostScreen from "./ViewPostScreen";
+import ViewPostScreen from "../screens/ViewPostScreen";
 import ImageViewer from "../utils/imageViewer";
 import * as NavigationBar from "expo-navigation-bar";
 import ViewUserOProfile from "../utils/ViewUserOProfile";
@@ -91,9 +91,8 @@ const TypingIndicator = () => {
   );
 };
 
-export default function DMsScreen({ route, navigation }) {
-  navigation.on;
-  const { conversationId, receiverId, username, profileImage } = route.params;
+export default function DMsModal({ close, params }) {
+  const { conversationId, receiverId, username, profileImage } = params;
   const {
     messages,
     sendMessage,
@@ -102,7 +101,7 @@ export default function DMsScreen({ route, navigation }) {
     socket,
     setActiveChat,
     uploadImageToServer,
-    deleteMessage,
+    deleteMessage
   } = useMessage();
   const { currentUser } = useAuth();
   const [text, setText] = useState("");
@@ -124,12 +123,10 @@ export default function DMsScreen({ route, navigation }) {
   const scrollViewRef = React.useRef();
   const appState = useRef(AppState.currentState);
 
-
-
-  async function handleRefresh(){
-    if(loading) return;
+  async function handleRefresh() {
+    if (loading) return;
     setLoading(true);
-    await fetchMessages(conversationId,messages[0]?._id);
+    await fetchMessages(conversationId, messages[0]?._id);
     setLoading(false);
   }
 
@@ -154,13 +151,11 @@ export default function DMsScreen({ route, navigation }) {
     };
   }, []);
 
-
   async function initialFetch(conversationId) {
     if(loading) return;
     setLoading(true);
     await fetchMessages(conversationId);
     setLoading(false);
-    scrollViewRef.current?.scrollToEnd({ animated: true });
   };
 
   useEffect(() => {
@@ -169,7 +164,7 @@ export default function DMsScreen({ route, navigation }) {
       socket.emit("joinChat", conversationId);
 
       // Listen for new messages
-      const handleNewMessage = (data) => {
+      const handleNewMessage = () => {
         scrollViewRef.current?.scrollToEnd({ animated: true });
       };
 
@@ -195,17 +190,6 @@ export default function DMsScreen({ route, navigation }) {
       };
     }
   }, [conversationId, socket]);
-
-  useEffect(() => {
-    const unsubscribe = navigation.addListener("transitionStart", (e) => {
-      if (e.data.closing) {
-        socket.emit("removeUserFromList", currentUser._id);
-        setActiveChat(null);
-      }
-    });
-
-    return unsubscribe;
-  }, [navigation]);
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -282,7 +266,6 @@ export default function DMsScreen({ route, navigation }) {
     }, 100);
     return () => clearTimeout(timer);
   }, []);
-
 
   const keyExtractor = React.useCallback((item) => item._id, []);
 
@@ -484,14 +467,14 @@ export default function DMsScreen({ route, navigation }) {
           <View style={styles.header}>
             <TouchableOpacity
               onPress={() => {
-                navigation.goBack();
+                close();
                 setActiveChat(null);
               }}
               style={styles.backButton}
             >
               <Ionicons
-                name="arrow-back"
-                size={24}
+                name={"close"} // cross
+                size={30}
                 color={colors.textPrimary}
               />
             </TouchableOpacity>
@@ -514,7 +497,7 @@ export default function DMsScreen({ route, navigation }) {
           </View>
         </BlurView>
         <KeyboardAvoidingView
-          style={{ flex: 1 }}
+          style={styles.flex1}
           behavior={Platform.OS === "ios" ? "padding" : undefined}
           keyboardVerticalOffset={Platform.OS === "ios" ? 5 : 0}
         >
@@ -526,7 +509,7 @@ export default function DMsScreen({ route, navigation }) {
             ref={scrollViewRef}
             onLayout={() =>
               scrollViewRef.current?.scrollToEnd({ animated: true })
-            } // called when the list is rendered ie when the layout is done
+            }
             renderItem={renderItem}
             maintainVisibleContentPosition={{
               minIndexForVisible: 0,
@@ -935,4 +918,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  flex1:{
+    flex:1,
+  }
 });

@@ -20,21 +20,28 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useError } from "../context/ErrorContext";
 
-const ViewUserOProfile = ({ user:viewingUser, close }) => {
+const ViewUserOProfile = ({ user: viewingUser, close }) => {
   const { currentUser, token, setCurrentUser } = useAuth();
   const { posts: allPosts, getPostCommentUser: getUser } = usePost();
+  const { showError } = useError();
   const [isFollowing, setIsFollowing] = useState(false);
   const [userPosts, setUserPosts] = useState([]);
   const [isPostVisible, setIsPostVisible] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
-  const [followers, setFollowers] = useState(viewingUser.followers?.length || "~");
-  const [following, setFollowing] = useState(viewingUser.following?.length || "~");
+  const [followers, setFollowers] = useState(
+    viewingUser.followers?.length || "~"
+  );
+  const [following, setFollowing] = useState(
+    viewingUser.following?.length || "~"
+  );
   const [showFollowModal, setShowFollowModal] = useState(false);
   const [followModalType, setFollowModalType] = useState(""); // 'followers' or 'following'
   const [modalUsers, setModalUsers] = useState([]);
   const [userData, setUserData] = useState(null);
   const [user, setUser] = useState(viewingUser);
+  const [loading, setLoading] = useState(false);
 
   const insets = useSafeAreaInsets();
 
@@ -51,10 +58,10 @@ const ViewUserOProfile = ({ user:viewingUser, close }) => {
 
   const openFollowModal = async (type) => {
     setFollowModalType(type);
-    if (type === 'followers') {
-      setModalUsers(userData.followers||[]);
+    if (type === "followers") {
+      setModalUsers(userData.followers || []);
     } else {
-      setModalUsers(userData.following||[]);
+      setModalUsers(userData.following || []);
     }
     setShowFollowModal(true);
   };
@@ -64,8 +71,8 @@ const ViewUserOProfile = ({ user:viewingUser, close }) => {
     return (
       <TouchableOpacity
         style={styles.userItem}
-        onPress={() =>{
-          if(item._id === currentUser._id) return;
+        onPress={() => {
+          if (item._id === currentUser._id) return;
           setUser(item);
           setShowFollowModal(false);
           getUserData(item._id.toString());
@@ -80,7 +87,14 @@ const ViewUserOProfile = ({ user:viewingUser, close }) => {
           style={styles.userImage}
           cachePolicy={"memory-disk"}
         />
-        <Text style={styles.userName}>@{item.username}</Text>
+        <Text style={styles.userName} numberOfLines={1}>
+          @{item.username}
+        </Text>
+        {item._id === currentUser._id && (
+          <Text style={styles.itsYou} numberOfLines={1}>
+            (itzzz You!! (≧▽≦))
+          </Text>
+        )}
       </TouchableOpacity>
     );
   };
@@ -91,37 +105,19 @@ const ViewUserOProfile = ({ user:viewingUser, close }) => {
 
   useEffect(() => {
     if (!user || !currentUser) return;
-    setIsFollowing(currentUser.following.some((u) => u._id === user._id));
+    setIsFollowing((prev) => {
+      const res = currentUser.following.some((u) => {
+        if (typeof u === "object") return u._id === user._id;
+        return u === user._id;
+      });
+      return res;
+    });
     const filteredPosts = allPosts.filter((p) => p.user._id === user._id);
     setUserPosts(filteredPosts);
-  }, [user, currentUser, allPosts]);
-
-  useEffect(() => {
-    // Listen for follow/unfollow updates for this specific user
-    const handleFollowUpdate = ({ followerId, followedId }) => {
-      if (user._id === followedId) {
-        setIsFollowing(true);
-      }
-      setFollowers((prev) => prev + 1);
-    };
-
-    const handleUnfollowUpdate = ({ userId, unfollowedId }) => {
-      if (user._id === unfollowedId) {
-        setIsFollowing(false);
-      }
-      setFollowers((prev) => prev - 1);
-    };
-
-    socket.on("userFollowed", handleFollowUpdate);
-    socket.on("userUnfollowed", handleUnfollowUpdate);
-
-    return () => {
-      socket.off("userFollowed", handleFollowUpdate);
-      socket.off("userUnfollowed", handleUnfollowUpdate);
-    };
   }, [user]);
 
   const handleFollowToggle = async () => {
+    setLoading(true);
     try {
       if (!token) return;
       if (isFollowing) {
@@ -129,10 +125,16 @@ const ViewUserOProfile = ({ user:viewingUser, close }) => {
         setCurrentUser((prev) => {
           return {
             ...prev,
-            following: prev.following.filter((id) => id !== user._id),
+            following: prev.following.filter((id) => {
+              if (typeof id === "object") {
+                return id._id !== user._id;
+              }
+              return id !== user._id;
+            }),
           };
         });
         setFollowers((prev) => prev - 1);
+        setIsFollowing(false);
         await AsyncStorage.setItem("user", JSON.stringify(currentUser));
       } else {
         await axios.post(`${endPoint}/api/users/follow/${user._id}`);
@@ -143,12 +145,13 @@ const ViewUserOProfile = ({ user:viewingUser, close }) => {
           };
         });
         setFollowers((prev) => prev + 1);
+        setIsFollowing(true);
         await AsyncStorage.setItem("user", JSON.stringify(currentUser));
       }
-      setIsFollowing(!isFollowing);
     } catch (err) {
-      console.log(err.response?.data?.message || err.message);
+      showError(err.response?.data?.message || err.message);
     }
+    setLoading(false);
   };
 
   const handlePostPress = (post) => {
@@ -156,11 +159,59 @@ const ViewUserOProfile = ({ user:viewingUser, close }) => {
     setIsPostVisible(true);
   };
 
+  useEffect(() => {
+    socket.on("userFollowed", async ({ follwerId, followedId }) => {
+      if (followedId === user._id && followerId !== currentUser._id) {
+        setFollowers((prev) => prev + 1);
+        setUserData(async (prev) => {
+          const response = await getUser(followedId);
+          return {
+            ...prev,
+            followers: [...prev.followers, response],
+          };
+        });
+      }
+      if (follwerId === user._id && followerId !== currentUser._id) {
+        setFollowing((prev) => prev + 1);
+        setUserData(async (prev) => {
+          const response = await getUser(follwerId);
+          return {
+            ...prev,
+            following: [...prev.following, response],
+          };
+        });
+      }
+    });
+
+    socket.on("userUnfollowed", async ({ follwerId, followedId }) => {
+      if (followedId === user._id && followerId !== currentUser._id) {
+        setFollowers((prev) => prev - 1);
+        setUserData(async (prev) => {
+          const response = await getUser(followedId);
+          return {
+            ...prev,
+            followers: prev.followers.filter((id) => id !== response._id),
+          };
+        });
+      }
+      if (follwerId === user._id && followerId !== currentUser._id) {
+        setFollowing((prev) => prev - 1);
+        setUserData(async (prev) => {
+          const response = await getUser(follwerId);
+          return {
+            ...prev,
+            following: prev.following.filter((id) => id !== response._id),
+          };
+        });
+      }
+    });
+  }, []);
+
   return (
     <SafeAreaView style={styles.modalContainer}>
       <View style={styles.topBar}>
         <TouchableOpacity style={styles.closeButton} onPress={close}>
-          <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
+          <Ionicons name="close" size={30} color={colors.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.topBarUsername}>{user.username}</Text>
         <View style={styles.placeholder} />
@@ -185,18 +236,18 @@ const ViewUserOProfile = ({ user:viewingUser, close }) => {
                 {userPosts?.length === 1 ? "Post" : "Posts"}
               </Text>
             </View>
-            <TouchableOpacity 
-            style={styles.statItem}
-            onPress={() => openFollowModal('followers')}
+            <TouchableOpacity
+              style={styles.statItem}
+              onPress={() => openFollowModal("followers")}
             >
               <Text style={styles.statNumber}>{followers}</Text>
               <Text style={styles.statLabel}>
                 {followers === 1 ? "Follower" : "Followers"}
-                </Text>
+              </Text>
             </TouchableOpacity>
-            <TouchableOpacity 
-            style={styles.statItem}
-            onPress={() => openFollowModal('following')}
+            <TouchableOpacity
+              style={styles.statItem}
+              onPress={() => openFollowModal("following")}
             >
               <Text style={styles.statNumber}>{following}</Text>
               <Text style={styles.statLabel}>Following</Text>
@@ -207,8 +258,13 @@ const ViewUserOProfile = ({ user:viewingUser, close }) => {
           {user.bio && <Text style={styles.bio}>{user.bio}</Text>}
 
           <TouchableOpacity
-            style={[styles.followButton, isFollowing && styles.followingButton]}
+            style={[
+              styles.followButton,
+              isFollowing && styles.followingButton,
+              loading && { opacity: 0.5 },
+            ]}
             onPress={handleFollowToggle}
+            disabled={loading}
           >
             <Text
               style={[
@@ -249,11 +305,7 @@ const ViewUserOProfile = ({ user:viewingUser, close }) => {
             </TouchableOpacity>
           ))}
           {userPosts.length === 0 && (
-            <Text
-              style={styles.noPostText}
-            >
-              No posts yet
-            </Text>
+            <Text style={styles.noPostText}>No posts yet</Text>
           )}
         </View>
       </ScrollView>
@@ -278,7 +330,12 @@ const ViewUserOProfile = ({ user:viewingUser, close }) => {
         transparent={true}
         onRequestClose={() => setShowFollowModal(false)}
       >
-        <View style={[styles.modalContainer, { paddingTop: insets.top,paddingBottom: insets.bottom }]}>
+        <View
+          style={[
+            styles.modalContainer,
+            { paddingTop: insets.top, paddingBottom: insets.bottom },
+          ]}
+        >
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
@@ -439,7 +496,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  noPostText:{
+  noPostText: {
     textAlign: "center",
     color: colors.textSecondary,
     fontSize: fontSizes.xxl,
@@ -451,29 +508,29 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   modalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: colors.card,
-    position: 'relative',
+    position: "relative",
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: colors.textPrimary,
   },
   modalCloseButton: {
-    position: 'absolute',
+    position: "absolute",
     right: 16,
   },
   userList: {
     padding: 16,
   },
   userItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 12,
     borderBottomWidth: 1,
     borderBottomColor: colors.card,
@@ -487,6 +544,10 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 16,
     color: colors.textPrimary,
-    fontWeight: '500',
+    fontWeight: "500",
+  },
+  itsYou: {
+    color: colors.textSecondary,
+    marginLeft: 8,
   },
 });

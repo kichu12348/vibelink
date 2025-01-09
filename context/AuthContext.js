@@ -16,7 +16,8 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [token, setToken] = useState(null);
   const [authChecking, setAuthChecking] = useState(true);
-
+  const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+  const [userModalData, setUserModalData] = useState(null);
 
   const {showError}=useError();
 
@@ -79,15 +80,31 @@ export const AuthProvider = ({ children }) => {
     socket.on("userFollowed", async ({ followerId, followedId }) => {
       if (currentUser) {
         if (currentUser._id === followerId) {
-          setCurrentUser((prev) => ({
-            ...prev,
-            following: [...prev.following, followedId],
-          }));
+          setCurrentUser((prev) => {
+            const doesExist = prev.following.find((id) =>{
+              if(typeof id === "object"){
+                return id._id.toString() === followedId.toString();
+              }
+              return id.toString() === followedId.toString();
+            });
+            if (!doesExist) {
+              return { ...prev, following: [...prev.following, followedId] };
+            }
+            return prev;
+          });
         } else if (currentUser._id === followedId) {
-          setCurrentUser((prev) => ({
-            ...prev,
-            followers: [...prev.followers, followerId],
-          }));
+          setCurrentUser((prev) => {
+            const doesExist = prev.followers.find((id) =>{
+              if(typeof id === "object"){
+                return id._id.toString() === followerId.toString();
+              }
+              return id.toString() === followerId.toString();
+            });
+            if (!doesExist) {
+              return { ...prev, followers: [...prev.followers, followerId] };
+            }
+            return prev;
+          });
         }
         await AsyncStorage.setItem("user", JSON.stringify(currentUser));
       }
@@ -98,12 +115,22 @@ export const AuthProvider = ({ children }) => {
         if (currentUser._id === userId) {
           setCurrentUser((prev) => ({
             ...prev,
-            following: prev.following.filter((id) => id !== unfollowedId),
+            following: prev.following.filter((id) =>{
+              if(typeof id === "object"){
+                return id._id.toString() !== unfollowedId;
+              }
+              return id !== unfollowedId;
+            }),
           }));
         } else if (currentUser._id === unfollowedId) {
           setCurrentUser((prev) => ({
             ...prev,
-            followers: prev.followers.filter((id) => id !== userId),
+            followers: prev.followers.filter((id) =>{
+              if(typeof id === "object"){
+                return id._id.toString() !== userId;
+              }
+              return id !== userId;
+            }),
           }));
         }
         await AsyncStorage.setItem("user", JSON.stringify(currentUser));
@@ -116,7 +143,7 @@ export const AuthProvider = ({ children }) => {
       socket.off("userFollowed");
       socket.off("userUnfollowed");
     };
-  }, [currentUser]);
+  }, []);
 
   const signIn = async ({ email, password }) => {
     setLoading(true);
@@ -210,6 +237,10 @@ export const AuthProvider = ({ children }) => {
         token,
         setCurrentUser,
         authChecking,
+        isUserModalOpen,
+        setIsUserModalOpen,
+        userModalData,
+        setUserModalData,
       }}
     >
       {children}

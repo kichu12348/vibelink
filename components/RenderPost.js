@@ -56,7 +56,7 @@ const RenderPost = memo(
     const defaultAvatar =
       "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
 
-    const [liked, setLiked] = useState(item.likes.includes(currentUser._id));
+    const [liked, setLiked] = useState(item.likes.includes(currentUser?._id));
 
     const likeAnimation = useRef(new Animated.Value(0)).current;
     const [showLikeAnimation, setShowLikeAnimation] = useState(false);
@@ -129,17 +129,17 @@ const RenderPost = memo(
 
     useEffect(() => {
       setLiked(() => {
-        const post = posts.find((p) => p._id === item._id);
-        return post.likes.includes(currentUser._id);
+        const post = posts.find((p) => p?._id === item?._id);
+        return post.likes.includes(currentUser?._id);
       });
     }, [posts]);
 
     const clickLike = async () => {
       try {
         if (liked) {
-          await unLikePost(item._id);
+          await unLikePost(item?._id);
         } else {
-          await likePost(item._id);
+          await likePost(item?._id);
           animateHeartLike();
         }
       } catch (error) {

@@ -17,6 +17,8 @@ import { useMessage } from "../context/MessageContext";
 import Settings from "../components/settings";
 import { usePost } from "../context/PostContext";
 import ViewPostScreen from "../screens/ViewPostScreen";
+import DMsModal from "../components/DMsModal";
+import ViewUserOProfile from "../utils/ViewUserOProfile";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -30,8 +32,9 @@ const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
 function Tabs({ navigation }) {
-  const { setActiveChat } = useMessage();
-  const { getPost, setIsPostOpen, setPostContent } = usePost();
+  const { setActiveChat, setIsDmsModalOpen } = useMessage();
+  const { getPost, setIsPostOpen, setPostContent, getPostCommentUser } = usePost();
+  const { setUserModalData, setIsUserModalOpen } = useAuth();
 
   const [settingsOpen, setSettingsOpen] = React.useState(false);
 
@@ -41,6 +44,14 @@ function Tabs({ navigation }) {
     if (post) {
       setPostContent(post);
       setIsPostOpen(true);
+    }
+  }
+
+  async function handleFollowerNotifClicked(userId) {
+    const user = await getPostCommentUser(userId);
+    if (user) {
+      setUserModalData(user);
+      setIsUserModalOpen(true);
     }
   }
 
@@ -54,6 +65,8 @@ function Tabs({ navigation }) {
           profileImage,
           participants,
           PostId,
+          type,
+          userId,
         } = response.notification.request.content.data || {};
         if (PostId) {
           handlePostNotifClicked(PostId);
@@ -66,13 +79,10 @@ function Tabs({ navigation }) {
             username,
             profileImage,
           });
-          navigation.navigate("single-chat", {
-            conversationId,
-            receiverId,
-            username,
-            profileImage,
-            participants,
-          });
+          setIsDmsModalOpen(true);
+        }
+        if (type && type === "follow") {
+          handleFollowerNotifClicked(userId);
         }
       }
     );
@@ -222,8 +232,9 @@ function Tabs({ navigation }) {
 }
 
 export default function TabNavigator({ navigation }) {
-  const { token, currentUser } = useAuth();
+  const { token, currentUser,isUserModalOpen,userModalData,setIsUserModalOpen } = useAuth();
   const { setIsPostOpen, isPostOpen, postContent } = usePost();
+  const { isDmsModalOpen, activeChat, setIsDmsModalOpen } = useMessage();
 
   React.useEffect(() => {
     if (!token || !currentUser) {
@@ -261,6 +272,44 @@ export default function TabNavigator({ navigation }) {
           />
         )}
       </Modal>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isDmsModalOpen}
+        onRequestClose={() => {
+          setIsDmsModalOpen(false);
+        }}
+        hardwareAccelerated={true}
+      >
+        {activeChat && (
+          <DMsModal
+            close={() => setIsDmsModalOpen(false)}
+            params={{
+              conversationId: activeChat._id,
+              participants: activeChat.participants,
+              receiverId: activeChat.receiverId,
+              username: activeChat.username,
+              profileImage: activeChat.profileImage,
+            }}
+          />
+        )}
+      </Modal>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isUserModalOpen}
+        onRequestClose={() => {
+          setIsUserModalOpen(false);
+        }}
+        hardwareAccelerated={true}
+        >
+        {userModalData && (
+          <ViewUserOProfile
+            user={userModalData}
+            close={() => setIsUserModalOpen(false)}
+          />
+        )}
+        </Modal>
     </>
   );
 }

@@ -56,6 +56,21 @@ const AllChatsScreen = ({ navigation }) => {
   };
 
   const startNewChat = (user) => {
+    //check if chat already exists
+    const existingChat = conversations.find((c) =>{
+      const otherParticipant = getOtherParticipant(c);
+      return otherParticipant._id === user._id;
+    });
+    if (existingChat) {
+      setActiveChat(existingChat);
+      const otherParticipant = getOtherParticipant(existingChat);
+      return navigation.navigate("single-chat", {
+        conversationId: existingChat._id,
+        receiverId: otherParticipant._id,
+        username: otherParticipant.username,
+        profileImage: otherParticipant.profileImage,
+      });
+    };
     navigation.navigate("single-chat", {
       receiverId: user._id,
       username: user.username,

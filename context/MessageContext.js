@@ -12,7 +12,7 @@ import io from "socket.io-client";
 import { endPoint as API_URL } from "../constants/endpoints";
 import { uploadFile } from "../utils/fileUpload";
 import * as Device from "expo-device";
-import { Alert, Platform } from "react-native";
+import {Platform } from "react-native";
 import { useError } from "./ErrorContext";
 
 // Set up notifications handler
@@ -63,6 +63,7 @@ export function MessageProvider({ children }) {
   const [messages, setMessages] = useState([]);
   const { currentUser, token } = useAuth();
   const [socket, setSocket] = useState(null);
+  const [isDmsModalOpen, setIsDmsModalOpen] = useState(false);
 
 
   const {showError}=useError();
@@ -157,6 +158,7 @@ export function MessageProvider({ children }) {
 
   // API functions
   const fetchConversations = useCallback(async () => {
+    if(!token) return;
     try {
       const { data } = await axios.get(
         `${API_URL}/api/messages/conversations`,
@@ -171,7 +173,7 @@ export function MessageProvider({ children }) {
   }, [token]);
 
   const fetchMessages = useCallback(
-    async (conversationId) => {
+    async (conversationId,topMessageId="nope") => {
       try {
         if (!conversationId) {
           console.log("No conversationId provided");
@@ -179,14 +181,19 @@ export function MessageProvider({ children }) {
         }
 
         const { data } = await axios.get(
-          `${API_URL}/api/messages/${conversationId}`,
+          `${API_URL}/api/messages/${conversationId}/${topMessageId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
 
         if (Array.isArray(data)) {
-          setMessages(data);
+          if(topMessageId==="nope"){
+            setMessages(data);
+          }
+          else if(topMessageId && data.length>0 && topMessageId!=="nope"){
+            setMessages(prev=>[...data,...prev]);
+          }
         } else {
           setMessages([]);
         }
@@ -272,7 +279,7 @@ export function MessageProvider({ children }) {
     if (currentUser) {
       fetchConversations();
     }
-  }, [currentUser]);
+  }, [currentUser,token]);
 
   return (
     <MessageContext.Provider
@@ -290,6 +297,8 @@ export function MessageProvider({ children }) {
         uploadImageToServer,
         deleteMessage,
         handleRegisterPushNotification,
+        isDmsModalOpen,
+        setIsDmsModalOpen
       }}
     >
       {children}

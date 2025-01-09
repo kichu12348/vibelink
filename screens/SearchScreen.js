@@ -30,7 +30,7 @@ const SearchScreen = () => {
     if (text.trim().length > 0) {
       try {
         const { data } = await axios.get(
-          `${endPoint}/api/users/search?keyword=${text}`
+          `${endPoint}/api/users/search?q=${text}`
         );
         setSearchResults(data);
       } catch (error) {
