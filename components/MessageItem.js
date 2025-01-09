@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Modal } from "react-native";
 import { Image } from "expo-image";
-import { colors } from "../constants/primary";
+import { colors, fontSizes } from "../constants/primary";
 import { usePost } from "../context/PostContext";
 import { BlurView } from "expo-blur";
 const defaultAvatar =
@@ -75,6 +75,12 @@ const MessageItem = React.memo(
       [isOwn]
     );
 
+
+    function checkIfOnlyEmoji(text) {
+      const emojiOnlyRegex = /^[\p{Emoji}\u200d]*$/u;
+      return emojiOnlyRegex.test(text);
+    }
+
     const timestamp = React.useMemo(() => {
       const date = new Date(message.createdAt);
       return date.toLocaleTimeString("en-US", {
@@ -139,15 +145,17 @@ const MessageItem = React.memo(
           <Text style={styles.timestamp}>{timestamp}</Text>
         </TouchableOpacity>
       );
-    }
+    };
+
+    const isOnlyEmoji = checkIfOnlyEmoji(message.content);
 
     return (
       <TouchableOpacity
         onLongPress={onLongPress}
         activeOpacity={0.8}
-        style={bubbleStyle}
+        style={[bubbleStyle, isOnlyEmoji && {backgroundColor: "transparent" }]}
       >
-        <Text numberOfLines={20} style={styles.messageText}>
+        <Text numberOfLines={20} style={[styles.messageText, isOnlyEmoji && {fontSize:50}]}>
           {message.content}
         </Text>
         <Text style={styles.timestamp}>{timestamp}</Text>
