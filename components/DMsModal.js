@@ -295,8 +295,6 @@ export default function DMsModal({ close, params }) {
         intensity={60}
         tint="dark"
         style={styles.blurBackground}
-        experimentalBlurMethod="dimezisBlurView"
-        blurReductionFactor={16}
       />
     ),
     []
@@ -448,7 +446,6 @@ export default function DMsModal({ close, params }) {
 
   return (
     <>
-      <StatusBar translucent backgroundColor="transparent" style="light" />
       {BackgroundComponent}
       <View
         style={[
@@ -461,12 +458,8 @@ export default function DMsModal({ close, params }) {
           },
         ]}
       >
-        <BlurView
-          style={[styles.headerContainer, { paddingTop: insets.top }]}
-          intensity={20}
-          tint="dark"
-          experimentalBlurMethod="dimezisBlurView"
-          blurReductionFactor={16}
+        <View
+          style={[styles.headerContainer]}
         >
           <View style={styles.header}>
             <TouchableOpacity
@@ -499,7 +492,7 @@ export default function DMsModal({ close, params }) {
               />
             </TouchableOpacity>
           </View>
-        </BlurView>
+        </View>
         <KeyboardAvoidingView
           style={styles.flex1}
           behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -755,6 +748,10 @@ const styles = StyleSheet.create({
   },
   blurBackground: {
     ...StyleSheet.absoluteFillObject,
+    backgroundColor:Platform.select({
+      ios: "transparent",
+      android: "rgba(0,0,0,0.5)",
+    }),
   },
   inputContainer: {
     flexDirection: "row",
@@ -790,12 +787,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   headerContainer: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
     zIndex: 100,
-    paddingBottom: 10,
+    paddingBottom: 10
   },
   backButton: {
     marginRight: 16,

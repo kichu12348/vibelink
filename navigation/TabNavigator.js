@@ -8,7 +8,13 @@ import AddPostScreen from "../screens/AddPostScreen";
 import AccountScreen from "../screens/AccountScreen";
 import DMsScreen from "../screens/DMsScreen";
 import { colors } from "../constants/primary";
-import { Platform, StyleSheet, TouchableOpacity, Modal } from "react-native";
+import {
+  Platform,
+  StyleSheet,
+  TouchableOpacity,
+  Modal,
+  View,
+} from "react-native";
 import { useAuth } from "../context/AuthContext";
 import { BlurView } from "expo-blur";
 import AllChatsScreen from "../screens/AllChatsScreen";
@@ -33,7 +39,8 @@ const Stack = createStackNavigator();
 
 function Tabs({ navigation }) {
   const { setActiveChat, setIsDmsModalOpen } = useMessage();
-  const { getPost, setIsPostOpen, setPostContent, getPostCommentUser } = usePost();
+  const { getPost, setIsPostOpen, setPostContent, getPostCommentUser } =
+    usePost();
   const { setUserModalData, setIsUserModalOpen } = useAuth();
 
   const [settingsOpen, setSettingsOpen] = React.useState(false);
@@ -232,10 +239,16 @@ function Tabs({ navigation }) {
 }
 
 export default function TabNavigator({ navigation }) {
-  const { token, currentUser,isUserModalOpen,userModalData,setIsUserModalOpen } = useAuth();
+  const {
+    token,
+    currentUser,
+    isUserModalOpen,
+    userModalData,
+    setIsUserModalOpen,
+  } = useAuth();
   const { setIsPostOpen, isPostOpen, postContent } = usePost();
-  const { isDmsModalOpen, activeChat, setIsDmsModalOpen } = useMessage();
-
+  const { isDmsModalOpen, setIsDmsModalOpen,activeChat } = useMessage();
+  
   React.useEffect(() => {
     if (!token || !currentUser) {
       navigation.reset({
@@ -281,18 +294,18 @@ export default function TabNavigator({ navigation }) {
         }}
         hardwareAccelerated={true}
       >
-        {activeChat && (
-          <DMsModal
-            close={() => setIsDmsModalOpen(false)}
-            params={{
-              conversationId: activeChat._id,
-              participants: activeChat.participants,
-              receiverId: activeChat.receiverId,
-              username: activeChat.username,
-              profileImage: activeChat.profileImage,
-            }}
-          />
-        )}
+          {activeChat && (
+            <DMsModal
+              close={() => setIsDmsModalOpen(false)}
+              params={{
+                conversationId: activeChat._id,
+                participants: activeChat.participants,
+                receiverId: activeChat.receiverId,
+                username: activeChat.username,
+                profileImage: activeChat.profileImage,
+              }}
+            />
+          )}
       </Modal>
       <Modal
         animationType="slide"
@@ -302,14 +315,14 @@ export default function TabNavigator({ navigation }) {
           setIsUserModalOpen(false);
         }}
         hardwareAccelerated={true}
-        >
+      >
         {userModalData && (
           <ViewUserOProfile
             user={userModalData}
             close={() => setIsUserModalOpen(false)}
           />
         )}
-        </Modal>
+      </Modal>
     </>
   );
 }
