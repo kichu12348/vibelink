@@ -14,11 +14,35 @@ import ViewUserOProfile from "../utils/ViewUserOProfile";
 import { useAuth } from "../context/AuthContext";
 import RenderPost from "../components/RenderPost";
 import CommentsModal from "../components/CommentsModal";
+import LikedUsersModal from "../components/LikedUsersModal";
 
 export default function HomeScreen({ navigation }) {
-  const { posts, loading, fetchPosts, addComment, addReply } = usePost();
+  const {
+    posts,
+    loading,
+    fetchPosts,
+    addComment,
+    addReply,
+    getPostCommentUser,
+  } = usePost();
   const bottomTabBarHeight = useBottomTabBarHeight();
   const { currentUser } = useAuth();
+
+  useEffect(()=>{
+    const unSubBlurListener = navigation.addListener('blur',()=>{
+      setIsOutOfFocus(true);
+    });
+
+    const unSubFocusListener = navigation.addListener('focus',()=>{
+      setIsOutOfFocus(false);
+    });
+
+    return ()=>{
+      unSubBlurListener();
+      unSubFocusListener();
+    }
+  },[])
+
 
   const [isPostVisible, setIsPostVisible] = useState(false);
   const [postContent, setPostContent] = useState(null);
@@ -26,6 +50,10 @@ export default function HomeScreen({ navigation }) {
   const [item, setItem] = useState(null);
   const [isCommentsVisible, setIsCommentsVisible] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
+  const [likedUsers, setLikedUsers] = useState([]);
+  const [isLikedUsersVisible, setIsLikedUsersVisible] = useState(false);
+  const [isLikedUsersLoading, setIsLikedUsersLoading] = useState(false);
+  const [isOutOfFocus, setIsOutOfFocus] = useState(false);
 
   useEffect(() => {
     fetchPosts();
@@ -56,6 +84,38 @@ export default function HomeScreen({ navigation }) {
     setIsCommentsVisible(true);
   };
 
+  const handleOpenLikes = async (post) => {
+    if (!post) return;
+    if (isLikedUsersLoading || isOutOfFocus ) return;
+    setIsLikedUsersLoading(true);
+    const filterRepeatedUsers = post.likes.filter(
+      (like, index, self) => self.indexOf(like) === index
+    );
+    const fetchedUsers = await Promise.all(
+      filterRepeatedUsers.map(async (like) => {
+        if (typeof like === "object") return like;
+        return await getPostCommentUser(like);
+      })
+    );
+    setLikedUsers(fetchedUsers);
+    if(isOutOfFocus){
+      setIsLikedUsersLoading(false);
+      return;
+    }
+    setIsLikedUsersVisible(true);
+    setIsLikedUsersLoading(false);
+  };
+
+  const handleLikesProfilePress = ({ user }) => {
+    setIsLikedUsersVisible(false);
+    if (user._id === currentUser._id) {
+      navigation.navigate("Profile");
+      return;
+    }
+    setIsUserProfileOpen(true);
+    setItem({ user });
+  };
+
   return (
     <View style={styles.container}>
       <FlatList
@@ -66,6 +126,7 @@ export default function HomeScreen({ navigation }) {
             onPostPress={handlePostPress}
             onProfilePress={handleProfilePress}
             openComments={handleOpenComments}
+            openLikes={handleOpenLikes}
           />
         )}
         keyExtractor={(item) => item._id}
@@ -120,6 +181,21 @@ export default function HomeScreen({ navigation }) {
             currentUser={currentUser}
             addComment={addComment}
             addReply={addReply}
+          />
+        )}
+      </Modal>
+      <Modal
+        visible={isLikedUsersVisible}
+        animationType="slide"
+        onRequestClose={() => setIsLikedUsersVisible(false)}
+        transparent={true}
+      >
+        {likedUsers.length !== 0 && (
+          <LikedUsersModal
+            visible={isLikedUsersVisible}
+            close={() => setIsLikedUsersVisible(false)}
+            users={likedUsers}
+            onProfilePress={handleLikesProfilePress}
           />
         )}
       </Modal>

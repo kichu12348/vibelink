@@ -7,9 +7,7 @@ import {
   TouchableOpacity,
   ScrollView,
   KeyboardAvoidingView,
-  Platform,
-  Dimensions,
-  Keyboard,
+  Platform
 } from "react-native";
 import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
@@ -21,11 +19,13 @@ import { usePost } from "../context/PostContext";
 const Comment = ({ comment, postId, setComments, currentUser, addReply }) => {
   const [showReplyInput, setShowReplyInput] = useState(false);
   const [replyContent, setReplyContent] = useState("");
+  const [isReplying, setIsReplying] = useState(false);
   const defaultAvatar =
     "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
 
   const handleReply = async () => {
     if (!replyContent.trim()) return;
+    setIsReplying(true);
     await addReply(postId, comment._id, replyContent);
     setReplyContent("");
     setComments((prev) => {
@@ -43,6 +43,7 @@ const Comment = ({ comment, postId, setComments, currentUser, addReply }) => {
       });
       return updatedComments;
     });
+    setIsReplying(false);
     setShowReplyInput(false);
   };
 
@@ -74,8 +75,10 @@ const Comment = ({ comment, postId, setComments, currentUser, addReply }) => {
             onChangeText={setReplyContent}
             placeholderTextColor={colors.textSecondary}
           />
-          <TouchableOpacity onPress={handleReply}>
-            <Text style={styles.sendButton}>Send</Text>
+          <TouchableOpacity onPress={handleReply} disabled={isReplying}>
+            <Text style={[styles.sendButton, isReplying && { opacity: 0.5 }]}>
+              Send
+            </Text>
           </TouchableOpacity>
         </View>
       )}
@@ -100,6 +103,7 @@ const Comment = ({ comment, postId, setComments, currentUser, addReply }) => {
 const CommentsModal = ({ close, post, currentUser, addComment, addReply }) => {
   const [commentContent, setCommentContent] = useState("");
   const [comments, setComments] = useState(post?.comments || []);
+  const [isCommenting, setIsCommenting] = useState(false);
   const { getPostCommentUser } = usePost();
 
   useEffect(() => {
@@ -125,12 +129,12 @@ const CommentsModal = ({ close, post, currentUser, addComment, addReply }) => {
     fetchCommentsWithUsers();
   }, [post]);
 
-  const windowHeight = Dimensions.get("window").height;
 
   const insets = useSafeAreaInsets();
 
   const handleComment = async () => {
     if (!commentContent.trim()) return;
+    setIsCommenting(true);
     await addComment(post._id, commentContent);
     setComments((prev) => [
       ...prev,
@@ -141,6 +145,7 @@ const CommentsModal = ({ close, post, currentUser, addComment, addReply }) => {
       },
     ]);
     setCommentContent("");
+    setIsCommenting(false);
   };
 
   return (
@@ -202,7 +207,13 @@ const CommentsModal = ({ close, post, currentUser, addComment, addReply }) => {
                     multiline
                     numberOfLines={4}
                   />
-                  <TouchableOpacity onPress={handleComment}>
+                  <TouchableOpacity 
+                  onPress={handleComment}
+                  disabled={isCommenting}
+                  style={{
+                    opacity: commentContent.trim()==="" || isCommenting ? 0.5 : 1,
+                  }}
+                  >
                     <Ionicons name="send" size={24} color={colors.primary} />
                   </TouchableOpacity>
                 </View>

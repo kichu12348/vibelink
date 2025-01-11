@@ -8,8 +8,7 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  Modal,
-  FlatList,
+  Modal
 } from "react-native";
 import { colors, fontSizes } from "../constants/primary";
 import { usePost } from "../context/PostContext";
@@ -21,6 +20,7 @@ import { BlurView } from "expo-blur";
 import { useMessage } from "../context/MessageContext";
 import { socket } from "../constants/endpoints"; // Add this import
 import * as Notifications from "expo-notifications"; // Add this import
+import ImageViewer from "../utils/imageViewer";
 
 const defaultAvatar =
   "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
@@ -29,10 +29,12 @@ const Comment = ({ comment, postId, setComments }) => {
   const [showReplyInput, setShowReplyInput] = useState(false);
   const { currentUser } = useAuth();
   const [replyContent, setReplyContent] = useState("");
+  const [isReplying, setIsReplying] = useState(false);
   const { addReply } = usePost();
 
   const handleReply = async () => {
     if (!replyContent.trim()) return;
+    setIsReplying(true);
     await addReply(postId, comment._id, replyContent);
     setReplyContent("");
     setComments((prev) => {
@@ -54,6 +56,7 @@ const Comment = ({ comment, postId, setComments }) => {
       return updatedComments;
     });
     setShowReplyInput(false);
+    setIsReplying(false);
   };
 
   const defaultAvatar =
@@ -88,8 +91,10 @@ const Comment = ({ comment, postId, setComments }) => {
             value={replyContent}
             onChangeText={setReplyContent}
           />
-          <TouchableOpacity onPress={handleReply}>
-            <Text style={styles.sendButton}>Send</Text>
+          <TouchableOpacity onPress={handleReply} disabled={isReplying}>
+            <Text style={[styles.sendButton, isReplying && { opacity: 0.5 }]}>
+              Send
+            </Text>
           </TouchableOpacity>
         </View>
       )}
@@ -195,6 +200,7 @@ const ViewPostScreen = ({ post, close = () => {} }) => {
   // Initialize comments state with empty array if post.comments is null
   const [comments, setComments] = useState([]);
   const [commentContent, setCommentContent] = useState("");
+  const [isCommenting, setIsCommenting] = useState(false);
 
   const [likeCount, setLikeCount] = useState(post.likes?.length || 0);
 
@@ -202,6 +208,7 @@ const ViewPostScreen = ({ post, close = () => {} }) => {
     post.likes?.includes(currentUser?._id)
   );
   const insets = useSafeAreaInsets();
+  const [showImageViewer, setShowImageViewer] = useState(false);
 
   const timestamp = useMemo(() => {
     return new Date(post.createdAt).toLocaleString("en-US", {
@@ -259,6 +266,7 @@ const ViewPostScreen = ({ post, close = () => {} }) => {
 
   const handleComment = async () => {
     if (!commentContent.trim()) return;
+    setIsCommenting(true);
     await addComment(post._id, commentContent);
     setComments((prev) => [
       ...prev,
@@ -269,6 +277,7 @@ const ViewPostScreen = ({ post, close = () => {} }) => {
       },
     ]);
     setCommentContent("");
+    setIsCommenting(false);
   };
 
   const handleShare = (conversation, otherUser) => {
@@ -341,11 +350,13 @@ const ViewPostScreen = ({ post, close = () => {} }) => {
             <Text style={styles.content}>{post.content}</Text>
 
             {post.image && (
-              <Image
-                source={{ uri: post.image }}
-                style={styles.postImage}
-                contentFit="cover"
-              />
+              <TouchableOpacity onPress={() => setShowImageViewer(true)}>
+                <Image
+                  source={{ uri: post.image }}
+                  style={styles.postImage}
+                  contentFit="cover"
+                />
+              </TouchableOpacity>
             )}
             <Text
               style={[
@@ -423,7 +434,14 @@ const ViewPostScreen = ({ post, close = () => {} }) => {
                 multiline
                 numberOfLines={4}
               />
-              <TouchableOpacity onPress={handleComment}>
+              <TouchableOpacity
+                onPress={handleComment}
+                disabled={isCommenting}
+                style={{
+                  opacity:
+                    commentContent.trim() === "" || isCommenting ? 0.5 : 1,
+                }}
+              >
                 <Ionicons name="send" size={24} color={colors.primary} />
               </TouchableOpacity>
             </View>
@@ -436,6 +454,17 @@ const ViewPostScreen = ({ post, close = () => {} }) => {
           conversations={conversations}
           currentUser={currentUser}
         />
+        <Modal
+          visible={showImageViewer}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowImageViewer(false)}
+        >
+          <ImageViewer
+            uri={post.image}
+            close={() => setShowImageViewer(false)}
+          />
+        </Modal>
       </KeyboardAvoidingView>
     </View>
   );

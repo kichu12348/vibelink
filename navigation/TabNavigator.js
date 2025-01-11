@@ -12,8 +12,7 @@ import {
   Platform,
   StyleSheet,
   TouchableOpacity,
-  Modal,
-  View,
+  Modal
 } from "react-native";
 import { useAuth } from "../context/AuthContext";
 import { BlurView } from "expo-blur";
@@ -77,7 +76,7 @@ function Tabs({ navigation }) {
         } = response.notification.request.content.data || {};
         if (PostId) {
           handlePostNotifClicked(PostId);
-        } // do something with PostId
+        }
         if (conversationId && receiverId) {
           setActiveChat({
             _id: conversationId,

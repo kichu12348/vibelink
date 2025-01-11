@@ -24,13 +24,14 @@ import EditProfileModal from "../utils/editProfile";
 import ViewUserOProfile from "../utils/ViewUserOProfile";
 import { Image } from "expo-image";
 import { useError } from "../context/ErrorContext";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function AccountScreen() {
   const bottomTabBarHeight = useBottomTabBarHeight();
   const postContext = usePost();
   const { currentUser, setCurrentUser } = useAuth();
   const [image, setImage] = useState(currentUser?.profileImage);
-  const [bio, setBio] = useState(currentUser?.bio||""); // Added default value
+  const [bio, setBio] = useState(currentUser?.bio || ""); // Added default value
   const [followers, setFollowers] = useState(null);
   const [following, setFollowing] = useState(null);
   const [posts, setPosts] = useState(
@@ -41,17 +42,23 @@ export default function AccountScreen() {
   const [postContent, setPostContent] = useState(null);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [editUsername, setEditUsername] = useState(currentUser?.username);
-  const [editBio, setEditBio] = useState(currentUser?.bio||"");// Added default value
+  const [editBio, setEditBio] = useState(currentUser?.bio || ""); // Added default value
   const [editImage, setEditImage] = useState(image);
   const [showFollowModal, setShowFollowModal] = useState(false);
   const [followModalType, setFollowModalType] = useState(""); // 'followers' or 'following'
   const [selectedUser, setSelectedUser] = useState(null);
   const [isUserProfileOpen, setIsUserProfileOpen] = useState(false);
-  const [followerCount, setFollowerCount] = useState(currentUser?.followers.length||0); // Added default value
-  const [followingCount, setFollowingCount] = useState(currentUser?.following.length||0); // Added default value
+  const [followerCount, setFollowerCount] = useState(
+    currentUser?.followers.length || 0
+  ); // Added default value
+  const [followingCount, setFollowingCount] = useState(
+    currentUser?.following.length || 0
+  ); // Added default value
+  const [isSaving, setIsSaving] = useState(false);
+
+  const insets = useSafeAreaInsets();
 
   const { showError } = useError();
-
 
   React.useEffect(() => {
     setPosts(() => {
@@ -97,7 +104,6 @@ export default function AccountScreen() {
     setPostCount(posts.length || 0);
   }, [currentUser]);
 
-
   React.useEffect(() => {
     setFollowerCount(currentUser?.followers.length || 0);
     setFollowingCount(currentUser?.following.length || 0);
@@ -140,10 +146,22 @@ export default function AccountScreen() {
 
   const handleSaveChanges = async () => {
     try {
+      setIsSaving(true);
+      //check if changes were made
+      if (
+        editUsername === currentUser?.username &&
+        editBio === currentUser?.bio &&
+        editImage===image
+      ) {
+        setIsSaving(false);
+        setIsEditModalVisible(false);
+        return;
+      }
       let uploadedUrl = image;
       if (editImage) {
         uploadedUrl = await handleUploadImage();
       }
+
       const res = await axios.put(`${endPoint}/api/users/profile`, {
         username: editUsername?.trim(),
         bio: editBio?.trim(),
@@ -158,9 +176,11 @@ export default function AccountScreen() {
         return prev;
       });
       setIsEditModalVisible(false);
+      setIsSaving(false);
       await AsyncStorage.setItem("user", JSON.stringify(currentUser));
     } catch (err) {
       showError(err.response?.data?.message || err.message);
+      setIsSaving(false);
     }
   };
 
@@ -333,6 +353,7 @@ export default function AccountScreen() {
             handlePickEditImage={handlePickEditImage}
             handleSaveChanges={handleSaveChanges}
             setIsEditModalVisible={setIsEditModalVisible}
+            isSaving={isSaving}
           />
         </Modal>
       </ScrollView>
@@ -343,7 +364,12 @@ export default function AccountScreen() {
         transparent={true}
         onRequestClose={() => setShowFollowModal(false)}
       >
-        <SafeAreaView style={styles.modalContainer}>
+        <View
+          style={[
+            styles.modalContainer,
+            { paddingTop: insets.top, paddingBottom: insets.bottom },
+          ]}
+        >
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
@@ -363,7 +389,7 @@ export default function AccountScreen() {
               contentContainerStyle={styles.userList}
             />
           </View>
-        </SafeAreaView>
+        </View>
       </Modal>
 
       <Modal

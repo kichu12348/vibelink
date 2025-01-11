@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useRef, useLayoutEffect } from "react";
+import React, {
+  useEffect,
+  useState,
+  useRef,
+  useLayoutEffect,
+  useMemo,
+} from "react";
 import {
   View,
   TextInput,
@@ -23,7 +29,6 @@ import { useAuth } from "../context/AuthContext";
 import * as ImagePicker from "expo-image-picker";
 import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
-import { StatusBar } from "expo-status-bar";
 import MessageItem from "./MessageItem";
 import bgImage from "../images/backImage.jpeg";
 import ViewPostScreen from "../screens/ViewPostScreen";
@@ -290,13 +295,7 @@ export default function DMsModal({ close, params }) {
 
   // Memoize the input container blur view
   const InputBlurView = React.useMemo(
-    () => (
-      <BlurView
-        intensity={60}
-        tint="dark"
-        style={styles.blurBackground}
-      />
-    ),
+    () => <BlurView intensity={60} tint="dark" style={styles.blurBackground} />,
     []
   );
 
@@ -341,6 +340,11 @@ export default function DMsModal({ close, params }) {
     }
     appState.current = nextAppState;
   };
+
+  const otherParticipant = useMemo(() => {
+    return activeChat?.participants.find((p) => p.user._id !== currentUser._id)
+      .user;
+  }, [activeChat]);
 
   const TYPING_DELAY_MS = 2000;
   let lastTypingTime = 0;
@@ -455,12 +459,11 @@ export default function DMsModal({ close, params }) {
               ios: insets.bottom,
               android: insets.bottom + 5,
             }),
+            paddingTop: insets.top,
           },
         ]}
       >
-        <View
-          style={[styles.headerContainer]}
-        >
+        <View style={[styles.headerContainer]}>
           <View style={styles.header}>
             <TouchableOpacity
               onPress={() => {
@@ -480,14 +483,15 @@ export default function DMsModal({ close, params }) {
               style={styles.constUserButton}
             >
               <Text style={styles.headerTitle}>
-                {activeChat?.participants.find(
-                  (p) => p.user._id !== currentUser._id
-                )?.user.username ||
-                  username ||
-                  "Error :("}
+                {otherParticipant.username || username || "Error :("}
               </Text>
               <Image
-                source={{ uri: profileImage || defaultAvatar }}
+                source={{
+                  uri:
+                    otherParticipant.profileImage ||
+                    profileImage ||
+                    defaultAvatar,
+                }}
                 style={styles.profileImage}
               />
             </TouchableOpacity>
@@ -748,7 +752,7 @@ const styles = StyleSheet.create({
   },
   blurBackground: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor:Platform.select({
+    backgroundColor: Platform.select({
       ios: "transparent",
       android: "rgba(0,0,0,0.5)",
     }),
@@ -788,7 +792,7 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     zIndex: 100,
-    paddingBottom: 10
+    paddingBottom: 10,
   },
   backButton: {
     marginRight: 16,

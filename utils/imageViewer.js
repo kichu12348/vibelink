@@ -1,4 +1,9 @@
-import { View, StyleSheet, TouchableOpacity } from "react-native";
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+} from "react-native";
 import React from "react";
 import { Image } from "expo-image";
 import { colors } from "../constants/primary";
@@ -6,28 +11,30 @@ import { BlurView } from "expo-blur";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 
-const ImageViewer = ({ uri, close = () => {} }) => {
+const ImageViewer = ({ uri, close }) => {
   const insets = useSafeAreaInsets();
   return (
-    <BlurView
-      intensity={100}
-      style={[styles.conatainer, { paddingTop: insets.top }]}
-      tint="dark"
-      experimentalBlurMethod="dimezisBlurView"
-      blurReductionFactor={16}
-    >
-      <View style={styles.header}>
-        <TouchableOpacity onPress={close} style={styles.closeButton}>
-          <Ionicons name="close" size={30} color={colors.textPrimary} />
-        </TouchableOpacity>
-      </View>
-      <Image
-        source={{ uri }}
-        style={styles.image}
-        contentFit="contain"
-        cachePolicy={"memory-disk"}
-      />
-    </BlurView>
+    <TouchableWithoutFeedback onPress={close}>
+      <BlurView
+        intensity={100}
+        style={[styles.conatainer, { paddingTop: insets.top }]}
+        tint="dark"
+        experimentalBlurMethod="dimezisBlurView"
+        blurReductionFactor={16}
+      >
+        <View style={styles.header}>
+          <TouchableOpacity onPress={close} style={styles.closeButton}>
+            <Ionicons name="close" size={30} color={colors.textPrimary} />
+          </TouchableOpacity>
+        </View>
+        <Image
+          source={{ uri }}
+          style={styles.image}
+          contentFit="contain"
+          cachePolicy={"memory-disk"}
+        />
+      </BlurView>
+    </TouchableWithoutFeedback>
   );
 };
 

@@ -1,4 +1,10 @@
-import React, { useState, memo, useEffect, useRef,useLayoutEffect } from "react";
+import React, {
+  useState,
+  memo,
+  useEffect,
+  useRef,
+  useLayoutEffect,
+} from "react";
 import {
   View,
   Text,
@@ -18,12 +24,7 @@ import { endPoint } from "../constants/endpoints";
 import { useError } from "../context/ErrorContext";
 
 // Wrapper component to handle hooks
-const PostContainer = ({
-  item,
-  onPostPress,
-  onProfilePress,
-  openComments
-}) => {
+const PostContainer = ({ item, onPostPress, onProfilePress, openComments ,openLikes=()=>{}}) => {
   const { likePost, unlikePost, posts } = usePost();
   const { currentUser } = useAuth();
 
@@ -37,6 +38,7 @@ const PostContainer = ({
       posts={posts}
       currentUser={currentUser}
       openComments={openComments}
+      openLikes={openLikes}
     />
   );
 };
@@ -51,6 +53,7 @@ const RenderPost = memo(
     posts,
     currentUser,
     openComments,
+    openLikes,
   }) => {
     if (!item) return null;
     const defaultAvatar =
@@ -60,11 +63,10 @@ const RenderPost = memo(
 
     const likeAnimation = useRef(new Animated.Value(0)).current;
     const [showLikeAnimation, setShowLikeAnimation] = useState(false);
-    const [color,setColor] = useState(colors.card);
-    const [shadowColor,setShadowColor] = useState("rgba(255, 255, 255, 1)");
+    const [color, setColor] = useState(colors.card);
+    const [shadowColor, setShadowColor] = useState("rgba(255, 255, 255, 1)");
 
-    const {showError}=useError();
-
+    const { showError } = useError();
 
     const isColorCloseToWhite = (color) => {
       const rgb = color.split("(")[1].split(")")[0].split(",");
@@ -72,40 +74,42 @@ const RenderPost = memo(
       const g = parseInt(rgb[1]);
       const b = parseInt(rgb[2]);
       const threshold = 200;
-      const res= r > threshold && g > threshold && b > threshold;
+      const res = r > threshold && g > threshold && b > threshold;
       const toneDown = 0.5;
-      const tonedDownColor = `rgb(${r * toneDown},${g * toneDown},${b * toneDown})`;
+      const tonedDownColor = `rgb(${r * toneDown},${g * toneDown},${
+        b * toneDown
+      })`;
       const rgba = `rgba(${r},${g},${b},0.5)`;
       return [res, tonedDownColor, rgba];
     };
 
+    async function getColor() {
+      if (!item.image) return;
+      await axios
+        .post(`${endPoint}/api/posts/getColor`, { url: item.image })
+        .then((res) => {
+          const [isWhite, tonedDownColor, shadowColor] = isColorCloseToWhite(
+            res.data.rgb
+          );
+          if (isWhite) {
+            setShadowColor(shadowColor);
+            setColor(tonedDownColor);
+            return;
+          }
+          setColor(res.data.rgb);
 
-    async function getColor(){
-      if(!item.image) return;
-      await axios.post(`${endPoint}/api/posts/getColor`, {url:item.image}).then((res)=>{
-        const [isWhite, tonedDownColor,shadowColor] = isColorCloseToWhite(res.data.rgb);
-        if(isWhite){
-          setShadowColor(shadowColor);
-          setColor(tonedDownColor);
+          const rgba = res.data.rgb.split("(")[1].split(")")[0].split(",");
+          const shadow = `rgba(${rgba[0]},${rgba[1]},${rgba[2]},0.5)`;
+          setShadowColor(shadow);
+        })
+        .catch((err) => {
           return;
-        }
-        setColor(res.data.rgb);
-        
-        const rgba = res.data.rgb.split("(")[1].split(")")[0].split(",");
-        const shadow = `rgba(${rgba[0]},${rgba[1]},${rgba[2]},0.5)`;
-        setShadowColor(shadow);
-      }).catch((err)=>{
-        return;
-      });
-      
-    };
+        });
+    }
 
-    useLayoutEffect(()=>{
+    useLayoutEffect(() => {
       getColor();
-    },[]) // runs when the component is mounted
-
-
-    
+    }, []); // runs when the component is mounted
 
     const animateHeartLike = () => {
       setShowLikeAnimation(true);
@@ -159,7 +163,13 @@ const RenderPost = memo(
 
     return (
       <TouchableWithoutFeedback onPress={() => onPostPress(item)}>
-        <View style={[globalStyles.card, styles.post,{backgroundColor:color,shadowColor:shadowColor}]}>
+        <View
+          style={[
+            globalStyles.card,
+            styles.post,
+            { backgroundColor: color, shadowColor: shadowColor },
+          ]}
+        >
           <TouchableOpacity
             style={styles.postHeader}
             onPress={() => onProfilePress(item)}
@@ -199,30 +209,38 @@ const RenderPost = memo(
             </View>
           )}
           <View style={styles.postFooter}>
-            <TouchableOpacity
-              onPress={clickLike}
-              style={{ flexDirection: "row", alignItems: "center" }}
-            >
+            <TouchableOpacity onPress={clickLike} style={styles.likesButton}>
               <Ionicons
                 name={liked ? "heart" : "heart-outline"}
                 size={30}
                 color={liked ? colors.primary : colors.textPrimary}
               />
+            </TouchableOpacity>
+            <TouchableOpacity
+            style={[styles.likesButton, { marginLeft: 10 }]}
+            onPress={()=>openLikes(item)}
+            >
               <Text
                 style={{
                   color: liked ? colors.primary : colors.textPrimary,
-                  marginLeft: 5,
                 }}
               >
                 {item.likes.length} {item.likes.length > 1 ? "likes" : "like"}
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => openComments(item)}>
+            <TouchableOpacity
+              onPress={() => openComments(item)}
+              style={[styles.likesButton, { marginLeft: 20 }]}
+            >
               <FontAwesome5
                 name="comment"
                 size={24}
                 color={colors.textPrimary}
               />
+              <Text style={{ color: colors.textPrimary, marginLeft: 5 }}>
+                {item.comments.length}{" "}
+                {item.comments.length > 1 ? "comments" : "comment"}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -277,7 +295,6 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     alignItems: "center",
     padding: 5,
-    gap: 20,
   },
   postImageContainer: {
     width: "100%",
@@ -293,6 +310,11 @@ const styles = StyleSheet.create({
     transform: [{ translateX: -40 }, { translateY: -40 }],
     justifyContent: "center",
     alignItems: "center",
+  },
+  likesButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
 

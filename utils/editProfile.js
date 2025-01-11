@@ -1,24 +1,39 @@
 // EditProfileModal.js
-import React from 'react';
-import { SafeAreaView, View, Text, TouchableOpacity, TextInput} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../constants/primary';
-import { Image } from 'expo-image';
+import React from "react";
+import {
+  SafeAreaView,
+  View,
+  Text,
+  TouchableOpacity,
+  TextInput,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { colors } from "../constants/primary";
+import { Image } from "expo-image";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const EditProfileModal = ({ 
-  styles, 
-  editImage, 
-  image, 
-  editUsername, 
-  setEditUsername, 
-  editBio, 
-  setEditBio, 
-  handlePickEditImage, 
-  handleSaveChanges, 
-  setIsEditModalVisible 
+const EditProfileModal = ({
+  styles,
+  editImage,
+  image,
+  editUsername,
+  setEditUsername,
+  editBio,
+  setEditBio,
+  handlePickEditImage,
+  handleSaveChanges,
+  setIsEditModalVisible,
+  isSaving,
 }) => {
+  const insets = useSafeAreaInsets();
+
   return (
-    <SafeAreaView style={styles.modalContainer}>
+    <View
+      style={[
+        styles.modalContainer,
+        { paddingTop: insets.top, paddingBottom: insets.bottom },
+      ]}
+    >
       <View style={styles.modalHeader}>
         <Text style={styles.modalTitle}>Edit Profile</Text>
         <TouchableOpacity
@@ -31,12 +46,21 @@ const EditProfileModal = ({
 
       <View style={styles.modalContent}>
         <View style={styles.profileImageSection}>
-          <Image 
-            source={editImage ? { uri: editImage } : (image ? { uri: image } : require("../defaultImages/default-user.jpg"))}
+          <Image
+            source={
+              editImage
+                ? { uri: editImage }
+                : image
+                ? { uri: image }
+                : require("../defaultImages/default-user.jpg")
+            }
             style={styles.editProfileImage}
             cachePolicy={"memory-disk"}
           />
-          <TouchableOpacity onPress={handlePickEditImage} style={styles.changePhotoButton}>
+          <TouchableOpacity
+            onPress={handlePickEditImage}
+            style={styles.changePhotoButton}
+          >
             <Text style={styles.changePhotoText}>Change Profile Photo</Text>
           </TouchableOpacity>
         </View>
@@ -50,7 +74,7 @@ const EditProfileModal = ({
             placeholder="Enter username"
             placeholderTextColor={colors.textSecondary}
           />
-          
+
           <Text style={styles.inputLabel}>Bio</Text>
           <TextInput
             value={editBio}
@@ -63,11 +87,15 @@ const EditProfileModal = ({
           />
         </View>
 
-        <TouchableOpacity style={styles.saveButton} onPress={handleSaveChanges}>
+        <TouchableOpacity
+          style={[styles.saveButton, isSaving && { opacity: 0.5 }]}
+          onPress={handleSaveChanges}
+          disabled={isSaving}
+        >
           <Text style={styles.saveButtonText}>Save Changes</Text>
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 
