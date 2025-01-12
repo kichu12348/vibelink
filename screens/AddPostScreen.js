@@ -41,6 +41,11 @@ const AddPostScreen = ({ navigation }) => {
   const handlePost = async () => {
     if (!content.trim() && mediaFiles.length === 0) return;
 
+    //check if content length is greater than 500
+    if (content.length > MAX_CONTENT_LENGTH) {
+      showError("Content length should be less than 500 characters");
+      return;
+    }
     try {
       const success = await createPost(content, mediaFiles);
       if (success) {
