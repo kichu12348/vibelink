@@ -9,6 +9,9 @@ import {
   ActivityIndicator,
   Keyboard,
   TouchableWithoutFeedback,
+  KeyboardAvoidingView,
+  ScrollView,
+  Platform,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { colors, fontSizes } from "../constants/primary";
@@ -42,12 +45,12 @@ const AddPostScreen = ({ navigation }) => {
     if (!content.trim() && mediaFiles.length === 0) return;
 
     //check if content length is greater than 500
-    if (content.length > MAX_CONTENT_LENGTH) {
+    if (content.trim().length > MAX_CONTENT_LENGTH) {
       showError("Content length should be less than 500 characters");
       return;
     }
     try {
-      const success = await createPost(content, mediaFiles);
+      const success = await createPost(content.trim(), mediaFiles);
       if (success) {
         setContent("");
         setMediaFiles([]);
@@ -61,55 +64,70 @@ const AddPostScreen = ({ navigation }) => {
   const insets = useSafeAreaInsets();
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View style={[styles.container, { paddingTop: insets.top + 80 }]}>
-        <TextInput
-          style={styles.input}
-          placeholder="What's on your mind?"
-          placeholderTextColor={colors.textSecondary}
-          multiline
-          value={content}
-          onChangeText={setContent}
-        />
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      style={styles.container}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView 
+          contentContainerStyle={{ flexGrow: 1 }}
+        >
+          <View style={[styles.innerContainer, { paddingTop: insets.top + 80 }]}>
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder="What's on your mind?"
+                placeholderTextColor={colors.textSecondary}
+                multiline
+                value={content}
+                onChangeText={setContent}
+              />
+              <Text style={styles.charCount}>
+                {content.trim().length}/{MAX_CONTENT_LENGTH}
+              </Text>
+            </View>
 
-        {mediaFiles.length > 0 && (
-          <TouchableOpacity
-            onPress={() => setMediaFiles([])}
-            disabled={loading}
-          >
-          <View style={styles.mediaPreview}>
-            <Image
-              source={{ uri: mediaFiles[0].uri }}
-              style={styles.previewImage}
-            />
-          </View>
-          </TouchableOpacity>
-        )}
-
-        <View style={styles.actions}>
-          <TouchableOpacity onPress={pickImage} style={styles.mediaButton}>
-            <Ionicons name="image" size={24} color={colors.primary} />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.postButton,
-              !content.trim() &&
-                mediaFiles.length === 0 &&
-                styles.disabledButton,
-            ]}
-            onPress={handlePost}
-            disabled={loading || (!content.trim() && mediaFiles.length === 0)}
-          >
-            {loading ? (
-              <ActivityIndicator color={colors.white} />
-            ) : (
-              <Text style={styles.postButtonText}>Post</Text>
+            {mediaFiles.length > 0 && (
+              <TouchableOpacity
+                onPress={() => setMediaFiles([])}
+                disabled={loading}
+              >
+              <View style={styles.mediaPreview}>
+                <Image
+                  source={{ uri: mediaFiles[0].uri }}
+                  style={styles.previewImage}
+                />
+              </View>
+              </TouchableOpacity>
             )}
-          </TouchableOpacity>
-        </View>
-      </View>
-    </TouchableWithoutFeedback>
+
+            <View style={styles.actions}>
+              <TouchableOpacity onPress={pickImage} style={styles.mediaButton}>
+                <Ionicons name="image" size={24} color={colors.primary} />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.postButton,
+                  !content.trim() &&
+                    mediaFiles.length === 0 &&
+                    styles.disabledButton,
+                ]}
+                onPress={handlePost}
+                disabled={loading || (!content.trim() && mediaFiles.length === 0)}
+              >
+                {loading ? (
+                  <ActivityIndicator color={colors.white} />
+                ) : (
+                  <Text style={styles.postButtonText}>Post</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -117,13 +135,30 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  innerContainer: {
+    flex: 1,
     padding: 16,
+  },
+  inputContainer: {
+    position: 'relative',
+    paddingRight: 50,
   },
   input: {
     color: colors.textPrimary,
     fontSize: fontSizes.lg,
     minHeight: 100,
     textAlignVertical: "top",
+    padding:10, // Make room for the counter
+    backgroundColor: colors.card,
+    borderRadius: 12,
+  },
+  charCount: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    color: colors.textSecondary,
+    fontSize: fontSizes.sm,
   },
   mediaPreview: {
     flexDirection: "row",
