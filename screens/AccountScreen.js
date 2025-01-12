@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -69,6 +69,11 @@ export default function AccountScreen() {
       return p;
     });
   }, [postContext.posts]);
+
+  const contentStyle=useMemo(()=>({
+    paddingBottom: bottomTabBarHeight + 5,
+    paddingTop: insets.top+50
+  }),[]) // only recompute when bottomTabBarHeight or insets.top changes
 
   React.useEffect(() => {
     async function fetchFollowers() {
@@ -262,7 +267,7 @@ export default function AccountScreen() {
       <ScrollView
         style={styles.container}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: bottomTabBarHeight + 5 }}
+        contentContainerStyle={contentStyle}
       >
         <View style={styles.header}>
           <View>

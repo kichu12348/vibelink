@@ -201,15 +201,12 @@ const ViewPostScreen = ({ post, close = () => {} }) => {
   const [comments, setComments] = useState([]);
   const [commentContent, setCommentContent] = useState("");
   const [isCommenting, setIsCommenting] = useState(false);
-
   const [likeCount, setLikeCount] = useState(post.likes?.length || 0);
-
-  const [hasLiked, setHasLiked] = useState(
-    post.likes?.includes(currentUser?._id)
-  );
-  const insets = useSafeAreaInsets();
+  const [hasLiked, setHasLiked] = useState(post.likes?.includes(currentUser?._id));
   const [showImageViewer, setShowImageViewer] = useState(false);
+  const [isLiking, setIsLiking] = useState(false);
 
+const insets = useSafeAreaInsets();
   const timestamp = useMemo(() => {
     return new Date(post.createdAt).toLocaleString("en-US", {
       month: "long",
@@ -255,6 +252,8 @@ const ViewPostScreen = ({ post, close = () => {} }) => {
   }, [post]);
 
   const handleLike = async () => {
+    if (isLiking) return;
+    setIsLiking(true);
     if (hasLiked) {
       await unlikePost(post._id);
       setHasLiked(false);
@@ -262,6 +261,7 @@ const ViewPostScreen = ({ post, close = () => {} }) => {
       await likePost(post._id);
       setHasLiked(true);
     }
+    setIsLiking(false);
   };
 
   const handleComment = async () => {
@@ -374,6 +374,7 @@ const ViewPostScreen = ({ post, close = () => {} }) => {
               <TouchableOpacity
                 onPress={handleLike}
                 style={styles.actionButton}
+                disabled={isLiking}
               >
                 <Ionicons
                   name={hasLiked ? "heart" : "heart-outline"}

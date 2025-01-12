@@ -67,7 +67,7 @@ const SearchScreen = () => {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: inset.top + 50 }]}>
       <View style={styles.searchContainer}>
         <Ionicons
           name="search"
@@ -92,7 +92,7 @@ const SearchScreen = () => {
         contentContainerStyle={[
           styles.resultsList,
           {
-            paddingBottom: tabBarHeight + inset.bottom+16,
+            paddingBottom: tabBarHeight + inset.bottom + 16,
           },
         ]}
       />

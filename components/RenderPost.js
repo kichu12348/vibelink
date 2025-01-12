@@ -24,7 +24,13 @@ import { endPoint } from "../constants/endpoints";
 import { useError } from "../context/ErrorContext";
 
 // Wrapper component to handle hooks
-const PostContainer = ({ item, onPostPress, onProfilePress, openComments ,openLikes=()=>{}}) => {
+const PostContainer = ({
+  item,
+  onPostPress,
+  onProfilePress,
+  openComments,
+  openLikes = () => {},
+}) => {
   const { likePost, unlikePost, posts } = usePost();
   const { currentUser } = useAuth();
 
@@ -65,6 +71,7 @@ const RenderPost = memo(
     const [showLikeAnimation, setShowLikeAnimation] = useState(false);
     const [color, setColor] = useState(colors.card);
     const [shadowColor, setShadowColor] = useState("rgba(255, 255, 255, 1)");
+    const [isLiking, setIsLiking] = useState(false);
 
     const { showError } = useError();
 
@@ -139,6 +146,8 @@ const RenderPost = memo(
     }, [posts]);
 
     const clickLike = async () => {
+      if (isLiking) return;
+      setIsLiking(true);
       try {
         if (liked) {
           await unLikePost(item?._id);
@@ -146,8 +155,10 @@ const RenderPost = memo(
           await likePost(item?._id);
           animateHeartLike();
         }
+        setIsLiking(false);
       } catch (error) {
         showError(error.message);
+        setIsLiking(false);
       }
     };
 
@@ -209,7 +220,11 @@ const RenderPost = memo(
             </View>
           )}
           <View style={styles.postFooter}>
-            <TouchableOpacity onPress={clickLike} style={styles.likesButton}>
+            <TouchableOpacity
+              onPress={clickLike}
+              style={styles.likesButton}
+              disabled={isLiking}
+            >
               <Ionicons
                 name={liked ? "heart" : "heart-outline"}
                 size={30}
@@ -217,8 +232,8 @@ const RenderPost = memo(
               />
             </TouchableOpacity>
             <TouchableOpacity
-            style={[styles.likesButton, { marginLeft: 10 }]}
-            onPress={()=>openLikes(item)}
+              style={[styles.likesButton, { marginLeft: 10 }]}
+              onPress={() => openLikes(item)}
             >
               <Text
                 style={{

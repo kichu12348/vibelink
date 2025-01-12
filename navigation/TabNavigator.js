@@ -7,7 +7,7 @@ import SearchScreen from "../screens/SearchScreen";
 import AddPostScreen from "../screens/AddPostScreen";
 import AccountScreen from "../screens/AccountScreen";
 import DMsScreen from "../screens/DMsScreen";
-import { colors } from "../constants/primary";
+import { colors,fontSizes } from "../constants/primary";
 import {
   Platform,
   StyleSheet,
@@ -24,6 +24,8 @@ import { usePost } from "../context/PostContext";
 import ViewPostScreen from "../screens/ViewPostScreen";
 import DMsModal from "../components/DMsModal";
 import ViewUserOProfile from "../utils/ViewUserOProfile";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -61,6 +63,8 @@ function Tabs({ navigation }) {
     }
   }
 
+  const insets = useSafeAreaInsets();
+
   React.useEffect(() => {
     const subscription = Notifications.addNotificationResponseReceivedListener(
       (response) => {
@@ -97,6 +101,10 @@ function Tabs({ navigation }) {
 
   return (
     <>
+    <StatusBar style="light"
+    translucent={true}
+    backgroundColor="transparent"
+     />
       <Tab.Navigator
         screenOptions={({ route }) => ({
           tabBarShowLabel: false,
@@ -143,12 +151,26 @@ function Tabs({ navigation }) {
           tabBarIconStyle: {
             alignSelf: "center",
           },
+          headerTransparent: true,
           headerStyle: {
-            backgroundColor: colors.card,
+            backgroundColor: 'transparent',
             elevation: 0,
-            shadowOpacity: 0,
+            shadowOpacity: 0
           },
-          headerTintColor: colors.textPrimary,
+          headerBackground: () => (
+            <BlurView
+              intensity={80}
+              blurReductionFactor={12}
+              style={{
+                flex: 1,
+                backgroundColor: "rgba(35, 37, 47,0.1)",
+                ...StyleSheet.absoluteFillObject,
+                overflow: "hidden",
+              }}
+              tint="dark"
+              experimentalBlurMethod="dimezisBlurView"
+            />
+          ),
           headerRight: () => {
             if (route.name === "Profile") {
               return (

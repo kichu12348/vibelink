@@ -15,6 +15,7 @@ import { useAuth } from "../context/AuthContext";
 import RenderPost from "../components/RenderPost";
 import CommentsModal from "../components/CommentsModal";
 import LikedUsersModal from "../components/LikedUsersModal";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function HomeScreen({ navigation }) {
   const {
@@ -28,21 +29,20 @@ export default function HomeScreen({ navigation }) {
   const bottomTabBarHeight = useBottomTabBarHeight();
   const { currentUser } = useAuth();
 
-  useEffect(()=>{
-    const unSubBlurListener = navigation.addListener('blur',()=>{
+  useEffect(() => {
+    const unSubBlurListener = navigation.addListener("blur", () => {
       setIsOutOfFocus(true);
     });
 
-    const unSubFocusListener = navigation.addListener('focus',()=>{
+    const unSubFocusListener = navigation.addListener("focus", () => {
       setIsOutOfFocus(false);
     });
 
-    return ()=>{
+    return () => {
       unSubBlurListener();
       unSubFocusListener();
-    }
-  },[])
-
+    };
+  }, []);
 
   const [isPostVisible, setIsPostVisible] = useState(false);
   const [postContent, setPostContent] = useState(null);
@@ -86,7 +86,7 @@ export default function HomeScreen({ navigation }) {
 
   const handleOpenLikes = async (post) => {
     if (!post) return;
-    if (isLikedUsersLoading || isOutOfFocus ) return;
+    if (isLikedUsersLoading || isOutOfFocus) return;
     setIsLikedUsersLoading(true);
     const filterRepeatedUsers = post.likes.filter(
       (like, index, self) => self.indexOf(like) === index
@@ -98,7 +98,7 @@ export default function HomeScreen({ navigation }) {
       })
     );
     setLikedUsers(fetchedUsers);
-    if(isOutOfFocus){
+    if (isOutOfFocus) {
       setIsLikedUsersLoading(false);
       return;
     }
@@ -116,6 +116,8 @@ export default function HomeScreen({ navigation }) {
     setItem({ user });
   };
 
+  const insets = useSafeAreaInsets();
+
   return (
     <View style={styles.container}>
       <FlatList
@@ -131,7 +133,10 @@ export default function HomeScreen({ navigation }) {
         )}
         keyExtractor={(item) => item._id}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: bottomTabBarHeight + 5 }}
+        contentContainerStyle={{
+          paddingBottom: bottomTabBarHeight + 5,
+          paddingTop: insets.top + 70,
+        }}
         refreshControl={
           <RefreshControl
             refreshing={loading}
