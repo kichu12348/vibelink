@@ -107,6 +107,7 @@ export default function DMsModal({ close, params }) {
     setActiveChat,
     uploadImageToServer,
     deleteMessage,
+    deleteImageFromServer,
   } = useMessage();
   const { currentUser } = useAuth();
   const [text, setText] = useState("");
@@ -225,9 +226,9 @@ export default function DMsModal({ close, params }) {
     setPostModalVisible(true);
   };
 
-  const handleDeleteMessage = () => {
+  const handleDeleteMessage = async () => {
     if (!selectedMessage) return;
-    deleteMessage(selectedMessage._id);
+    await deleteMessage(selectedMessage._id);
     setSelectedMessage(null);
   };
 
@@ -374,6 +375,11 @@ export default function DMsModal({ close, params }) {
     setTimeout(() => {
       scrollViewRef.current?.scrollToEnd({ animated: true });
     }, 100);
+  }
+
+  async function handleDeleteImage() {
+    await deleteImageFromServer(imageUri);
+    setImageUri("");
   }
 
   const handleScroll = (event) => {
@@ -532,7 +538,7 @@ export default function DMsModal({ close, params }) {
           <View style={styles.posRelative}>
             {imageUri !== "" && (
               <TouchableOpacity
-                onPress={() => setImageUri("")}
+                onPress={handleDeleteImage}
                 style={{
                   position: "absolute",
                   bottom: 60,

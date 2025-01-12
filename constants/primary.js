@@ -7,6 +7,7 @@ export const colors = {
   textSecondary: "#B0B3C0",
   success: "#3DDC84",
   error: "#FF4C4C",
+  accent: "#FFC542",
 };
 export const fontSizes = {
     xs:12,

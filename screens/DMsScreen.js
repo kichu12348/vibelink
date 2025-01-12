@@ -13,7 +13,7 @@ import {
   Dimensions,
   useAnimatedValue,
   AppState,
-  RefreshControl,
+  RefreshControl
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -103,6 +103,7 @@ export default function DMsScreen({ route, navigation }) {
     setActiveChat,
     uploadImageToServer,
     deleteMessage,
+    deleteImageFromServer
   } = useMessage();
   const { currentUser } = useAuth();
   const [text, setText] = useState("");
@@ -233,9 +234,9 @@ export default function DMsScreen({ route, navigation }) {
     setPostModalVisible(true);
   };
 
-  const handleDeleteMessage = () => {
+  const handleDeleteMessage = async () => {
     if (!selectedMessage) return;
-    deleteMessage(selectedMessage._id);
+    await deleteMessage(selectedMessage._id);
     setSelectedMessage(null);
   };
 
@@ -385,6 +386,11 @@ export default function DMsScreen({ route, navigation }) {
     setTimeout(() => {
       scrollViewRef.current?.scrollToEnd({ animated: true });
     }, 100);
+  }
+
+  async function handleDeleteImage(){
+    await deleteImageFromServer(imageUri);
+    setImageUri("");
   }
 
   const handleScroll = (event) => {
@@ -548,7 +554,7 @@ export default function DMsScreen({ route, navigation }) {
           <View style={styles.posRelative}>
             {imageUri !== "" && (
               <TouchableOpacity
-                onPress={() => setImageUri("")}
+                onPress={handleDeleteImage}
                 style={{
                   position: "absolute",
                   bottom: 60,

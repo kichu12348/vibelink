@@ -1,5 +1,11 @@
-import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Modal } from "react-native";
+import React, { useMemo } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Linking,
+} from "react-native";
 import { Image } from "expo-image";
 import { colors, fontSizes } from "../constants/primary";
 import { usePost } from "../context/PostContext";
@@ -75,12 +81,56 @@ const MessageItem = React.memo(
       [isOwn]
     );
 
-
     function checkIfOnlyEmoji(text) {
       const emojiOnlyRegex = /^[\p{Emoji}\u200d]*$/u;
       const test = emojiOnlyRegex.test(text);
       return test;
     }
+
+    function checkIfThereIsALink(text) {
+      const linkRegex =
+        /((https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*))/;
+      const test = linkRegex.test(text);
+      const links = text.match(linkRegex);
+      return {
+        test,
+        links,
+      };
+    }
+
+    const { test, links } = useMemo(
+      () => checkIfThereIsALink(message.content),
+      [message.content]
+    );
+
+    const renderTextWithLinks = (text) => {
+      if (!test)
+        return (
+          <Text style={[styles.messageText, isOnlyEmoji && { fontSize: 50 }]}>
+            {text}
+          </Text>
+        );
+
+      const parts = text.split(/(https?:\/\/[^\s]+)/g);
+      return (
+        <Text style={[styles.messageText, isOnlyEmoji && { fontSize: 50 }]}>
+          {parts.map((part, index) => {
+            if (part.match(/https?:\/\/[^\s]+/)) {
+              return (
+                <Text
+                  key={index}
+                  style={[styles.messageText, styles.link]}
+                  onPress={() => Linking.openURL(part)}
+                >
+                  {part}
+                </Text>
+              );
+            }
+            return <Text key={index}>{part}</Text>;
+          })}
+        </Text>
+      );
+    };
 
     const timestamp = React.useMemo(() => {
       const date = new Date(message.createdAt);
@@ -138,27 +188,24 @@ const MessageItem = React.memo(
               recyclingKey={message._id}
             />
           </TouchableOpacity>
-          {message.content && (
-            <Text numberOfLines={20} style={styles.messageText}>
-              {message.content}
-            </Text>
-          )}
+          {message.content && renderTextWithLinks(message.content)}
           <Text style={styles.timestamp}>{timestamp}</Text>
         </TouchableOpacity>
       );
-    };
+    }
 
-    const isOnlyEmoji = checkIfOnlyEmoji(message.content);
+    const isOnlyEmoji = useMemo(
+      () => checkIfOnlyEmoji(message.content),
+      [message.content]
+    );
 
     return (
       <TouchableOpacity
         onLongPress={onLongPress}
         activeOpacity={0.8}
-        style={[bubbleStyle, isOnlyEmoji && {backgroundColor: "transparent" }]}
+        style={[bubbleStyle, isOnlyEmoji && { backgroundColor: "transparent" }]}
       >
-        <Text numberOfLines={20} style={[styles.messageText, isOnlyEmoji && {fontSize:50}]}>
-          {message.content}
-        </Text>
+        {renderTextWithLinks(message.content)}
         <Text style={styles.timestamp}>{timestamp}</Text>
       </TouchableOpacity>
     );
@@ -198,6 +245,7 @@ const styles = StyleSheet.create({
     width: 200,
     borderRadius: 16,
     backgroundColor: OTHER_MESSAGE_COLOR,
+    marginBottom: 8,
   },
   sharedPost: {
     borderRadius: 10,
@@ -243,6 +291,10 @@ const styles = StyleSheet.create({
     position: "absolute",
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(24,26,32,0.5)",
+  },
+  link: {
+    color: colors.accent,
+    textDecorationLine: "underline",
   },
 });
 

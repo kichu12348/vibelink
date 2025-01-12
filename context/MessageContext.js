@@ -12,7 +12,7 @@ import io from "socket.io-client";
 import { endPoint as API_URL } from "../constants/endpoints";
 import { uploadFile } from "../utils/fileUpload";
 import * as Device from "expo-device";
-import {Platform } from "react-native";
+import { Platform } from "react-native";
 import { useError } from "./ErrorContext";
 
 // Set up notifications handler
@@ -25,7 +25,7 @@ Notifications.setNotificationHandler({
 });
 
 async function registerForPushNotificationsAsync() {
-  let token=null;
+  let token = null;
   if (Device.isDevice) {
     const { status: existingStatus } =
       await Notifications.getPermissionsAsync();
@@ -33,7 +33,7 @@ async function registerForPushNotificationsAsync() {
     if (existingStatus !== "granted") {
       const { status } = await Notifications.requestPermissionsAsync();
       finalStatus = status;
-      if(status!=="granted"){
+      if (status !== "granted") {
         return [null, "Notification permission not granted"];
       }
     }
@@ -48,7 +48,6 @@ async function registerForPushNotificationsAsync() {
           lightColor: "#FF231F7C", // LED light color
         });
       }
-     
     }
   } else {
     return [null, "Must use physical device for Push Notifications"];
@@ -65,16 +64,15 @@ export function MessageProvider({ children }) {
   const [socket, setSocket] = useState(null);
   const [isDmsModalOpen, setIsDmsModalOpen] = useState(false);
 
-
-  const {showError}=useError();
+  const { showError } = useError();
 
   let timeoutId;
-    
+
   const handleRegisterPushNotification = async () => {
     if (currentUser) {
       try {
-        const [pushToken,error] = await registerForPushNotificationsAsync();
-        if (error) return [error,null];
+        const [pushToken, error] = await registerForPushNotificationsAsync();
+        if (error) return [error, null];
         if (pushToken) {
           await axios.post(
             `${API_URL}/api/users/push-token`,
@@ -86,7 +84,7 @@ export function MessageProvider({ children }) {
         return [null, pushToken];
       } catch (error) {
         const errorMessage = error.response?.data.message || error.message;
-        return [errorMessage,null];
+        return [errorMessage, null];
       }
     } else {
       timeoutId = setTimeout(handleRegister, 5000);
@@ -95,9 +93,8 @@ export function MessageProvider({ children }) {
 
   // Register once and optionally send token to your backend
   useEffect(() => {
-
     handleRegisterPushNotification();
-    
+
     return () => {
       if (timeoutId) {
         clearTimeout(timeoutId);
@@ -147,7 +144,7 @@ export function MessageProvider({ children }) {
 
     socket.on("newMessage", handleNewMessage);
 
-    socket.on('deletedMessage', ({ messageId }) => {
+    socket.on("deletedMessage", ({ messageId }) => {
       setMessages((prev) => prev.filter((m) => m._id !== messageId));
     });
 
@@ -158,7 +155,7 @@ export function MessageProvider({ children }) {
 
   // API functions
   const fetchConversations = useCallback(async () => {
-    if(!token) return;
+    if (!token) return;
     try {
       const { data } = await axios.get(
         `${API_URL}/api/messages/conversations`,
@@ -168,12 +165,15 @@ export function MessageProvider({ children }) {
       );
       setConversations(data);
     } catch (error) {
-      console.log("Error fetching conversations:", error.response?.data || error.message);
+      console.log(
+        "Error fetching conversations:",
+        error.response?.data || error.message
+      );
     }
   }, [token]);
 
   const fetchMessages = useCallback(
-    async (conversationId,topMessageId="nope") => {
+    async (conversationId, topMessageId = "nope") => {
       try {
         if (!conversationId) {
           console.log("No conversationId provided");
@@ -188,11 +188,14 @@ export function MessageProvider({ children }) {
         );
 
         if (Array.isArray(data)) {
-          if(topMessageId==="nope"){
+          if (topMessageId === "nope") {
             setMessages(data);
-          }
-          else if(topMessageId && data.length>0 && topMessageId!=="nope"){
-            setMessages(prev=>[...data,...prev]);
+          } else if (
+            topMessageId &&
+            data.length > 0 &&
+            topMessageId !== "nope"
+          ) {
+            setMessages((prev) => [...data, ...prev]);
           }
         } else {
           setMessages([]);
@@ -275,11 +278,21 @@ export function MessageProvider({ children }) {
     return res.data.url;
   }
 
+  async function deleteImageFromServer(imageUrl) {
+    try {
+      await axios.post(`${API_URL}/api/upload/delete`, {
+        uri: imageUrl,
+      });
+    } catch (error) {
+      showError(error.response?.data?.message || error.message);
+    }
+  }
+
   useEffect(() => {
     if (currentUser) {
       fetchConversations();
     }
-  }, [currentUser,token]);
+  }, [currentUser, token]);
 
   return (
     <MessageContext.Provider
@@ -298,7 +311,8 @@ export function MessageProvider({ children }) {
         deleteMessage,
         handleRegisterPushNotification,
         isDmsModalOpen,
-        setIsDmsModalOpen
+        setIsDmsModalOpen,
+        deleteImageFromServer,
       }}
     >
       {children}
