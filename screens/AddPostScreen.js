@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -15,7 +15,6 @@ import { colors, fontSizes } from "../constants/primary";
 import { usePost } from "../context/PostContext";
 import { Ionicons } from "@expo/vector-icons";
 import { useError } from "../context/ErrorContext";
-import { useMessage } from "../context/MessageContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const MAX_CONTENT_LENGTH = 500;
@@ -24,8 +23,8 @@ const AddPostScreen = ({ navigation }) => {
   const [content, setContent] = useState("");
   const [mediaFiles, setMediaFiles] = useState([]);
   const { createPost, loading } = usePost();
-  const { deleteImageFromServer } = useMessage();
   const { showError } = useError();
+
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -35,12 +34,7 @@ const AddPostScreen = ({ navigation }) => {
       quality: 0.5,
     });
     if (!result.canceled) {
-      setMediaFiles(async (p) => {
-        if (p.length > 0) {
-          await deleteImageFromServer(p[0].uri);
-        }
-        return [result.assets[0]];
-      });
+      setMediaFiles([result.assets[0]]);
     }
   };
 
@@ -74,12 +68,17 @@ const AddPostScreen = ({ navigation }) => {
         />
 
         {mediaFiles.length > 0 && (
+          <TouchableOpacity
+            onPress={() => setMediaFiles([])}
+            disabled={loading}
+          >
           <View style={styles.mediaPreview}>
             <Image
               source={{ uri: mediaFiles[0].uri }}
               style={styles.previewImage}
             />
           </View>
+          </TouchableOpacity>
         )}
 
         <View style={styles.actions}>
