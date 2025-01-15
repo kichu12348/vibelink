@@ -1,8 +1,7 @@
 import { io } from "socket.io-client";
 
 const endPoint = "https://vibelink.ddns.net"; 
-const socketEndpoint = "https://vibelink.ddns.net";
 
-const socket = io(socketEndpoint);
+const socket = io(endPoint);
 
 export { endPoint, socket};

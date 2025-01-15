@@ -24,6 +24,7 @@ import * as Updates from "expo-updates";
 import { enableScreens } from "react-native-screens";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ErrorProvider, useError } from "./context/ErrorContext";
+import { StoryProvider } from "./context/StoryContext";
 
 enableScreens();
 
@@ -131,8 +132,10 @@ export default function App() {
           <AuthProvider>
             <PostProvider>
               <MessageProvider>
-                <StatusBar style="light" backgroundColor={colors.card} />
-                <AppNavigator />
+                <StoryProvider>
+                  <StatusBar style="light" backgroundColor={colors.card} />
+                  <AppNavigator />
+                </StoryProvider>
               </MessageProvider>
             </PostProvider>
           </AuthProvider>

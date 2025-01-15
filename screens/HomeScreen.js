@@ -16,6 +16,9 @@ import RenderPost from "../components/RenderPost";
 import CommentsModal from "../components/CommentsModal";
 import LikedUsersModal from "../components/LikedUsersModal";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Stories from "../components/Stories";
+import { useStory } from "../context/StoryContext";
+import StoryModal from "../components/StoryModal";
 
 export default function HomeScreen({ navigation }) {
   const {
@@ -28,6 +31,7 @@ export default function HomeScreen({ navigation }) {
   } = usePost();
   const bottomTabBarHeight = useBottomTabBarHeight();
   const { currentUser } = useAuth();
+  const { fetchStories } = useStory();
 
   useEffect(() => {
     const unSubBlurListener = navigation.addListener("blur", () => {
@@ -54,6 +58,8 @@ export default function HomeScreen({ navigation }) {
   const [isLikedUsersVisible, setIsLikedUsersVisible] = useState(false);
   const [isLikedUsersLoading, setIsLikedUsersLoading] = useState(false);
   const [isOutOfFocus, setIsOutOfFocus] = useState(false);
+  const [isStoryVisible, setIsStoryVisible] = useState(false);
+  const [storyContent, setStoryContent] = useState(null);
 
   useEffect(() => {
     fetchPosts();
@@ -116,7 +122,17 @@ export default function HomeScreen({ navigation }) {
     setItem({ user });
   };
 
+  const handleStoryPress = (story) => {
+    setIsStoryVisible(true);
+    setStoryContent(story);
+  };
+
   const insets = useSafeAreaInsets();
+
+  const handleOnRefresh = async () => {
+    await fetchPosts();
+    await fetchStories();
+  };
 
   return (
     <View style={styles.container}>
@@ -140,12 +156,13 @@ export default function HomeScreen({ navigation }) {
         refreshControl={
           <RefreshControl
             refreshing={loading}
-            onRefresh={fetchPosts}
+            onRefresh={handleOnRefresh}
             colors={[colors.primary]}
             tintColor={colors.primary}
             progressBackgroundColor={colors.background}
           />
         }
+        ListHeaderComponent={<Stories openStory={handleStoryPress} />}
       />
       <Modal
         visible={isPostVisible}
@@ -201,6 +218,20 @@ export default function HomeScreen({ navigation }) {
             close={() => setIsLikedUsersVisible(false)}
             users={likedUsers}
             onProfilePress={handleLikesProfilePress}
+          />
+        )}
+      </Modal>
+      <Modal
+        visible={isStoryVisible}
+        animationType="fade"
+        onRequestClose={() => setIsStoryVisible(false)}
+        transparent={true}
+      >
+        {storyContent && (
+          <StoryModal
+            visible={isStoryVisible}
+            story={storyContent}
+            onClose={() => setIsStoryVisible(false)}
           />
         )}
       </Modal>
