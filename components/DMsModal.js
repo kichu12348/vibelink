@@ -20,6 +20,7 @@ import {
   useAnimatedValue,
   AppState,
   RefreshControl,
+  TouchableNativeFeedback,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -167,7 +168,9 @@ export default function DMsModal({ close, params }) {
 
   useEffect(() => {
     if (conversationId && socket) {
-      initialFetch(conversationId);
+      initialFetch(conversationId).then(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: false });
+      });
       socket.emit("joinChat", conversationId);
 
       // Listen for new messages
@@ -248,9 +251,7 @@ export default function DMsModal({ close, params }) {
             setImageModalVisible(true);
           }}
           onLongPress={() => {
-            if (isOwn) {
-              setSelectedMessage(item);
-            }
+            setSelectedMessage(item);
           }}
         />
       );
@@ -647,6 +648,7 @@ export default function DMsModal({ close, params }) {
           transparent={true}
           visible={postModalVisible}
           onRequestClose={() => setPostModalVisible(false)}
+          hardwareAccelerated={true}
         >
           {postContent && (
             <ViewPostScreen
@@ -672,51 +674,56 @@ export default function DMsModal({ close, params }) {
           transparent
           visible={!!selectedMessage}
           onRequestClose={() => setSelectedMessage(null)}
+          hardwareAccelerated={true}
         >
-          <BlurView
-            style={styles.modalContainer}
-            intensity={80}
-            tint="dark"
-            experimentalBlurMethod="dimezisBlurView"
-            blurReductionFactor={16}
-          >
-            {selectedMessage && (
-              <View style={styles.modalContent}>
-                <MessageItem
-                  message={selectedMessage}
-                  isOwn={selectedMessage?.sender?._id === currentUser?._id}
-                />
-                <Text
-                  style={[
-                    styles.modalTimestamp,
-                    {
-                      alignSelf:
-                        selectedMessage?.sender?._id === currentUser?._id
-                          ? "flex-end"
-                          : "flex-start",
-                    },
-                  ]}
-                >
-                  {new Date(selectedMessage?.createdAt).toLocaleString(
-                    "en-US",
-                    {
-                      month: "short",
-                      day: "numeric",
-                    }
+          <TouchableNativeFeedback onPress={() => setSelectedMessage(null)}>
+            <BlurView
+              style={styles.modalContainer}
+              intensity={80}
+              tint="dark"
+              experimentalBlurMethod="dimezisBlurView"
+              blurReductionFactor={16}
+            >
+              {selectedMessage && (
+                <View style={styles.modalContent}>
+                  <MessageItem
+                    message={selectedMessage}
+                    isOwn={selectedMessage?.sender?._id === currentUser?._id}
+                  />
+                  <Text
+                    style={[
+                      styles.modalTimestamp,
+                      {
+                        alignSelf:
+                          selectedMessage?.sender?._id === currentUser?._id
+                            ? "flex-end"
+                            : "flex-start",
+                      },
+                    ]}
+                  >
+                    {new Date(selectedMessage?.createdAt).toLocaleString(
+                      "en-US",
+                      {
+                        month: "short",
+                        day: "numeric",
+                      }
+                    )}
+                  </Text>
+                  {selectedMessage?.sender?._id === currentUser?._id && (
+                    <TouchableOpacity
+                      style={styles.deleteButton}
+                      onPress={handleDeleteMessage}
+                    >
+                      <Text style={styles.deleteButtonText}>Delete</Text>
+                    </TouchableOpacity>
                   )}
-                </Text>
-                <TouchableOpacity
-                  style={styles.deleteButton}
-                  onPress={handleDeleteMessage}
-                >
-                  <Text style={styles.deleteButtonText}>Delete</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => setSelectedMessage(null)}>
-                  <Text style={styles.cancelText}>Cancel</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </BlurView>
+                  <TouchableOpacity onPress={() => setSelectedMessage(null)}>
+                    <Text style={styles.cancelText}>Cancel</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </BlurView>
+          </TouchableNativeFeedback>
         </Modal>
         <Modal
           animationType="slide"
