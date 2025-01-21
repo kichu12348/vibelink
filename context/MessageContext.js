@@ -4,6 +4,7 @@ import React, {
   useContext,
   useEffect,
   useCallback,
+  use,
 } from "react";
 import { useAuth } from "./AuthContext";
 import * as Notifications from "expo-notifications";
@@ -134,9 +135,8 @@ export function MessageProvider({ children }) {
       setConversations((prev) => {
         const existingIndex = prev.findIndex((c) => c._id === conversation._id);
         if (existingIndex > -1) {
-          const updated = [...prev];
-          updated[existingIndex] = conversation;
-          return updated;
+          const filtered = prev.filter((c) => c._id.toString() !== conversation._id.toString());
+          return [conversation, ...filtered];
         }
         return [conversation, ...prev];
       });
@@ -175,18 +175,13 @@ export function MessageProvider({ children }) {
   const fetchMessages = useCallback(
     async (conversationId, topMessageId = "nope") => {
       try {
-        if (!conversationId) {
-          console.log("No conversationId provided");
-          return;
-        }
-
+        if (!conversationId) return;
         const { data } = await axios.get(
           `${API_URL}/api/messages/${conversationId}/${topMessageId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-
         if (Array.isArray(data)) {
           if (topMessageId === "nope") {
             setMessages(data);
@@ -211,6 +206,23 @@ export function MessageProvider({ children }) {
     [token]
   );
 
+
+  useEffect(() => {
+    let timeout;
+    const handleConvoDownload = async () => await fetchConversations();
+    if (token && currentUser) {
+      handleConvoDownload();
+      if(timeout) clearTimeout(timeout);
+    }
+    else {
+      timeout = setTimeout(handleConvoDownload, 5000);
+    }
+
+    return () => {
+      if(timeout) clearTimeout(timeout);
+    };
+  }, [token]);
+
   const sendMessage = async (
     conversationId,
     content,
@@ -233,10 +245,14 @@ export function MessageProvider({ children }) {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // Update local state
-      if (!conversationId) {
-        setConversations((prev) => [data.conversation, ...prev]);
-      }
+      setConversations(p=>{
+        const idx = p.findIndex(c=>c._id.toString() === conversationId);
+        if(idx > -1){
+          const filtered = p.filter(c=>c._id.toString() !== conversationId);
+          return [data.conversation, ...filtered];
+        }
+        return [data.conversation, ...p];
+      })
       setMessages((prev) => [...prev, data.message]);
       return data;
     } catch (error) {

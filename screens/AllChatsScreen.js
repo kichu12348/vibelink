@@ -21,7 +21,6 @@ const defaultAvatar =
 const AllChatsScreen = ({ navigation }) => {
   const {
     conversations,
-    fetchConversations,
     setActiveChat,
     searchUsers,
     setMessages,
@@ -31,9 +30,6 @@ const AllChatsScreen = ({ navigation }) => {
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
 
-  useEffect(() => {
-    fetchConversations();
-  }, []);
 
   // Move getOtherParticipant function inside component and use currentUser from hook
   const getOtherParticipant = (conversation) => {

@@ -75,48 +75,48 @@ const RenderPost = memo(
 
     const { showError } = useError();
 
-    const isColorCloseToWhite = (color) => {
-      const rgb = color.split("(")[1].split(")")[0].split(",");
-      const r = parseInt(rgb[0]);
-      const g = parseInt(rgb[1]);
-      const b = parseInt(rgb[2]);
-      const threshold = 200;
-      const res = r > threshold && g > threshold && b > threshold;
-      const toneDown = 0.5;
-      const tonedDownColor = `rgb(${r * toneDown},${g * toneDown},${
-        b * toneDown
-      })`;
-      const rgba = `rgba(${r},${g},${b},0.5)`;
-      return [res, tonedDownColor, rgba];
-    };
+    // const isColorCloseToWhite = (color) => {
+    //   const rgb = color.split("(")[1].split(")")[0].split(",");
+    //   const r = parseInt(rgb[0]);
+    //   const g = parseInt(rgb[1]);
+    //   const b = parseInt(rgb[2]);
+    //   const threshold = 200;
+    //   const res = r > threshold && g > threshold && b > threshold;
+    //   const toneDown = 0.5;
+    //   const tonedDownColor = `rgb(${r * toneDown},${g * toneDown},${
+    //     b * toneDown
+    //   })`;
+    //   const rgba = `rgba(${r},${g},${b},0.5)`;
+    //   return [res, tonedDownColor, rgba];
+    // };
 
-    async function getColor() {
-      if (!item.image) return;
-      await axios
-        .post(`${endPoint}/api/posts/getColor`, { url: item.image })
-        .then((res) => {
-          const [isWhite, tonedDownColor, shadowColor] = isColorCloseToWhite(
-            res.data.rgb
-          );
-          if (isWhite) {
-            setShadowColor(shadowColor);
-            setColor(tonedDownColor);
-            return;
-          }
-          setColor(res.data.rgb);
+    // async function getColor() {
+    //   if (!item.image) return;
+    //   await axios
+    //     .post(`${endPoint}/api/posts/getColor`, { url: item.image })
+    //     .then((res) => {
+    //       const [isWhite, tonedDownColor, shadowColor] = isColorCloseToWhite(
+    //         res.data.rgb
+    //       );
+    //       if (isWhite) {
+    //         setShadowColor(shadowColor);
+    //         setColor(tonedDownColor);
+    //         return;
+    //       }
+    //       setColor(res.data.rgb);
 
-          const rgba = res.data.rgb.split("(")[1].split(")")[0].split(",");
-          const shadow = `rgba(${rgba[0]},${rgba[1]},${rgba[2]},0.5)`;
-          setShadowColor(shadow);
-        })
-        .catch((err) => {
-          return;
-        });
-    }
+    //       const rgba = res.data.rgb.split("(")[1].split(")")[0].split(",");
+    //       const shadow = `rgba(${rgba[0]},${rgba[1]},${rgba[2]},0.5)`;
+    //       setShadowColor(shadow);
+    //     })
+    //     .catch((err) => {
+    //       return;
+    //     });
+    // }
 
-    useLayoutEffect(() => {
-      getColor();
-    }, []); // runs when the component is mounted
+    // useLayoutEffect(() => {
+    //   getColor();
+    // }, []); // runs when the component is mounted
 
     const animateHeartLike = () => {
       setShowLikeAnimation(true);
