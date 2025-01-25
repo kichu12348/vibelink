@@ -7,8 +7,7 @@ import {
   Linking,
 } from "react-native";
 import { Image } from "expo-image";
-import { colors, fontSizes } from "../constants/primary";
-import { usePost } from "../context/PostContext";
+import { colors } from "../constants/primary";
 import { BlurView } from "expo-blur";
 const defaultAvatar =
   "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
@@ -19,23 +18,13 @@ const OWN_MESSAGE_TEXT_COLOR = colors.textPrimary;
 const OTHER_MESSAGE_TEXT_COLOR = colors.textPrimary;
 
 const SharedPost = ({ post, onClickPost, onLongPress }) => {
-  const [user, setUser] = React.useState(null);
-  const { getPostCommentUser } = usePost();
-  React.useEffect(() => {
-    const fetchUser = async () => {
-      const user = await getPostCommentUser(post.user);
-      setUser(user);
-    };
-    fetchUser();
-  }, []);
+  const user = post.user;
 
   return (
     <TouchableOpacity
       style={styles.sharedPost}
       onPress={() => {
-        const p = post;
-        p.user = user;
-        onClickPost(p);
+        onClickPost(post);
       }}
       onLongPress={onLongPress}
       activeOpacity={0.8}
