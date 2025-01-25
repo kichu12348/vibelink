@@ -94,16 +94,10 @@ export default function HomeScreen({ navigation }) {
     if (!post) return;
     if (isLikedUsersLoading || isOutOfFocus) return;
     setIsLikedUsersLoading(true);
-    const filterRepeatedUsers = post.likes.filter(
-      (like, index, self) => self.indexOf(like) === index
-    );
-    const fetchedUsers = await Promise.all(
-      filterRepeatedUsers.map(async (like) => {
-        if (typeof like === "object") return like;
-        return await getPostCommentUser(like);
-      })
-    );
-    setLikedUsers(fetchedUsers);
+    const filterRepeatedUsers = post.likes.filter((like, index) => {
+      return post.likes.indexOf(like) === index;
+    });
+    setLikedUsers(filterRepeatedUsers);
     if (isOutOfFocus) {
       setIsLikedUsersLoading(false);
       return;

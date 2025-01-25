@@ -194,6 +194,11 @@ const ShareModal = ({
 const ViewPostScreen = ({ post, close = () => {} }) => {
   const { likePost, unlikePost, addComment, getPostCommentUser, deletePost } =
     usePost();
+
+    const hasLikedPost = (item)=>{
+      const find = item.likes.find((like) => like._id === currentUser?._id);
+      return find ? true : false;
+    }
   const { currentUser } = useAuth();
   const { conversations, sendMessage } = useMessage();
   const [showShareModal, setShowShareModal] = useState(false);
@@ -202,9 +207,11 @@ const ViewPostScreen = ({ post, close = () => {} }) => {
   const [commentContent, setCommentContent] = useState("");
   const [isCommenting, setIsCommenting] = useState(false);
   const [likeCount, setLikeCount] = useState(post.likes?.length || 0);
-  const [hasLiked, setHasLiked] = useState(post.likes?.includes(currentUser?._id));
+  const [hasLiked, setHasLiked] = useState(hasLikedPost(post));
   const [showImageViewer, setShowImageViewer] = useState(false);
   const [isLiking, setIsLiking] = useState(false);
+
+
 
 const insets = useSafeAreaInsets();
   const timestamp = useMemo(() => {
@@ -291,7 +298,7 @@ const insets = useSafeAreaInsets();
       socket.on("postUpdated", (updatedPost) => {
         if (updatedPost._id === post._id) {
           setLikeCount(updatedPost.likes.length);
-          setHasLiked(updatedPost.likes.includes(currentUser?._id));
+          setHasLiked(hasLikedPost(updatedPost));
         }
       });
 

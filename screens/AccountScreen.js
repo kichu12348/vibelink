@@ -9,6 +9,7 @@ import {
   Modal,
   FlatList,
   SafeAreaView,
+  Animated,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { colors } from "../constants/primary";
@@ -55,7 +56,6 @@ export default function AccountScreen() {
     currentUser?.following.length || 0
   ); // Added default value
   const [isSaving, setIsSaving] = useState(false);
-
   const insets = useSafeAreaInsets();
 
   const { showError } = useError();
@@ -70,10 +70,13 @@ export default function AccountScreen() {
     });
   }, [postContext.posts]);
 
-  const contentStyle=useMemo(()=>({
-    paddingBottom: bottomTabBarHeight + 5,
-    paddingTop: insets.top+50
-  }),[]) // only recompute when bottomTabBarHeight or insets.top changes
+  const contentStyle = useMemo(
+    () => ({
+      paddingBottom: bottomTabBarHeight + 5,
+      paddingTop: insets.top + 50,
+    }),
+    []
+  ); // only recompute when bottomTabBarHeight or insets.top changes
 
   React.useEffect(() => {
     async function fetchFollowers() {
@@ -156,7 +159,7 @@ export default function AccountScreen() {
       if (
         editUsername === currentUser?.username &&
         editBio === currentUser?.bio &&
-        editImage===image
+        editImage === image
       ) {
         setIsSaving(false);
         setIsEditModalVisible(false);
@@ -229,38 +232,71 @@ export default function AccountScreen() {
     );
   };
 
-  const renderPost = (post) => (
-    <TouchableOpacity
-      key={post._id}
-      style={styles.postContainer}
-      onPress={() => {
-        setPostContent(post);
-        setIsPostVisible(true);
-      }}
-    >
-      {post.image ? (
-        <Image
-          source={{ uri: post.image }}
-          style={styles.postImage}
-          contentFit="cover"
-          cachePolicy={"memory-disk"}
-        />
-      ) : (
-        <Text
-          style={[styles.postImage, styles.postText]}
-          adjustsFontSizeToFit={true}
+  const renderPost = (post) => {
+    const [overlayOpacity] = useState(new Animated.Value(0));
+    const hasLiked = (item)=>{
+      const find = item.likes.find((like) => like._id === currentUser?._id);
+      return find ? true : false;
+    }
+
+    const handleOverlayShow = () => {
+      Animated.timing(overlayOpacity, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }).start();
+    };
+
+    const handleOverlayHide = () => {
+      Animated.timing(overlayOpacity, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }).start();
+    };
+
+    
+
+    return (
+      <TouchableOpacity
+        key={post._id}
+        style={styles.postContainer}
+        onLongPress={handleOverlayShow}
+        onPressOut={handleOverlayHide}
+        activeOpacity={0.9}
+        onPress={() => {
+          setPostContent(post);
+          setIsPostVisible(true);
+        }}
+      >
+        {post.image ? (
+          <Image
+            source={{ uri: post.image }}
+            style={styles.postImage}
+            contentFit="cover"
+            cachePolicy={"memory-disk"}
+          />
+        ) : (
+          <Text
+            style={[styles.postImage, styles.postText]}
+            adjustsFontSizeToFit={true}
+          >
+            {post.content}
+          </Text>
+        )}
+        <Animated.View
+          style={[styles.postOverlay, { opacity: overlayOpacity }]}
         >
-          {post.content}
-        </Text>
-      )}
-      <View style={styles.postOverlay}>
-        <View style={styles.likeContainer}>
-          <Ionicons name="heart" size={16} color="white" />
-          <Text style={styles.likeCount}>{post.likes}</Text>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
+          <View style={styles.likeContainer}>
+            <Ionicons name="heart" size={16} color={
+              hasLiked(post) ? colors.primary : "white"
+            } />
+            <Text style={styles.likeCount}>{post.likes.length}</Text>
+          </View>
+        </Animated.View>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <>

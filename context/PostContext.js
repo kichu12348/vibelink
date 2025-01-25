@@ -105,6 +105,7 @@ export const PostProvider = ({ children }) => {
             ));
             return response.data;
         } catch (err) {
+            console.log('Add comment error:', err.response?.data?.message);
             showError(err.response?.data?.message);
             return null;
         }

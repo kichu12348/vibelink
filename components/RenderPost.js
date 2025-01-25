@@ -62,11 +62,16 @@ const RenderPost = memo(
     const defaultAvatar =
       "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
 
-    const [liked, setLiked] = useState(item.likes.includes(currentUser?._id));
+
+      const hasLiked = (item)=>{
+        const find = item.likes.find((like) => like._id === currentUser._id);
+        return find ? true : false;
+      };
+
+    const [liked, setLiked] = useState(hasLiked(item));
 
     const likeAnimation = useRef(new Animated.Value(0)).current;
     const [showLikeAnimation, setShowLikeAnimation] = useState(false);
-    const [color, setColor] = useState(item.color);
     const [shadowColor, setShadowColor] = useState("rgba(255, 255, 255, 1)");
     const [isLiking, setIsLiking] = useState(false);
 
@@ -94,7 +99,7 @@ const RenderPost = memo(
     useEffect(() => {
       setLiked(() => {
         const post = posts.find((p) => p?._id === item?._id);
-        return post.likes.includes(currentUser?._id);
+        return hasLiked(post);
       });
     }, [posts]);
 
@@ -131,7 +136,7 @@ const RenderPost = memo(
           style={[
             globalStyles.card,
             styles.post,
-            { backgroundColor: color, shadowColor: shadowColor },
+            { backgroundColor: item.color, shadowColor: shadowColor },
           ]}
         >
           <TouchableOpacity

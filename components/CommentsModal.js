@@ -26,7 +26,7 @@ const Comment = ({ comment, postId, setComments, currentUser, addReply }) => {
   const handleReply = async () => {
     if (!replyContent.trim()) return;
     setIsReplying(true);
-    await addReply(postId, comment._id, replyContent);
+    await addReply(postId, comment._id, replyContent.trim());
     setReplyContent("");
     setComments((prev) => {
       const updatedComments = prev.map((c) => {
@@ -35,7 +35,7 @@ const Comment = ({ comment, postId, setComments, currentUser, addReply }) => {
             ...c,
             replies: [
               ...c.replies,
-              { user: currentUser, content: replyContent },
+              { user: currentUser, content: replyContent.trim() },
             ],
           };
         }
@@ -104,43 +104,18 @@ const CommentsModal = ({ close, post, currentUser, addComment, addReply }) => {
   const [commentContent, setCommentContent] = useState("");
   const [comments, setComments] = useState(post?.comments || []);
   const [isCommenting, setIsCommenting] = useState(false);
-  const { getPostCommentUser } = usePost();
-
-  useEffect(() => {
-    const fetchCommentsWithUsers = async () => {
-      let commentsWithUsers = Promise.all(
-        comments.map(async (comment) => {
-          if (typeof comment.user === "object") return comment;
-          let replies = Promise.all(
-            comment.replies.map(async (reply) => {
-              if (typeof reply.user === "object") return reply;
-              let user = await getPostCommentUser(reply.user);
-              reply.user = await user;
-              return reply;
-            })
-          );
-          comment.replies = await replies;
-          comment.user = await getPostCommentUser(comment.user);
-          return comment;
-        })
-      );
-      setComments(await commentsWithUsers);
-    };
-    fetchCommentsWithUsers();
-  }, [post]);
-
 
   const insets = useSafeAreaInsets();
 
   const handleComment = async () => {
     if (!commentContent.trim()) return;
     setIsCommenting(true);
-    await addComment(post._id, commentContent);
+    await addComment(post._id, commentContent.trim());
     setComments((prev) => [
       ...prev,
       {
         user: currentUser,
-        content: commentContent,
+        content: commentContent.trim(),
         replies: [],
       },
     ]);
