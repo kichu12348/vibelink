@@ -18,22 +18,7 @@ const defaultAvatar =
   "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
 
 const RenderItem = memo(({ item, openStory }) => {
-  const [borderColor, setBorderColor] = React.useState(colors.primary);
-
-  async function getColor(url) {
-    await axios
-      .post(`${endPoint}/api/posts/getColor`, { url })
-      .then((res) => {
-        setBorderColor(res.data.rgb);
-      })
-      .catch((err) => {
-        return;
-      });
-  }
-
-  useLayoutEffect(() => {
-    getColor(item.media[0].url);
-  }, []);
+  const [borderColor, setBorderColor] = React.useState(item.color || colors.primary);
 
   return (
     <TouchableOpacity
