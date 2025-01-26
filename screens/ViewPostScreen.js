@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { colors, fontSizes } from "../constants/primary";
 import { usePost } from "../context/PostContext";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, FontAwesome} from "@expo/vector-icons";
 import { useAuth } from "../context/AuthContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
@@ -394,11 +394,7 @@ const insets = useSafeAreaInsets();
                 onPress={() => setShowShareModal(true)}
                 style={styles.actionButton}
               >
-                <Ionicons
-                  name="share-outline"
-                  size={24}
-                  color={colors.textPrimary}
-                />
+                <FontAwesome name="send-o" size={24} color={colors.textPrimary} />
               </TouchableOpacity>
               {post.user?._id === currentUser?._id && (
                 <TouchableOpacity

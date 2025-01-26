@@ -26,8 +26,7 @@ export default function HomeScreen({ navigation }) {
     loading,
     fetchPosts,
     addComment,
-    addReply,
-    getPostCommentUser,
+    addReply
   } = usePost();
   const bottomTabBarHeight = useBottomTabBarHeight();
   const { currentUser } = useAuth();
@@ -62,7 +61,27 @@ export default function HomeScreen({ navigation }) {
   const [storyContent, setStoryContent] = useState(null);
 
   useEffect(() => {
-    fetchPosts();
+    const controller = new AbortController();
+    
+    const loadData = async () => {
+      try {
+        await Promise.all([
+          fetchPosts(controller.signal),
+          fetchStories(controller.signal)
+        ]);
+      } catch (err) {
+        if (!err.name === 'AbortError') {
+          console.log('Failed to fetch data:', err.message);
+        }
+      }
+    };
+  
+    const timeOut = setTimeout(loadData, 100);
+    
+    return () => {
+      clearTimeout(timeOut);
+      controller.abort();
+    };
   }, []);
 
   const handleClosePost = () => {

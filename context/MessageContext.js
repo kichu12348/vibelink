@@ -4,7 +4,7 @@ import React, {
   useContext,
   useEffect,
   useCallback,
-  use,
+  useRef,
 } from "react";
 import { useAuth } from "./AuthContext";
 import * as Notifications from "expo-notifications";
@@ -64,6 +64,7 @@ export function MessageProvider({ children }) {
   const { currentUser, token } = useAuth();
   const [socket, setSocket] = useState(null);
   const [isDmsModalOpen, setIsDmsModalOpen] = useState(false);
+  const MessageCacheMap = useRef(new Map());
 
   const { showError } = useError();
 
@@ -128,14 +129,19 @@ export function MessageProvider({ children }) {
     const handleNewMessage = async ({ message, conversation }) => {
       // Update messages if in current chat
       if (activeChat?._id === conversation._id) {
-        setMessages((prev) => [...prev, message]);
+        setMessages((prev) => {
+          MessageCacheMap.current.set(conversation._id, [...prev, message]);
+          return [...prev, message]
+        });
       }
 
       // Update conversations list
       setConversations((prev) => {
         const existingIndex = prev.findIndex((c) => c._id === conversation._id);
         if (existingIndex > -1) {
-          const filtered = prev.filter((c) => c._id.toString() !== conversation._id.toString());
+          const filtered = prev.filter(
+            (c) => c._id.toString() !== conversation._id.toString()
+          );
           return [conversation, ...filtered];
         }
         return [conversation, ...prev];
@@ -145,7 +151,11 @@ export function MessageProvider({ children }) {
     socket.on("newMessage", handleNewMessage);
 
     socket.on("deletedMessage", ({ messageId }) => {
-      setMessages((prev) => prev.filter((m) => m._id !== messageId));
+      setMessages((prev) =>{ 
+        const filteredMessages=prev.filter((m) => m._id !== messageId)
+        MessageCacheMap.current.set(activeChat._id, filteredMessages);
+        return filteredMessages;
+      });
     });
 
     return () => {
@@ -175,6 +185,16 @@ export function MessageProvider({ children }) {
   const fetchMessages = useCallback(
     async (conversationId, topMessageId = "nope") => {
       try {
+        const checkIfInMap = MessageCacheMap.current.get(conversationId);
+        if (checkIfInMap && topMessageId === "nope") {
+          setMessages(()=>{
+            if(checkIfInMap.length===0) return checkIfInMap;
+            if(checkIfInMap.length<=15) return checkIfInMap;
+            const last15=checkIfInMap.slice(-15);
+            return last15;
+          }); // last 15 cached messages
+          return;
+        }
         if (!conversationId) return;
         const { data } = await axios.get(
           `${API_URL}/api/messages/${conversationId}/${topMessageId}`,
@@ -185,12 +205,16 @@ export function MessageProvider({ children }) {
         if (Array.isArray(data)) {
           if (topMessageId === "nope") {
             setMessages(data);
+            MessageCacheMap.current.set(conversationId, data);
           } else if (
             topMessageId &&
             data.length > 0 &&
             topMessageId !== "nope"
           ) {
-            setMessages((prev) => [...data, ...prev]);
+            setMessages((prev) => {
+              MessageCacheMap.current.set(conversationId, [...data, ...prev]);
+              return [...data, ...prev];
+            });
           }
         } else {
           setMessages([]);
@@ -201,25 +225,24 @@ export function MessageProvider({ children }) {
           error.response?.data || error.message
         );
         setMessages([]);
+        MessageCacheMap.current.set(conversationId, []);
       }
     },
     [token]
   );
-
 
   useEffect(() => {
     let timeout;
     const handleConvoDownload = async () => await fetchConversations();
     if (token && currentUser) {
       handleConvoDownload();
-      if(timeout) clearTimeout(timeout);
-    }
-    else {
+      if (timeout) clearTimeout(timeout);
+    } else {
       timeout = setTimeout(handleConvoDownload, 5000);
     }
 
     return () => {
-      if(timeout) clearTimeout(timeout);
+      if (timeout) clearTimeout(timeout);
     };
   }, [token]);
 
@@ -245,15 +268,18 @@ export function MessageProvider({ children }) {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      setConversations(p=>{
-        const idx = p.findIndex(c=>c._id.toString() === conversationId);
-        if(idx > -1){
-          const filtered = p.filter(c=>c._id.toString() !== conversationId);
+      setConversations((p) => {
+        const idx = p.findIndex((c) => c._id.toString() === conversationId);
+        if (idx > -1) {
+          const filtered = p.filter((c) => c._id.toString() !== conversationId);
           return [data.conversation, ...filtered];
         }
         return [data.conversation, ...p];
-      })
-      setMessages((prev) => [...prev, data.message]);
+      });
+      setMessages((prev) => {
+        MessageCacheMap.current.set(conversationId, [...prev, data.message]);
+        return [...prev, data.message]
+      });
       return data;
     } catch (error) {
       showError(error.response?.data?.message || error.message);
@@ -266,7 +292,11 @@ export function MessageProvider({ children }) {
       await axios.delete(`${API_URL}/api/messages/${messageId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setMessages((prev) => prev.filter((m) => m._id.toString() !== messageId));
+      setMessages((prev) => {
+        const filteredMessages=prev.filter((m) => m._id.toString() !== messageId);
+        MessageCacheMap.current.set(activeChat._id, filteredMessages);
+        return filteredMessages;
+      });
     } catch (error) {
       showError(error.response?.data?.message || error.message);
     }

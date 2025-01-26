@@ -167,14 +167,13 @@ export default function DMsScreen({ route, navigation }) {
     setLoading(true);
     await fetchMessages(conversationId);
     setLoading(false);
-    scrollViewRef.current?.scrollToEnd({ animated: true });
   }
 
   useEffect(() => {
     if (!isDmsModalOpen) {
       if (conversationId && socket) {
         initialFetch(conversationId).then(() => {
-          scrollViewRef.current?.scrollToEnd({ animated: false }); // performance optimization by not animating the scroll
+          scrollViewRef.current?.scrollToEnd({ animated: true }); // performance optimization by not animating the scroll
         });
       }
     }
@@ -719,6 +718,7 @@ export default function DMsScreen({ route, navigation }) {
                   <MessageItem
                     message={selectedMessage}
                     isOwn={selectedMessage?.sender?._id === currentUser?._id}
+                    disabled={true}
                   />
                   <Text
                     style={[

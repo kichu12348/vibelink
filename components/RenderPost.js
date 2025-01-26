@@ -64,7 +64,7 @@ const RenderPost = memo(
 
 
       const hasLiked = (item)=>{
-        const find = item.likes.find((like) => like._id === currentUser._id);
+        const find = item.likes.find((like) => like?._id === currentUser?._id);
         return find ? true : false;
       };
 

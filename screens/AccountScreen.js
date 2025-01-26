@@ -8,7 +8,6 @@ import {
   Dimensions,
   Modal,
   FlatList,
-  SafeAreaView,
   Animated,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
@@ -26,6 +25,74 @@ import ViewUserOProfile from "../utils/ViewUserOProfile";
 import { Image } from "expo-image";
 import { useError } from "../context/ErrorContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+const RenderPost = ({
+  post,
+  setPostContent,
+  setIsPostVisible,
+  currentUser,
+}) => {
+  const [overlayOpacity] = useState(new Animated.Value(0));
+  const hasLiked = (item) => {
+    const find = item.likes.find((like) => like._id === currentUser?._id);
+    return find ? true : false;
+  };
+
+  const handleOverlayShow = () => {
+    Animated.timing(overlayOpacity, {
+      toValue: 1,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handleOverlayHide = () => {
+    Animated.timing(overlayOpacity, {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  return (
+    <TouchableOpacity
+      style={styles.postContainer}
+      onLongPress={handleOverlayShow}
+      onPressOut={handleOverlayHide}
+      activeOpacity={0.9}
+      onPress={() => {
+        setPostContent(post);
+        setIsPostVisible(true);
+      }}
+    >
+      {post.image ? (
+        <Image
+          source={{ uri: post.image }}
+          style={styles.postImage}
+          contentFit="cover"
+          cachePolicy={"memory-disk"}
+        />
+      ) : (
+        <Text
+          style={[styles.postImage, styles.postText]}
+          adjustsFontSizeToFit={true}
+        >
+          {post.content}
+        </Text>
+      )}
+      <Animated.View style={[styles.postOverlay, { opacity: overlayOpacity }]}>
+        <View style={styles.likeContainer}>
+          <Ionicons
+            name="heart"
+            size={16}
+            color={hasLiked(post) ? colors.primary : "white"}
+          />
+          <Text style={styles.likeCount}>{post.likes.length}</Text>
+        </View>
+      </Animated.View>
+    </TouchableOpacity>
+  );
+};
 
 export default function AccountScreen() {
   const bottomTabBarHeight = useBottomTabBarHeight();
@@ -232,72 +299,6 @@ export default function AccountScreen() {
     );
   };
 
-  const renderPost = (post) => {
-    const [overlayOpacity] = useState(new Animated.Value(0));
-    const hasLiked = (item)=>{
-      const find = item.likes.find((like) => like._id === currentUser?._id);
-      return find ? true : false;
-    }
-
-    const handleOverlayShow = () => {
-      Animated.timing(overlayOpacity, {
-        toValue: 1,
-        duration: 200,
-        useNativeDriver: true,
-      }).start();
-    };
-
-    const handleOverlayHide = () => {
-      Animated.timing(overlayOpacity, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }).start();
-    };
-
-    
-
-    return (
-      <TouchableOpacity
-        key={post._id}
-        style={styles.postContainer}
-        onLongPress={handleOverlayShow}
-        onPressOut={handleOverlayHide}
-        activeOpacity={0.9}
-        onPress={() => {
-          setPostContent(post);
-          setIsPostVisible(true);
-        }}
-      >
-        {post.image ? (
-          <Image
-            source={{ uri: post.image }}
-            style={styles.postImage}
-            contentFit="cover"
-            cachePolicy={"memory-disk"}
-          />
-        ) : (
-          <Text
-            style={[styles.postImage, styles.postText]}
-            adjustsFontSizeToFit={true}
-          >
-            {post.content}
-          </Text>
-        )}
-        <Animated.View
-          style={[styles.postOverlay, { opacity: overlayOpacity }]}
-        >
-          <View style={styles.likeContainer}>
-            <Ionicons name="heart" size={16} color={
-              hasLiked(post) ? colors.primary : "white"
-            } />
-            <Text style={styles.likeCount}>{post.likes.length}</Text>
-          </View>
-        </Animated.View>
-      </TouchableOpacity>
-    );
-  };
-
   return (
     <>
       <ScrollView
@@ -360,7 +361,15 @@ export default function AccountScreen() {
         </View>
 
         <View style={styles.postsGrid}>
-          {posts.map((post) => renderPost(post))}
+          {posts.map((post) => (
+            <RenderPost
+              key={post._id}
+              post={post}
+              setPostContent={setPostContent}
+              setIsPostVisible={setIsPostVisible}
+              currentUser={currentUser}
+            />
+          ))}
         </View>
         <Modal
           visible={isPostVisible}

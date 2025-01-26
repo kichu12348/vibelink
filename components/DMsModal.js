@@ -689,6 +689,7 @@ export default function DMsModal({ close, params }) {
                   <MessageItem
                     message={selectedMessage}
                     isOwn={selectedMessage?.sender?._id === currentUser?._id}
+                    disabled={true}
                   />
                   <Text
                     style={[

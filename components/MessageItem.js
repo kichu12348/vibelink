@@ -17,7 +17,13 @@ const OTHER_MESSAGE_COLOR = colors.card;
 const OWN_MESSAGE_TEXT_COLOR = colors.textPrimary;
 const OTHER_MESSAGE_TEXT_COLOR = colors.textPrimary;
 
-const SharedPost = ({ post, onClickPost, onLongPress }) => {
+const SharedPost = ({
+  post,
+  onClickPost,
+  onLongPress,
+  disabled = false,
+  isOwn,
+}) => {
   const user = post.user;
 
   return (
@@ -28,10 +34,16 @@ const SharedPost = ({ post, onClickPost, onLongPress }) => {
       }}
       onLongPress={onLongPress}
       activeOpacity={0.8}
+      disabled={disabled}
     >
       <BlurView
         intensity={80}
-        style={styles.blur}
+        style={[
+          styles.blur,
+          isOwn && {
+            backgroundColor: "rgba(255, 107, 107, 0.1)",
+          },
+        ]}
         tint="dark"
         experimentalBlurMethod="dimezisBlurView"
         blurReductionFactor={5}
@@ -64,6 +76,7 @@ const MessageItem = React.memo(
     onClickPost = () => {},
     onClickImage = () => {},
     onLongPress,
+    disabled = false,
   }) => {
     const bubbleStyle = React.useMemo(
       () => [styles.messageBubble, isOwn && styles.ownMessage],
@@ -143,6 +156,8 @@ const MessageItem = React.memo(
             post={message.sharedPost}
             onClickPost={onClickPost}
             onLongPress={onLongPress}
+            disabled={disabled}
+            isOwn={isOwn}
           />
           <Text
             style={[
@@ -164,11 +179,13 @@ const MessageItem = React.memo(
           onLongPress={onLongPress}
           activeOpacity={0.8}
           style={bubbleStyle}
+          disabled={disabled}
         >
           <TouchableOpacity
             onPress={() => onClickImage(message.media.url)}
             activeOpacity={0.8}
             onLongPress={onLongPress}
+            disabled={disabled}
           >
             <Image
               source={{ uri: message.media.url }}
@@ -193,9 +210,20 @@ const MessageItem = React.memo(
         onLongPress={onLongPress}
         activeOpacity={0.8}
         style={[bubbleStyle, isOnlyEmoji && { backgroundColor: "transparent" }]}
+        disabled={disabled}
       >
         {renderTextWithLinks(message.content)}
-        <Text style={styles.timestamp}>{timestamp}</Text>
+        <Text
+          style={[
+            styles.timestamp,
+            isOnlyEmoji && {
+              alignSelf: "flex-end",
+              padding: 4,
+            },
+          ]}
+        >
+          {timestamp}
+        </Text>
       </TouchableOpacity>
     );
   },
@@ -241,7 +269,7 @@ const styles = StyleSheet.create({
     padding: 10,
     marginVertical: 5,
     width: 250,
-    minHeight: 350,
+    minHeight: 80,
     position: "relative",
     overflow: "hidden",
   },
