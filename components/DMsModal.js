@@ -36,6 +36,7 @@ import ViewPostScreen from "../screens/ViewPostScreen";
 import ImageViewer from "../utils/imageViewer";
 import * as NavigationBar from "expo-navigation-bar";
 import ViewUserOProfile from "../utils/ViewUserOProfile";
+import { useTheme } from "../context/ThemeContext";
 
 const defaultAvatar =
   "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
@@ -127,6 +128,8 @@ export default function DMsModal({ close, params }) {
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
+
+  const {theme}=useTheme();
 
   const scrollViewRef = React.useRef();
   const appState = useRef(AppState.currentState);
@@ -530,9 +533,9 @@ export default function DMsModal({ close, params }) {
               <RefreshControl
                 refreshing={loading}
                 onRefresh={handleRefresh}
-                colors={[colors.primary]}
-                tintColor={colors.primary}
-                progressBackgroundColor={colors.background}
+                colors={[theme.primary]}
+                tintColor={theme.primary}
+                progressBackgroundColor={theme.background}
               />
             }
           />
@@ -569,6 +572,7 @@ export default function DMsModal({ close, params }) {
                       {
                         transform: [{ scale: scaleAnim }, { rotate: spin }],
                       },
+                      {backgroundColor:theme.primary}
                     ]}
                   >
                     <TouchableOpacity
@@ -578,7 +582,7 @@ export default function DMsModal({ close, params }) {
                       <Ionicons
                         name="arrow-down"
                         size={24}
-                        color={colors.textPrimary}
+                        color={theme.textPrimary}
                       />
                     </TouchableOpacity>
                   </Animated.View>
@@ -615,20 +619,22 @@ export default function DMsModal({ close, params }) {
                     <Ionicons
                       name="image"
                       size={24}
-                      color={colors.textPrimary}
+                      color={theme.textPrimary}
                     />
                   </TouchableOpacity>
                   <TextInput
                     style={styles.input}
                     placeholder="Message..."
-                    placeholderTextColor={colors.textSecondary}
+                    placeholderTextColor={theme.textSecondary}
                     value={text}
                     onChangeText={handleTextChange}
                     multiline
                     numberOfLines={3}
                   />
                   <TouchableOpacity
-                    style={[styles.sendButton, sending && { opacity: 0.5 }]}
+                    style={[styles.sendButton,{
+                      backgroundColor:theme.primary
+                    }, sending && { opacity: 0.5 }]}
                     onPress={handleSend}
                     disabled={sending}
                   >
@@ -788,7 +794,6 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   sendButton: {
-    backgroundColor: colors.primary,
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -836,7 +841,6 @@ const styles = StyleSheet.create({
     width: Dimensions.get("window").width * 0.9,
   },
   scrollButtonTouchable: {
-    backgroundColor: colors.primary,
     width: 40,
     height: 40,
     borderRadius: 20,

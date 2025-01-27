@@ -25,6 +25,7 @@ import ViewUserOProfile from "../utils/ViewUserOProfile";
 import { Image } from "expo-image";
 import { useError } from "../context/ErrorContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTheme } from "../context/ThemeContext";
 
 const RenderPost = ({
   post,
@@ -126,6 +127,8 @@ export default function AccountScreen() {
   const insets = useSafeAreaInsets();
 
   const { showError } = useError();
+
+  const { theme } = useTheme();
 
   React.useEffect(() => {
     setPosts(() => {
@@ -272,9 +275,27 @@ export default function AccountScreen() {
 
   // Modify StatBox to be touchable
   const StatBox = ({ label, value }) => (
-    <View style={styles.statBox}>
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
+    <View style={[styles.statBox, { borderColor: theme.card }]}>
+      <Text
+        style={[
+          styles.statValue,
+          {
+            color: theme.textPrimary,
+          },
+        ]}
+      >
+        {value}
+      </Text>
+      <Text
+        style={[
+          styles.statLabel,
+          {
+            color: theme.textSecondary,
+          },
+        ]}
+      >
+        {label}
+      </Text>
     </View>
   );
 
@@ -294,7 +315,16 @@ export default function AccountScreen() {
           style={styles.userImage}
           cachePolicy={"memory-disk"}
         />
-        <Text style={styles.userName}>@{item.username}</Text>
+        <Text
+          style={[
+            styles.userName,
+            {
+              color: theme.textPrimary,
+            },
+          ]}
+        >
+          @{item.username}
+        </Text>
       </TouchableOpacity>
     );
   };
@@ -302,7 +332,7 @@ export default function AccountScreen() {
   return (
     <>
       <ScrollView
-        style={styles.container}
+        style={[styles.container, { backgroundColor: theme.background }]}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={contentStyle}
       >
@@ -321,11 +351,29 @@ export default function AccountScreen() {
             </View>
           </View>
 
-          <Text style={styles.name}>@{currentUser?.username}</Text>
-          <Text style={styles.bio}>{bio}</Text>
+          <Text
+            style={[
+              styles.name,
+              {
+                color: theme.textPrimary,
+              },
+            ]}
+          >
+            @{currentUser?.username}
+          </Text>
+          <Text
+            style={[
+              styles.bio,
+              {
+                color: theme.textSecondary,
+              },
+            ]}
+          >
+            {bio}
+          </Text>
         </View>
 
-        <View style={styles.statsContainer}>
+        <View style={[styles.statsContainer, { borderColor: theme.card }]}>
           <StatBox label="Posts" value={postCount} />
           <TouchableOpacity onPress={() => openFollowModal("followers")}>
             <StatBox
@@ -343,13 +391,30 @@ export default function AccountScreen() {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.editButton} onPress={openEditModal}>
-          <Text style={styles.editButtonText}>Edit Profile</Text>
+        <TouchableOpacity
+          style={[
+            styles.editButton,
+            {
+              backgroundColor: theme.primary,
+            },
+          ]}
+          onPress={openEditModal}
+        >
+          <Text
+            style={[
+              styles.editButtonText,
+              {
+                color: theme.background,
+              },
+            ]}
+          >
+            Edit Profile
+          </Text>
         </TouchableOpacity>
 
-        <View style={styles.postsHeader}>
+        <View style={[styles.postsHeader, { borderColor: theme.card }]}>
           <TouchableOpacity style={styles.postsHeaderTab}>
-            <Ionicons name="grid-outline" size={24} color={colors.primary} />
+            <Ionicons name="grid-outline" size={24} color={theme.primary} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.postsHeaderTab}>
             <Ionicons
@@ -404,6 +469,7 @@ export default function AccountScreen() {
             handleSaveChanges={handleSaveChanges}
             setIsEditModalVisible={setIsEditModalVisible}
             isSaving={isSaving}
+            theme={theme}
           />
         </Modal>
       </ScrollView>
@@ -418,6 +484,9 @@ export default function AccountScreen() {
           style={[
             styles.modalContainer,
             { paddingTop: insets.top, paddingBottom: insets.bottom },
+            {
+              backgroundColor: theme.background,
+            },
           ]}
         >
           <View style={styles.modalContent}>
@@ -429,7 +498,7 @@ export default function AccountScreen() {
                 style={styles.closeButton}
                 onPress={() => setShowFollowModal(false)}
               >
-                <Ionicons name="close" size={24} color={colors.textPrimary} />
+                <Ionicons name="close" size={24} color={theme.textPrimary} />
               </TouchableOpacity>
             </View>
             <FlatList
@@ -465,7 +534,6 @@ const postSize = windowWidth / 3; // Exactly one-third of screen width
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   header: {
     alignItems: "center",
@@ -480,13 +548,11 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: colors.card,
   },
   editIconContainer: {
     position: "absolute",
     right: 0,
     bottom: 0,
-    backgroundColor: colors.primary,
     borderRadius: 15,
     width: 30,
     height: 30,
@@ -496,17 +562,14 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 24,
     fontWeight: "bold",
-    color: colors.textPrimary,
     marginBottom: 4,
   },
   username: {
     fontSize: 16,
-    color: colors.textSecondary,
     marginBottom: 12,
   },
   bio: {
     fontSize: 16,
-    color: colors.textPrimary,
     textAlign: "center",
     marginBottom: 20,
   },
@@ -516,7 +579,6 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: colors.card,
     marginBottom: 20,
   },
   statBox: {
@@ -525,11 +587,9 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 20,
     fontWeight: "bold",
-    color: colors.textPrimary,
   },
   statLabel: {
     fontSize: 14,
-    color: colors.textSecondary,
     marginTop: 4,
   },
   editButton: {
@@ -550,7 +610,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: colors.card,
     marginBottom: 2,
   },
   postsHeaderTab: {
@@ -605,7 +664,6 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   modalHeader: {
     flexDirection: "row",

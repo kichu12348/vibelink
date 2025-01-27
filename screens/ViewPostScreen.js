@@ -8,11 +8,11 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  Modal
+  Modal,
 } from "react-native";
 import { colors, fontSizes } from "../constants/primary";
 import { usePost } from "../context/PostContext";
-import { Ionicons, FontAwesome} from "@expo/vector-icons";
+import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import { useAuth } from "../context/AuthContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
@@ -21,11 +21,12 @@ import { useMessage } from "../context/MessageContext";
 import { socket } from "../constants/endpoints"; // Add this import
 import * as Notifications from "expo-notifications"; // Add this import
 import ImageViewer from "../utils/imageViewer";
+import { useTheme } from "../context/ThemeContext";
 
 const defaultAvatar =
   "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
 
-const Comment = ({ comment, postId, setComments }) => {
+const Comment = ({ comment, postId, setComments, theme }) => {
   const [showReplyInput, setShowReplyInput] = useState(false);
   const { currentUser } = useAuth();
   const [replyContent, setReplyContent] = useState("");
@@ -80,19 +81,40 @@ const Comment = ({ comment, postId, setComments }) => {
         onPress={() => setShowReplyInput(!showReplyInput)}
         style={styles.replyButton}
       >
-        <Text style={styles.replyButtonText}>Reply</Text>
+        <Text
+          style={[
+            styles.replyButtonText,
+            {
+              color: theme.primary,
+            },
+          ]}
+        >
+          Reply
+        </Text>
       </TouchableOpacity>
 
       {showReplyInput && (
         <View style={styles.replyInputContainer}>
           <TextInput
-            style={styles.replyInput}
+            style={[
+              styles.replyInput,
+              {
+                backgroundColor: theme.card,
+                color: theme.textPrimary,
+              },
+            ]}
             placeholder="Write a reply..."
             value={replyContent}
             onChangeText={setReplyContent}
           />
           <TouchableOpacity onPress={handleReply} disabled={isReplying}>
-            <Text style={[styles.sendButton, isReplying && { opacity: 0.5 }]}>
+            <Text
+              style={[
+                styles.sendButton,
+                { color: theme.primary },
+                isReplying && { opacity: 0.5 },
+              ]}
+            >
               Send
             </Text>
           </TouchableOpacity>
@@ -195,10 +217,10 @@ const ViewPostScreen = ({ post, close = () => {} }) => {
   const { likePost, unlikePost, addComment, getPostCommentUser, deletePost } =
     usePost();
 
-    const hasLikedPost = (item)=>{
-      const find = item.likes.find((like) => like._id === currentUser?._id);
-      return find ? true : false;
-    }
+  const hasLikedPost = (item) => {
+    const find = item.likes.find((like) => like._id === currentUser?._id);
+    return find ? true : false;
+  };
   const { currentUser } = useAuth();
   const { conversations, sendMessage } = useMessage();
   const [showShareModal, setShowShareModal] = useState(false);
@@ -211,9 +233,9 @@ const ViewPostScreen = ({ post, close = () => {} }) => {
   const [showImageViewer, setShowImageViewer] = useState(false);
   const [isLiking, setIsLiking] = useState(false);
 
+  const { theme } = useTheme();
 
-
-const insets = useSafeAreaInsets();
+  const insets = useSafeAreaInsets();
   const timestamp = useMemo(() => {
     return new Date(post.createdAt).toLocaleString("en-US", {
       month: "long",
@@ -325,6 +347,7 @@ const insets = useSafeAreaInsets();
       style={[
         styles.container,
         { paddingBottom: insets.bottom, paddingTop: insets.top },
+        { backgroundColor: theme.background },
       ]}
     >
       <KeyboardAvoidingView
@@ -386,7 +409,7 @@ const insets = useSafeAreaInsets();
                 <Ionicons
                   name={hasLiked ? "heart" : "heart-outline"}
                   size={24}
-                  color={hasLiked ? colors.primary : colors.textPrimary}
+                  color={hasLiked ? colors.error : theme.textPrimary}
                 />
                 <Text style={styles.actionText}>{likeCount || 0}</Text>
               </TouchableOpacity>
@@ -394,7 +417,11 @@ const insets = useSafeAreaInsets();
                 onPress={() => setShowShareModal(true)}
                 style={styles.actionButton}
               >
-                <FontAwesome name="send-o" size={24} color={colors.textPrimary} />
+                <FontAwesome
+                  name="send-o"
+                  size={24}
+                  color={theme.textPrimary}
+                />
               </TouchableOpacity>
               {post.user?._id === currentUser?._id && (
                 <TouchableOpacity
@@ -406,7 +433,7 @@ const insets = useSafeAreaInsets();
                   <Ionicons
                     name="trash-outline"
                     size={24}
-                    color={colors.textPrimary}
+                    color={theme.textPrimary}
                   />
                 </TouchableOpacity>
               )}
@@ -421,6 +448,7 @@ const insets = useSafeAreaInsets();
                 comment={comment}
                 postId={post._id}
                 setComments={setComments}
+                theme={theme}
               />
             ))}
           </View>
@@ -446,7 +474,7 @@ const insets = useSafeAreaInsets();
                     commentContent.trim() === "" || isCommenting ? 0.5 : 1,
                 }}
               >
-                <Ionicons name="send" size={24} color={colors.primary} />
+                <Ionicons name="send" size={24} color={theme.primary} />
               </TouchableOpacity>
             </View>
           </View>
@@ -477,7 +505,6 @@ const insets = useSafeAreaInsets();
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   scrollView: {
     flex: 1,
@@ -616,13 +643,10 @@ const styles = StyleSheet.create({
   replyInput: {
     flex: 1,
     padding: 8,
-    backgroundColor: colors.background,
     borderRadius: 16,
     marginRight: 8,
-    color: colors.textPrimary,
   },
   sendButton: {
-    color: colors.primary,
     fontWeight: "600",
   },
   header: {

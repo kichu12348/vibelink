@@ -5,10 +5,12 @@ import {
   StyleSheet,
   TouchableOpacity,
   Linking,
+  Platform,
 } from "react-native";
 import { Image } from "expo-image";
 import { colors } from "../constants/primary";
 import { BlurView } from "expo-blur";
+import { useTheme } from "../context/ThemeContext";
 const defaultAvatar =
   "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
 
@@ -78,8 +80,13 @@ const MessageItem = React.memo(
     onLongPress,
     disabled = false,
   }) => {
+    const { theme } = useTheme();
+
     const bubbleStyle = React.useMemo(
-      () => [styles.messageBubble, isOwn && styles.ownMessage],
+      () => [
+        { ...styles.messageBubble, backgroundColor: theme.card },
+        isOwn && { ...styles.ownMessage, backgroundColor: theme.primary },
+      ],
       [isOwn]
     );
 
@@ -108,7 +115,13 @@ const MessageItem = React.memo(
     const renderTextWithLinks = (text) => {
       if (!test)
         return (
-          <Text style={[styles.messageText, isOnlyEmoji && { fontSize: 50 }]}>
+          <Text
+            style={[
+              styles.messageText,
+              styles.textGlow,
+              isOnlyEmoji && { fontSize: 50 },
+            ]}
+          >
             {text}
           </Text>
         );
@@ -121,14 +134,24 @@ const MessageItem = React.memo(
               return (
                 <Text
                   key={index}
-                  style={[styles.messageText, styles.link]}
+                  style={[
+                    styles.messageText,
+                    styles.link,
+                    {
+                      color: theme.accent,
+                    },
+                  ]}
                   onPress={() => Linking.openURL(part)}
                 >
                   {part}
                 </Text>
               );
             }
-            return <Text key={index}>{part}</Text>;
+            return (
+              <Text key={index} style={[styles.textGlow]}>
+                {part}
+              </Text>
+            );
           })}
         </Text>
       );
@@ -165,6 +188,9 @@ const MessageItem = React.memo(
               {
                 alignSelf: isOwn ? "flex-end" : "flex-start",
               },
+              {
+                color: theme.textSecondary,
+              },
             ]}
           >
             {timestamp}
@@ -195,7 +221,16 @@ const MessageItem = React.memo(
             />
           </TouchableOpacity>
           {message.content && renderTextWithLinks(message.content)}
-          <Text style={styles.timestamp}>{timestamp}</Text>
+          <Text
+            style={[
+              styles.timestamp,
+              {
+                color: theme.textSecondary,
+              },
+            ]}
+          >
+            {timestamp}
+          </Text>
         </TouchableOpacity>
       );
     }
@@ -216,6 +251,9 @@ const MessageItem = React.memo(
         <Text
           style={[
             styles.timestamp,
+            {
+              color: theme.textSecondary,
+            },
             isOnlyEmoji && {
               alignSelf: "flex-end",
               padding: 4,
@@ -237,7 +275,6 @@ const MessageItem = React.memo(
 
 const styles = StyleSheet.create({
   messageBubble: {
-    backgroundColor: OTHER_MESSAGE_COLOR,
     padding: 12,
     marginBottom: 8,
     borderRadius: 16,
@@ -245,7 +282,6 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
   },
   ownMessage: {
-    backgroundColor: OWN_MESSAGE_COLOR,
     alignSelf: "flex-end",
   },
   messageText: {
@@ -253,7 +289,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   timestamp: {
-    color: colors.textSecondary,
     fontSize: 12,
     marginTop: 4,
   },
@@ -312,6 +347,22 @@ const styles = StyleSheet.create({
   link: {
     color: colors.accent,
     textDecorationLine: "underline",
+  },
+  textGlow: {
+    ...Platform.select({
+      ios: {
+        shadowColor: "#fff",
+        shadowOffset: {
+          width: 0,
+          height: 0,
+        },
+        shadowOpacity: 0.5,
+        shadowRadius: 3,
+      },
+      android: {
+        elevation: 5,
+      },
+    }),
   },
 });
 

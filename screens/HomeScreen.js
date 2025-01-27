@@ -19,15 +19,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Stories from "../components/Stories";
 import { useStory } from "../context/StoryContext";
 import StoryModal from "../components/StoryModal";
+import { useTheme } from "../context/ThemeContext";
 
 export default function HomeScreen({ navigation }) {
-  const {
-    posts,
-    loading,
-    fetchPosts,
-    addComment,
-    addReply
-  } = usePost();
+  const { posts, loading, fetchPosts, addComment, addReply } = usePost();
   const bottomTabBarHeight = useBottomTabBarHeight();
   const { currentUser } = useAuth();
   const { fetchStories } = useStory();
@@ -60,24 +55,26 @@ export default function HomeScreen({ navigation }) {
   const [isStoryVisible, setIsStoryVisible] = useState(false);
   const [storyContent, setStoryContent] = useState(null);
 
+  const { theme } = useTheme();
+
   useEffect(() => {
     const controller = new AbortController();
-    
+
     const loadData = async () => {
       try {
         await Promise.all([
           fetchPosts(controller.signal),
-          fetchStories(controller.signal)
+          fetchStories(controller.signal),
         ]);
       } catch (err) {
-        if (!err.name === 'AbortError') {
-          console.log('Failed to fetch data:', err.message);
+        if (!err.name === "AbortError") {
+          console.log("Failed to fetch data:", err.message);
         }
       }
     };
-  
+
     const timeOut = setTimeout(loadData, 100);
-    
+
     return () => {
       clearTimeout(timeOut);
       controller.abort();
@@ -148,7 +145,7 @@ export default function HomeScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <FlatList
         data={posts}
         renderItem={({ item }) => (
@@ -170,9 +167,9 @@ export default function HomeScreen({ navigation }) {
           <RefreshControl
             refreshing={loading}
             onRefresh={handleOnRefresh}
-            colors={[colors.primary]}
-            tintColor={colors.primary}
-            progressBackgroundColor={colors.background}
+            colors={[theme.primary]}
+            tintColor={theme.primary}
+            progressBackgroundColor={theme.background}
           />
         }
         ListHeaderComponent={<Stories openStory={handleStoryPress} />}
@@ -255,7 +252,6 @@ export default function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
     paddingVertical: 0,
   },
 });

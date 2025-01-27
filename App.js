@@ -5,7 +5,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import { PostProvider } from "./context/PostContext";
 import AuthStack from "./navigation/AuthStack";
 import TabNavigator from "./navigation/TabNavigator";
-import { colors, fontSizes } from "./constants/primary";
+import { fontSizes } from "./constants/primary";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as NavigationBar from "expo-navigation-bar";
@@ -25,21 +25,11 @@ import { enableScreens } from "react-native-screens";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ErrorProvider, useError } from "./context/ErrorContext";
 import { StoryProvider } from "./context/StoryContext";
+import { ThemeProvider, useTheme } from "./context/ThemeContext";
 
 enableScreens();
 
 const Stack = createStackNavigator();
-
-const MyTheme = {
-  ...DefaultTheme,
-  colors: {
-    ...DefaultTheme.colors,
-    background: colors.background,
-    card: colors.card,
-    text: colors.textPrimary,
-    primary: colors.primary,
-  },
-};
 
 // Configure notifications
 Notifications.setNotificationHandler({
@@ -53,18 +43,30 @@ Notifications.setNotificationHandler({
 function AppNavigator() {
   const { token, currentUser, authChecking } = useAuth();
   const { error, isError, clearError } = useError();
+  const { theme } = useTheme();
+
+  const navigationTheme = {
+    ...DefaultTheme,
+    colors: {
+      ...DefaultTheme.colors,
+      background: theme.background,
+      card: theme.card,
+      text: theme.textPrimary,
+      primary: theme.primary,
+    },
+  };
 
   if (authChecking) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color={colors.primary} />
+        <ActivityIndicator size="large" color={theme.primary} />
       </View>
     );
   }
 
   return (
     <>
-      <NavigationContainer theme={MyTheme}>
+      <NavigationContainer theme={navigationTheme}>
         <Stack.Navigator
           screenOptions={{ headerShown: false }}
           initialRouteName={token && currentUser ? "MainApp" : "Auth"}
@@ -128,18 +130,24 @@ export default function App() {
   return (
     <GestureHandlerRootView style={styles.flex1}>
       <SafeAreaProvider>
-        <ErrorProvider>
-          <AuthProvider>
-            <PostProvider>
-              <MessageProvider>
-                <StoryProvider>
-                  <StatusBar style="light" backgroundColor={colors.card} />
-                  <AppNavigator />
-                </StoryProvider>
-              </MessageProvider>
-            </PostProvider>
-          </AuthProvider>
-        </ErrorProvider>
+        <ThemeProvider>
+          <ErrorProvider>
+            <AuthProvider>
+              <PostProvider>
+                <MessageProvider>
+                  <StoryProvider>
+                    <StatusBar
+                      style="light"
+                      backgroundColor="transparent"
+                      translucent
+                    />
+                    <AppNavigator />
+                  </StoryProvider>
+                </MessageProvider>
+              </PostProvider>
+            </AuthProvider>
+          </ErrorProvider>
+        </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
@@ -150,11 +158,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: colors.background,
+    backgroundColor: (theme) => theme.background,
   },
   flex1: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: (theme) => theme.background,
   },
   errorContainer: {
     flex: 1,
@@ -163,7 +171,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.7)",
   },
   errorBox: {
-    backgroundColor: colors.card,
+    backgroundColor: (theme) => theme.card,
     borderRadius: 16,
     width: "85%",
     maxWidth: 400,
@@ -180,7 +188,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: colors.error,
+    backgroundColor: (theme) => theme.error,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 16,
@@ -191,20 +199,20 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   errorTitle: {
-    color: colors.error,
+    color: (theme) => theme.error,
     fontSize: fontSizes.xl,
     fontWeight: "bold",
     marginBottom: 8,
   },
   errorMessage: {
-    color: colors.textPrimary,
+    color: (theme) => theme.textPrimary,
     fontSize: fontSizes.lg,
     textAlign: "center",
     marginBottom: 24,
     lineHeight: 22,
   },
   closeButton: {
-    backgroundColor: colors.error,
+    backgroundColor: (theme) => theme.error,
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 18,

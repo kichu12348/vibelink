@@ -13,12 +13,15 @@ import { AntDesign } from "@expo/vector-icons";
 import { endPoint } from "../constants/endpoints";
 import axios from "axios";
 import { Image } from "expo-image";
+import { useTheme } from "../context/ThemeContext";
 
 const defaultAvatar =
   "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
 
-const RenderItem = memo(({ item, openStory }) => {
-  const [borderColor, setBorderColor] = React.useState(item.color || colors.primary);
+const RenderItem = memo(({ item, openStory, theme }) => {
+  const [borderColor, setBorderColor] = React.useState(
+    item.color || colors.primary
+  );
 
   return (
     <TouchableOpacity
@@ -42,7 +45,8 @@ const RenderItem = memo(({ item, openStory }) => {
 const Stories = ({ openStory }) => {
   const { stories, loading, fetchStories, createStory } = useStory();
 
-  
+  const { theme } = useTheme();
+
   useEffect(() => {
     fetchStories();
   }, []);
@@ -61,12 +65,10 @@ const Stories = ({ openStory }) => {
   };
 
   const handleStoryPress = (story) => {
-    openStory(story);   
+    openStory(story);
   };
 
-  const handleCloseStory = () => {
-    
-  };
+  const handleCloseStory = () => {};
 
   return (
     <View style={styles.container}>
@@ -78,13 +80,19 @@ const Stories = ({ openStory }) => {
               style={styles.storyContainer}
               onPress={handleAddStory}
             >
-              <View style={styles.addStoryButton}>
-                <AntDesign name="plus" size={24} color={colors.primary} />
+              <View
+                style={[styles.addStoryButton, { borderColor: theme.primary }]}
+              >
+                <AntDesign name="plus" size={24} color={theme.primary} />
               </View>
               <Text style={styles.storyName}>Add Story</Text>
             </TouchableOpacity>
           ) : (
-            <RenderItem item={item} openStory={handleStoryPress} />
+            <RenderItem
+              item={item}
+              openStory={handleStoryPress}
+              theme={theme}
+            />
           )
         }
         keyExtractor={(item) => (item.isAdd ? "add" : item._id)}
@@ -133,7 +141,6 @@ const styles = StyleSheet.create({
     height: 65,
     borderRadius: 35,
     borderWidth: 2,
-    borderColor: colors.primary,
     borderStyle: "dashed",
     justifyContent: "center",
     alignItems: "center",

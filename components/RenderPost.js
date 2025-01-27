@@ -1,9 +1,4 @@
-import React, {
-  useState,
-  memo,
-  useEffect,
-  useRef
-} from "react";
+import React, { useState, memo, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -19,6 +14,7 @@ import { globalStyles } from "../constants/styles";
 import { usePost } from "../context/PostContext";
 import { useAuth } from "../context/AuthContext";
 import { useError } from "../context/ErrorContext";
+import { useTheme } from "../context/ThemeContext";
 
 // Wrapper component to handle hooks
 const PostContainer = ({
@@ -30,6 +26,7 @@ const PostContainer = ({
 }) => {
   const { likePost, unlikePost, posts } = usePost();
   const { currentUser } = useAuth();
+  const { theme } = useTheme();
 
   return (
     <RenderPost
@@ -42,6 +39,7 @@ const PostContainer = ({
       currentUser={currentUser}
       openComments={openComments}
       openLikes={openLikes}
+      theme={theme}
     />
   );
 };
@@ -57,16 +55,16 @@ const RenderPost = memo(
     currentUser,
     openComments,
     openLikes,
+    theme,
   }) => {
     if (!item) return null;
     const defaultAvatar =
       "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
 
-
-      const hasLiked = (item)=>{
-        const find = item.likes.find((like) => like?._id === currentUser?._id);
-        return find ? true : false;
-      };
+    const hasLiked = (item) => {
+      const find = item.likes.find((like) => like?._id === currentUser?._id);
+      return find ? true : false;
+    };
 
     const [liked, setLiked] = useState(hasLiked(item));
 
@@ -130,13 +128,85 @@ const RenderPost = memo(
       outputRange: [0, 1, 0],
     });
 
+    const styles = StyleSheet.create({
+      post: {
+        marginBottom: 16,
+        width: "95%",
+        alignSelf: "center",
+        height: "auto",
+        zIndex: 99,
+        backgroundColor: theme.card,
+        borderRadius: 12,
+        padding: 12,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 0.8,
+      },
+      postHeader: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: 12,
+      },
+      username: {
+        color: theme.textPrimary,
+        fontSize: fontSizes.md,
+        fontWeight: "600",
+      },
+      content: {
+        color: theme.textPrimary,
+        fontSize: fontSizes.md,
+        marginBottom: 12,
+      },
+      postImage: {
+        width: "100%",
+        height: "100%",
+        borderRadius: 10,
+      },
+      avatar: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        marginRight: 10,
+      },
+      postFooter: {
+        flexDirection: "row",
+        justifyContent: "flex-start",
+        alignItems: "center",
+        padding: 5,
+      },
+      postImageContainer: {
+        width: "100%",
+        height: 300,
+        borderRadius: 10,
+        marginVertical: 8,
+        overflow: "hidden",
+      },
+      heartAnimationContainer: {
+        position: "absolute",
+        top: "50%",
+        left: "50%",
+        transform: [{ translateX: -40 }, { translateY: -40 }],
+        justifyContent: "center",
+        alignItems: "center",
+      },
+      likesButton: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+      },
+    });
+
     return (
       <TouchableWithoutFeedback onPress={() => onPostPress(item)}>
         <View
           style={[
             globalStyles.card,
             styles.post,
-            { backgroundColor: item.color, shadowColor: shadowColor },
+            {
+              backgroundColor: item.image ? item.color : theme.card,
+              shadowColor: shadowColor,
+            },
           ]}
         >
           <TouchableOpacity
@@ -171,7 +241,7 @@ const RenderPost = memo(
                       },
                     ]}
                   >
-                    <Ionicons name="heart" size={80} color={colors.primary} />
+                    <Ionicons name="heart" size={80} color={colors.error} />
                   </Animated.View>
                 )}
               </ImageBackground>
@@ -186,7 +256,7 @@ const RenderPost = memo(
               <Ionicons
                 name={liked ? "heart" : "heart-outline"}
                 size={30}
-                color={liked ? colors.primary : colors.textPrimary}
+                color={liked ? colors.error : theme.textPrimary}
               />
             </TouchableOpacity>
             <TouchableOpacity
@@ -195,7 +265,7 @@ const RenderPost = memo(
             >
               <Text
                 style={{
-                  color: liked ? colors.primary : colors.textPrimary,
+                  color: liked ? colors.error : theme.textPrimary,
                 }}
               >
                 {item.likes.length} {item.likes.length > 1 ? "likes" : "like"}
@@ -208,9 +278,9 @@ const RenderPost = memo(
               <FontAwesome5
                 name="comment"
                 size={24}
-                color={colors.textPrimary}
+                color={theme.textPrimary}
               />
-              <Text style={{ color: colors.textPrimary, marginLeft: 5 }}>
+              <Text style={{ color: theme.textPrimary, marginLeft: 5 }}>
                 {item.comments.length}{" "}
                 {item.comments.length > 1 ? "comments" : "comment"}
               </Text>
@@ -221,74 +291,5 @@ const RenderPost = memo(
     );
   }
 );
-
-const styles = StyleSheet.create({
-  post: {
-    marginBottom: 16,
-    width: "95%",
-    alignSelf: "center",
-    height: "auto",
-    zIndex: 99,
-    backgroundColor: colors.card,
-    borderRadius: 12,
-    padding: 12,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 0.8,
-  },
-  postHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  username: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.md,
-    fontWeight: "600",
-  },
-  content: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.md,
-    marginBottom: 12,
-  },
-  postImage: {
-    width: "100%",
-    height: "100%",
-    borderRadius: 10,
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginRight: 10,
-  },
-  postFooter: {
-    flexDirection: "row",
-    justifyContent: "flex-start",
-    alignItems: "center",
-    padding: 5,
-  },
-  postImageContainer: {
-    width: "100%",
-    height: 300,
-    borderRadius: 10,
-    marginVertical: 8,
-    overflow: "hidden",
-  },
-  heartAnimationContainer: {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: [{ translateX: -40 }, { translateY: -40 }],
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  likesButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
 
 export default PostContainer;

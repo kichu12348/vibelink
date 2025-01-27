@@ -14,6 +14,7 @@ import { AntDesign } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import { useStory } from "../context/StoryContext";
+import { useTheme } from "../context/ThemeContext";
 
 const { width, height } = Dimensions.get("window");
 const STORY_DURATION = 5000; // 5 seconds per story
@@ -29,6 +30,8 @@ const StoryModal = ({ visible, story: storyContent, onClose }) => {
   const [story, setStoryContent] = useState(storyContent);
 
   const { stories } = useStory();
+
+  const { theme } = useTheme();
 
   const insets = useSafeAreaInsets();
 
@@ -166,6 +169,7 @@ const StoryModal = ({ visible, story: storyContent, onClose }) => {
                           ? "100%"
                           : "0%",
                     },
+                    { backgroundColor: theme.primary },
                   ]}
                 />
               </View>
@@ -202,7 +206,6 @@ const styles = StyleSheet.create({
   },
   progress: {
     height: "100%",
-    backgroundColor: colors.primary,
   },
   header: {
     flexDirection: "row",

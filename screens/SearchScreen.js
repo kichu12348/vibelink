@@ -8,7 +8,7 @@ import {
   Text,
   Modal,
 } from "react-native";
-import { colors, fontSizes } from "../constants/primary";
+import { fontSizes } from "../constants/primary";
 import axios from "axios";
 import { endPoint } from "../constants/endpoints";
 import ViewUserOProfile from "../utils/ViewUserOProfile";
@@ -16,6 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
+import { useTheme } from "../context/ThemeContext";
 
 const SearchScreen = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -24,6 +25,8 @@ const SearchScreen = () => {
 
   const inset = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
+
+  const { theme } = useTheme();
 
   const handleSearch = async (text) => {
     setSearchQuery(text);
@@ -66,19 +69,72 @@ const SearchScreen = () => {
     </TouchableOpacity>
   );
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    searchContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: theme.card,
+      margin: 16,
+      padding: 12,
+      borderRadius: 10,
+    },
+    searchIcon: {
+      marginRight: 8,
+    },
+    searchInput: {
+      flex: 1,
+      color: theme.textPrimary,
+      fontSize: 16,
+    },
+    resultsList: {
+      paddingHorizontal: 16,
+      paddingTop: 16,
+    },
+    userItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      padding: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.card,
+    },
+    userImage: {
+      width: 50,
+      height: 50,
+      borderRadius: 25,
+      marginRight: 12,
+    },
+    userInfo: {
+      flex: 1,
+    },
+    username: {
+      fontSize: fontSizes.md,
+      fontWeight: "600",
+      color: theme.textPrimary,
+      marginBottom: 4,
+    },
+    userBio: {
+      fontSize: fontSizes.sm,
+      color: theme.textSecondary,
+    },
+  });
+
   return (
     <View style={[styles.container, { paddingTop: inset.top + 50 }]}>
       <View style={styles.searchContainer}>
         <Ionicons
           name="search"
           size={20}
-          color={colors.textSecondary}
+          color={theme.textSecondary}
           style={styles.searchIcon}
         />
         <TextInput
           style={styles.searchInput}
           placeholder="Search users..."
-          placeholderTextColor={colors.textSecondary}
+          placeholderTextColor={theme.textSecondary}
           value={searchQuery}
           onChangeText={handleSearch}
         />
@@ -113,58 +169,5 @@ const SearchScreen = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.card,
-    margin: 16,
-    padding: 12,
-    borderRadius: 10,
-  },
-  searchIcon: {
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    color: colors.textPrimary,
-    fontSize: 16,
-  },
-  resultsList: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-  },
-  userItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.card,
-  },
-  userImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    marginRight: 12,
-  },
-  userInfo: {
-    flex: 1,
-  },
-  username: {
-    fontSize: fontSizes.md,
-    fontWeight: "600",
-    color: colors.textPrimary,
-    marginBottom: 4,
-  },
-  userBio: {
-    fontSize: fontSizes.sm,
-    color: colors.textSecondary,
-  },
-});
 
 export default SearchScreen;

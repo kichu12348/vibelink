@@ -7,13 +7,8 @@ import SearchScreen from "../screens/SearchScreen";
 import AddPostScreen from "../screens/AddPostScreen";
 import AccountScreen from "../screens/AccountScreen";
 import DMsScreen from "../screens/DMsScreen";
-import { colors,fontSizes } from "../constants/primary";
-import {
-  Platform,
-  StyleSheet,
-  TouchableOpacity,
-  Modal
-} from "react-native";
+import { fontSizes } from "../constants/primary";
+import { Platform, StyleSheet, TouchableOpacity, Modal } from "react-native";
 import { useAuth } from "../context/AuthContext";
 import { BlurView } from "expo-blur";
 import AllChatsScreen from "../screens/AllChatsScreen";
@@ -26,6 +21,7 @@ import DMsModal from "../components/DMsModal";
 import ViewUserOProfile from "../utils/ViewUserOProfile";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
+import { useTheme } from "../context/ThemeContext";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -43,6 +39,7 @@ function Tabs({ navigation }) {
   const { getPost, setIsPostOpen, setPostContent, getPostCommentUser } =
     usePost();
   const { setUserModalData, setIsUserModalOpen } = useAuth();
+  const { theme } = useTheme();
 
   const [settingsOpen, setSettingsOpen] = React.useState(false);
 
@@ -101,10 +98,11 @@ function Tabs({ navigation }) {
 
   return (
     <>
-    <StatusBar style="light"
-    translucent={true}
-    backgroundColor="transparent"
-     />
+      <StatusBar
+        style="light"
+        translucent={true}
+        backgroundColor="transparent"
+      />
       <Tab.Navigator
         screenOptions={({ route }) => ({
           tabBarShowLabel: false,
@@ -136,7 +134,6 @@ function Tabs({ navigation }) {
                 blurReductionFactor={12}
                 style={{
                   flex: 1,
-                  backgroundColor: "rgba(35, 37, 47,0.1)",
                   ...StyleSheet.absoluteFillObject,
                   overflow: "hidden",
                 }}
@@ -146,16 +143,16 @@ function Tabs({ navigation }) {
             );
           },
 
-          tabBarActiveTintColor: colors.primary,
-          tabBarInactiveTintColor: colors.textSecondary,
+          tabBarActiveTintColor: theme.primary,
+          tabBarInactiveTintColor: theme.textSecondary,
           tabBarIconStyle: {
             alignSelf: "center",
           },
           headerTransparent: true,
           headerStyle: {
-            backgroundColor: 'transparent',
+            backgroundColor: "transparent",
             elevation: 0,
-            shadowOpacity: 0
+            shadowOpacity: 0,
           },
           headerBackground: () => (
             <BlurView
@@ -163,7 +160,6 @@ function Tabs({ navigation }) {
               blurReductionFactor={12}
               style={{
                 flex: 1,
-                backgroundColor: "rgba(35, 37, 47,0.1)",
                 ...StyleSheet.absoluteFillObject,
                 overflow: "hidden",
               }}
@@ -181,7 +177,7 @@ function Tabs({ navigation }) {
                   <Ionicons
                     name="settings-outline"
                     size={30}
-                    color={colors.textPrimary}
+                    color={theme.textPrimary}
                   />
                 </TouchableOpacity>
               );
@@ -195,7 +191,7 @@ function Tabs({ navigation }) {
                   <Ionicons
                     name="chatbubbles-outline"
                     size={30}
-                    color={colors.textPrimary}
+                    color={theme.textPrimary}
                   />
                 </TouchableOpacity>
               );
@@ -268,8 +264,8 @@ export default function TabNavigator({ navigation }) {
     setIsUserModalOpen,
   } = useAuth();
   const { setIsPostOpen, isPostOpen, postContent } = usePost();
-  const { isDmsModalOpen, setIsDmsModalOpen,activeChat } = useMessage();
-  
+  const { isDmsModalOpen, setIsDmsModalOpen, activeChat } = useMessage();
+
   React.useEffect(() => {
     if (!token || !currentUser) {
       navigation.reset({
@@ -315,18 +311,18 @@ export default function TabNavigator({ navigation }) {
         }}
         hardwareAccelerated={true}
       >
-          {activeChat && (
-            <DMsModal
-              close={() => setIsDmsModalOpen(false)}
-              params={{
-                conversationId: activeChat._id,
-                participants: activeChat.participants,
-                receiverId: activeChat.receiverId,
-                username: activeChat.username,
-                profileImage: activeChat.profileImage,
-              }}
-            />
-          )}
+        {activeChat && (
+          <DMsModal
+            close={() => setIsDmsModalOpen(false)}
+            params={{
+              conversationId: activeChat._id,
+              participants: activeChat.participants,
+              receiverId: activeChat.receiverId,
+              username: activeChat.username,
+              profileImage: activeChat.profileImage,
+            }}
+          />
+        )}
       </Modal>
       <Modal
         animationType="slide"

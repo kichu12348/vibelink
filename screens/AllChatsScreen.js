@@ -6,30 +6,30 @@ import {
   TextInput,
   FlatList,
 } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import { useMessage } from "../context/MessageContext";
-import { colors } from "../constants/primary";
 import { useAuth } from "../context/AuthContext";
 import { StatusBar } from "expo-status-bar";
 import { Image } from "expo-image";
+import { useTheme } from "../context/ThemeContext";
 
 const defaultAvatar =
   "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
 
 const AllChatsScreen = ({ navigation }) => {
-  const {
-    conversations,
-    setActiveChat,
-    searchUsers,
-    setMessages,
-  } = useMessage();
+  const { conversations, setActiveChat, searchUsers, setMessages } =
+    useMessage();
   const { currentUser } = useAuth(); // Move this hook to component level
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
 
+  const { theme } = useTheme();
 
   // Move getOtherParticipant function inside component and use currentUser from hook
   const getOtherParticipant = (conversation) => {
@@ -53,7 +53,7 @@ const AllChatsScreen = ({ navigation }) => {
 
   const startNewChat = (user) => {
     //check if chat already exists
-    const existingChat = conversations.find((c) =>{
+    const existingChat = conversations.find((c) => {
       const otherParticipant = getOtherParticipant(c);
       return otherParticipant._id === user._id;
     });
@@ -66,7 +66,7 @@ const AllChatsScreen = ({ navigation }) => {
         username: otherParticipant.username,
         profileImage: otherParticipant.profileImage,
       });
-    };
+    }
     navigation.navigate("single-chat", {
       receiverId: user._id,
       username: user.username,
@@ -89,27 +89,98 @@ const AllChatsScreen = ({ navigation }) => {
     });
   };
 
-  const insets=useSafeAreaInsets();
+  const insets = useSafeAreaInsets();
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    chatItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      padding: 12,
+      backgroundColor: theme.card,
+      borderRadius: 12,
+      marginBottom: 8,
+    },
+    avatar: {
+      width: 50,
+      height: 50,
+      borderRadius: 25,
+      marginRight: 12,
+    },
+    chatInfo: {
+      flex: 1,
+    },
+    username: {
+      color: theme.textPrimary,
+      fontSize: 16,
+      fontWeight: "600",
+    },
+    lastMessage: {
+      color: theme.textSecondary,
+      fontSize: 14,
+      marginTop: 4,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      padding: 16,
+    },
+    backButton: {
+      marginRight: 16,
+    },
+    headerTitle: {
+      fontSize: 18,
+      fontWeight: "600",
+      color: theme.textPrimary,
+    },
+    chatList: {
+      flex: 1,
+      padding: 16,
+    },
+    searchContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: theme.card,
+      borderRadius: 12,
+      paddingHorizontal: 12,
+      marginHorizontal: 16,
+      marginBottom: 16,
+    },
+    searchInput: {
+      flex: 1,
+      color: theme.textPrimary,
+      paddingVertical: 12,
+      marginLeft: 8,
+      fontSize: 16,
+    },
+    searchResults: {
+      flex: 1,
+      padding: 16,
+    },
+  });
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar style="light" backgroundColor={colors.background} />
+      <StatusBar style="light" backgroundColor={theme.background} />
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.backButton}
         >
-          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+          <Ionicons name="arrow-back" size={24} color={theme.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Messages</Text>
       </View>
 
       <View style={styles.searchContainer}>
-        <Ionicons name="search" size={20} color={colors.textSecondary} />
+        <Ionicons name="search" size={20} color={theme.textSecondary} />
         <TextInput
           style={styles.searchInput}
           placeholder="Search users..."
-          placeholderTextColor={colors.textSecondary}
+          placeholderTextColor={theme.textSecondary}
           value={searchQuery}
           onChangeText={handleSearch}
         />
@@ -123,7 +194,7 @@ const AllChatsScreen = ({ navigation }) => {
           style={{ flex: 1 }}
           contentContainerStyle={{
             padding: 16,
-            paddingBottom: insets.bottom + 16
+            paddingBottom: insets.bottom + 16,
           }}
           renderItem={({ item }) => (
             <TouchableOpacity
@@ -147,7 +218,7 @@ const AllChatsScreen = ({ navigation }) => {
           style={{ flex: 1 }}
           contentContainerStyle={{
             padding: 16,
-            paddingBottom: insets.bottom + 16
+            paddingBottom: insets.bottom + 16,
           }}
           renderItem={({ item }) => {
             const otherParticipant = getOtherParticipant(item);
@@ -179,76 +250,5 @@ const AllChatsScreen = ({ navigation }) => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  chatItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 12,
-    backgroundColor: colors.card,
-    borderRadius: 12,
-    marginBottom: 8,
-  },
-  avatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    marginRight: 12,
-  },
-  chatInfo: {
-    flex: 1,
-  },
-  username: {
-    color: colors.textPrimary,
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  lastMessage: {
-    color: colors.textSecondary,
-    fontSize: 14,
-    marginTop: 4,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-  },
-  backButton: {
-    marginRight: 16,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: colors.textPrimary,
-  },
-  chatList: {
-    flex: 1,
-    padding: 16,
-  },
-  searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.card,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    marginHorizontal: 16,
-    marginBottom: 16,
-  },
-  searchInput: {
-    flex: 1,
-    color: colors.textPrimary,
-    paddingVertical: 12,
-    marginLeft: 8,
-    fontSize: 16,
-  },
-  searchResults: {
-    flex: 1,
-    padding: 16,
-  },
-});
 
 export default AllChatsScreen;

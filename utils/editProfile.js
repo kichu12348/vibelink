@@ -24,6 +24,7 @@ const EditProfileModal = ({
   handleSaveChanges,
   setIsEditModalVisible,
   isSaving,
+  theme,
 }) => {
   const insets = useSafeAreaInsets();
 
@@ -32,15 +33,16 @@ const EditProfileModal = ({
       style={[
         styles.modalContainer,
         { paddingTop: insets.top, paddingBottom: insets.bottom },
+        { backgroundColor: theme.background },
       ]}
     >
-      <View style={styles.modalHeader}>
+      <View style={[styles.modalHeader, { borderBottomColor: theme.card }]}>
         <Text style={styles.modalTitle}>Edit Profile</Text>
         <TouchableOpacity
           onPress={() => setIsEditModalVisible(false)}
           style={styles.closeButton}
         >
-          <Ionicons name="close" size={24} color={colors.textPrimary} />
+          <Ionicons name="close" size={24} color={theme.textSecondary} />
         </TouchableOpacity>
       </View>
 
@@ -61,7 +63,16 @@ const EditProfileModal = ({
             onPress={handlePickEditImage}
             style={styles.changePhotoButton}
           >
-            <Text style={styles.changePhotoText}>Change Profile Photo</Text>
+            <Text
+              style={[
+                styles.changePhotoText,
+                {
+                  color: theme.primary,
+                },
+              ]}
+            >
+              Change Profile Photo
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -70,7 +81,10 @@ const EditProfileModal = ({
           <TextInput
             value={editUsername}
             onChangeText={setEditUsername}
-            style={styles.input}
+            style={[
+              styles.input,
+              { color: theme.textPrimary, backgroundColor: theme.card },
+            ]}
             placeholder="Enter username"
             placeholderTextColor={colors.textSecondary}
           />
@@ -79,7 +93,14 @@ const EditProfileModal = ({
           <TextInput
             value={editBio}
             onChangeText={setEditBio}
-            style={[styles.input, styles.bioInput]}
+            style={[
+              styles.input,
+              styles.bioInput,
+              {
+                color: theme.textPrimary,
+                backgroundColor: theme.card,
+              },
+            ]}
             placeholder="Write your bio..."
             placeholderTextColor={colors.textSecondary}
             multiline
@@ -88,11 +109,17 @@ const EditProfileModal = ({
         </View>
 
         <TouchableOpacity
-          style={[styles.saveButton, isSaving && { opacity: 0.5 }]}
+          style={[
+            styles.saveButton,
+            { backgroundColor: theme.primary },
+            isSaving && { opacity: 0.5 },
+          ]}
           onPress={handleSaveChanges}
           disabled={isSaving}
         >
-          <Text style={styles.saveButtonText}>Save Changes</Text>
+          <Text style={[styles.saveButtonText, { color: theme.background }]}>
+            Save Changes
+          </Text>
         </TouchableOpacity>
       </View>
     </View>

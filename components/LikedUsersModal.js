@@ -8,9 +8,9 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { colors } from "../constants/primary";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 
 export default function LikedUsersModal({
   visible,
@@ -22,8 +22,57 @@ export default function LikedUsersModal({
 
   const insets = useSafeAreaInsets();
   const { currentUser } = useAuth();
+  const { theme } = useTheme();
 
-  
+  const styles = StyleSheet.create({
+    modalContainer: {
+      flex: 1,
+      backgroundColor: theme.background,
+      paddingTop: 40,
+    },
+    modalHeader: {
+      flexDirection: "row",
+      justifyContent: "center",
+      borderBottomWidth: 1,
+      borderBottomColor: theme.card,
+      paddingBottom: 10,
+      marginBottom: 10,
+      position: "relative",
+    },
+    modalTitle: {
+      fontSize: 18,
+      fontWeight: "bold",
+      color: theme.textPrimary,
+    },
+    closeButton: {
+      position: "absolute",
+      right: 16,
+      top: 0,
+    },
+    userItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      padding: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.card,
+    },
+    userImage: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      marginRight: 12,
+      backgroundColor: theme.card,
+    },
+    userName: {
+      fontSize: 16,
+      color: theme.textPrimary,
+    },
+    itsYou: {
+      color: theme.textSecondary,
+      marginLeft: 8,
+    },
+  });
+
   const renderUserItem = ({ item }) => {
     if (!item || typeof item !== "object") return null;
 
@@ -60,7 +109,7 @@ export default function LikedUsersModal({
       <View style={styles.modalHeader}>
         <Text style={styles.modalTitle}>Liked By</Text>
         <TouchableOpacity style={styles.closeButton} onPress={close}>
-          <Ionicons name="close" size={24} color={colors.textPrimary} />
+          <Ionicons name="close" size={24} color={theme.textPrimary} />
         </TouchableOpacity>
       </View>
       <FlatList
@@ -71,52 +120,3 @@ export default function LikedUsersModal({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  modalContainer: {
-    flex: 1,
-    backgroundColor: colors.background,
-    paddingTop: 40,
-  },
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "center",
-    borderBottomWidth: 1,
-    borderBottomColor: colors.card,
-    paddingBottom: 10,
-    marginBottom: 10,
-    position: "relative",
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: colors.textPrimary,
-  },
-  closeButton: {
-    position: "absolute",
-    right: 16,
-    top: 0,
-  },
-  userItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.card,
-  },
-  userImage: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginRight: 12,
-    backgroundColor: colors.card,
-  },
-  userName: {
-    fontSize: 16,
-    color: colors.textPrimary,
-  },
-  itsYou: {
-    color: colors.textSecondary,
-    marginLeft: 8,
-  },
-});
