@@ -64,7 +64,6 @@ export function MessageProvider({ children }) {
   const { currentUser, token } = useAuth();
   const [socket, setSocket] = useState(null);
   const [isDmsModalOpen, setIsDmsModalOpen] = useState(false);
-  const MessageCacheMap = useRef(new Map());
 
   const { showError } = useError();
 
@@ -130,7 +129,6 @@ export function MessageProvider({ children }) {
       // Update messages if in current chat
       if (activeChat?._id === conversation._id) {
         setMessages((prev) => {
-          MessageCacheMap.current.set(conversation._id, [...prev, message]);
           return [...prev, message]
         });
       }
@@ -153,7 +151,6 @@ export function MessageProvider({ children }) {
     socket.on("deletedMessage", ({ messageId }) => {
       setMessages((prev) =>{ 
         const filteredMessages=prev.filter((m) => m._id !== messageId)
-        MessageCacheMap.current.set(activeChat._id, filteredMessages);
         return filteredMessages;
       });
     });
@@ -185,16 +182,6 @@ export function MessageProvider({ children }) {
   const fetchMessages = useCallback(
     async (conversationId, topMessageId = "nope") => {
       try {
-        const checkIfInMap = MessageCacheMap.current.get(conversationId);
-        if (checkIfInMap && topMessageId === "nope") {
-          setMessages(()=>{
-            if(checkIfInMap.length===0) return checkIfInMap;
-            if(checkIfInMap.length<=15) return checkIfInMap;
-            const last15=checkIfInMap.slice(-15);
-            return last15;
-          }); // last 15 cached messages
-          return;
-        }
         if (!conversationId) return;
         const { data } = await axios.get(
           `${API_URL}/api/messages/${conversationId}/${topMessageId}`,
@@ -205,14 +192,12 @@ export function MessageProvider({ children }) {
         if (Array.isArray(data)) {
           if (topMessageId === "nope") {
             setMessages(data);
-            MessageCacheMap.current.set(conversationId, data);
           } else if (
             topMessageId &&
             data.length > 0 &&
             topMessageId !== "nope"
           ) {
             setMessages((prev) => {
-              MessageCacheMap.current.set(conversationId, [...data, ...prev]);
               return [...data, ...prev];
             });
           }
@@ -225,7 +210,6 @@ export function MessageProvider({ children }) {
           error.response?.data || error.message
         );
         setMessages([]);
-        MessageCacheMap.current.set(conversationId, []);
       }
     },
     [token]
@@ -277,7 +261,6 @@ export function MessageProvider({ children }) {
         return [data.conversation, ...p];
       });
       setMessages((prev) => {
-        MessageCacheMap.current.set(conversationId, [...prev, data.message]);
         return [...prev, data.message]
       });
       return data;
@@ -294,7 +277,6 @@ export function MessageProvider({ children }) {
       });
       setMessages((prev) => {
         const filteredMessages=prev.filter((m) => m._id.toString() !== messageId);
-        MessageCacheMap.current.set(activeChat._id, filteredMessages);
         return filteredMessages;
       });
     } catch (error) {
