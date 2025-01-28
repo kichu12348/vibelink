@@ -55,6 +55,7 @@ function AppNavigator() {
 
   React.useLayoutEffect(() => {
     async function checkIfUpdateLinkExists() {
+      if(isUpdated) return;
       try {
         setIsFetchingUpdateLink(true);
         const { data } = await axios.get(
