@@ -17,6 +17,7 @@ import {
   TouchableOpacity,
   View,
   ActivityIndicator,
+  Linking,
 } from "react-native";
 import { MessageProvider } from "./context/MessageContext";
 import * as Notifications from "expo-notifications";
@@ -26,6 +27,9 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ErrorProvider, useError } from "./context/ErrorContext";
 import { StoryProvider } from "./context/StoryContext";
 import { ThemeProvider, useTheme } from "./context/ThemeContext";
+import { AntDesign, MaterialIcons } from "@expo/vector-icons";
+import axios from "axios";
+import { endPoint } from "./constants/endpoints";
 
 enableScreens();
 
@@ -44,6 +48,34 @@ function AppNavigator() {
   const { token, currentUser, authChecking } = useAuth();
   const { error, isError, clearError } = useError();
   const { theme } = useTheme();
+
+  const [isUpdated, setIsUpdated] = React.useState(false);
+  const [updateLink, setUpdateLink] = React.useState(null);
+  const [isFetchingUpdateLink, setIsFetchingUpdateLink] = React.useState(false);
+
+  React.useLayoutEffect(() => {
+    async function checkIfUpdateLinkExists() {
+      try {
+        setIsFetchingUpdateLink(true);
+        const { data } = await axios.get(
+          endPoint + "/api/latest-app-version-link"
+        );
+        if (data && data.link) {
+          setUpdateLink(data.link);
+        }
+        setIsFetchingUpdateLink(false);
+      } catch (error) {
+        console.log("Error fetching update link:", error.message);
+      }
+    }
+    checkIfUpdateLinkExists();
+  }, []);
+
+  const redirectToUpdateLink = async () => {
+    if (updateLink) {
+      await Linking.openURL(updateLink);
+    }
+  };
 
   const navigationTheme = {
     ...DefaultTheme,
@@ -111,6 +143,44 @@ function AppNavigator() {
               >
                 Dismiss
               </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+      <Modal
+        visible={!isUpdated}
+        transparent
+        hardwareAccelerated
+      >
+        <View
+          style={[
+            styles.errorContainer,
+            { backgroundColor: `${theme.background}aa` },
+          ]}
+        >
+          <View style={[styles.errorBox, { backgroundColor: theme.card }]}>
+            <AntDesign name="warning" size={60} color={"#FFCC00"} />
+            <Text
+              style={[
+                styles.errorTitle,
+                { color: theme.textPrimary, marginTop: 10 },
+              ]}
+            >
+              Please Download the Latest Version
+            </Text>
+            <TouchableOpacity
+              onPress={redirectToUpdateLink}
+              disabled={isFetchingUpdateLink || !updateLink}
+              style={[
+                styles.closeButton,
+                (isFetchingUpdateLink || !updateLink) && { opacity: 0.5 },
+              ]}
+            >
+              <MaterialIcons
+                name="download"
+                size={44}
+                color={theme.textPrimary}
+              />
             </TouchableOpacity>
           </View>
         </View>
@@ -217,6 +287,7 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.xl,
     fontWeight: "bold",
     marginBottom: 8,
+    textAlign: "center",
   },
   errorMessage: {
     fontSize: fontSizes.lg,
