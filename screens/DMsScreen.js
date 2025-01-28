@@ -347,7 +347,7 @@ export default function DMsScreen({ route, navigation }) {
           if (lottieViewRef.current) {
             lottieViewRef.current.reset();
           }
-        }, 3500);
+        }, 3502);
       }
     };
 
