@@ -91,7 +91,7 @@ function AppNavigator() {
 
   if (authChecking) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
         <ActivityIndicator size="large" color={theme.primary} />
       </View>
     );
