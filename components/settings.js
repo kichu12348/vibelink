@@ -34,6 +34,7 @@ const Settings = ({ close }) => {
   const [showTerms, setShowTerms] = useState(false);
   const [showGoofyAnim, setShowGoofyAnim] = useState(false);
   const [previousTheme, setPreviousTheme] = useState(theme);
+  const [isAnimating, setIsAnimating] = useState(false);
   const themeProgress = useSharedValue(0);
   const [easterEggCount, setEasterEggCount] = useState(0);
   const footerScale = useSharedValue(1);
@@ -107,10 +108,14 @@ const Settings = ({ close }) => {
   const animateThemeTransition = useCallback(
     (newTheme) => {
       if (newTheme === currentTheme) return;
+      setIsAnimating(true);
       setPreviousTheme(theme);
       themeProgress.value = 0;
       switchTheme(newTheme);
-      themeProgress.value = withTiming(1, { duration: 500 });
+      themeProgress.value = withTiming(1, { duration: 500 })
+      setTimeout(() => {
+        setIsAnimating(false);
+      }, 500);
     },
     [theme, switchTheme]
   );
@@ -191,6 +196,21 @@ const Settings = ({ close }) => {
         [0, 1],
         [previousTheme.card, theme.card]
       ),
+    };
+  });
+
+  const animatedCardBorderStyleForSelectedTheme = useAnimatedStyle(() => {
+    return {
+      borderColor: interpolateColor(
+        themeProgress.value,
+        [0, 1],
+        ["transparent", theme.primary]
+      ),
+      shadowColor: interpolateColor(
+        themeProgress.value,
+        [0, 1],
+        ["transparent", theme.primary]
+      )
     };
   });
 
@@ -286,7 +306,8 @@ const Settings = ({ close }) => {
               style={[
                 styles.themeButton,
                 animatedCardStyle,
-                item.value === currentTheme && {
+                item.value === currentTheme && animatedCardBorderStyleForSelectedTheme,
+                (item.value === currentTheme && !isAnimating) && {
                   ...styles.selectedTheme,
                   borderColor: theme.primary,
                   shadowColor: theme.primary,
@@ -300,7 +321,7 @@ const Settings = ({ close }) => {
                   item.value === currentTheme
                     ? animatedTextStyleForSelectedTheme
                     : animatedTextStyle,
-                  item.value === currentTheme && {
+                  (item.value === currentTheme && !isAnimating) && {
                     color: theme.primary,
                     shadowColor: theme.primary,
                     shadowOffset: { width: 0, height: 0 },
