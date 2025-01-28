@@ -1,11 +1,10 @@
-import React, { useState, memo, useEffect, useRef } from "react";
+import React, { useState, memo, useEffect, useCallback } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableWithoutFeedback,
   TouchableOpacity,
-  Animated,
 } from "react-native";
 import { Image, ImageBackground } from "expo-image";
 import { FontAwesome5, Ionicons } from "@expo/vector-icons";
@@ -15,6 +14,13 @@ import { usePost } from "../context/PostContext";
 import { useAuth } from "../context/AuthContext";
 import { useError } from "../context/ErrorContext";
 import { useTheme } from "../context/ThemeContext";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withSequence,
+  withTiming
+} from 'react-native-reanimated';
 
 // Wrapper component to handle hooks
 const PostContainer = ({
@@ -68,31 +74,27 @@ const RenderPost = memo(
 
     const [liked, setLiked] = useState(hasLiked(item));
 
-    const likeAnimation = useRef(new Animated.Value(0)).current;
+    const scale = useSharedValue(0);
+    const opacity = useSharedValue(0);
+    const likeScale = useSharedValue(1);
+
     const [showLikeAnimation, setShowLikeAnimation] = useState(false);
     const [shadowColor, setShadowColor] = useState("rgba(255, 255, 255, 1)");
     const [isLiking, setIsLiking] = useState(false);
 
     const { showError } = useError();
-    const animateHeartLike = () => {
+    const animateHeartLike = useCallback(() => {
       setShowLikeAnimation(true);
-      likeAnimation.setValue(0);
-
-      Animated.sequence([
-        Animated.timing(likeAnimation, {
-          toValue: 1,
-          duration: 400,
-          useNativeDriver: true,
-        }),
-        Animated.timing(likeAnimation, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-      ]).start(() => {
-        setShowLikeAnimation(false);
-      });
-    };
+      scale.value = withSequence(
+        withSpring(1.5, { damping: 4, stiffness: 80 }),
+        withSpring(1, { damping: 4, stiffness: 80 }),
+        withTiming(0, { duration: 300 })
+      );
+      opacity.value = withSequence(
+        withTiming(1, { duration: 200 }),
+        withTiming(0, { duration: 300 })
+      );
+    }, []);
 
     useEffect(() => {
       setLiked(() => {
@@ -105,6 +107,12 @@ const RenderPost = memo(
       if (isLiking) return;
       setIsLiking(true);
       try {
+        likeScale.value = withSequence(
+          withSpring(0.8, { damping: 4 }),
+          withSpring(1.2, { damping: 4 }),
+          withSpring(1, { damping: 4 })
+        );
+        
         if (liked) {
           await unLikePost(item?._id);
         } else {
@@ -118,14 +126,17 @@ const RenderPost = memo(
       }
     };
 
-    const heartScale = likeAnimation.interpolate({
-      inputRange: [0, 0.5, 1],
-      outputRange: [0.7, 1.5, 0.7],
+    const heartAnimationStyle = useAnimatedStyle(() => {
+      return {
+        transform: [{ scale: scale.value }],
+        opacity: opacity.value,
+      };
     });
 
-    const heartOpacity = likeAnimation.interpolate({
-      inputRange: [0, 0.5, 1],
-      outputRange: [0, 1, 0],
+    const likeButtonStyle = useAnimatedStyle(() => {
+      return {
+        transform: [{ scale: likeScale.value }],
+      };
     });
 
     const styles = StyleSheet.create({
@@ -231,34 +242,31 @@ const RenderPost = memo(
                 style={styles.postImage}
                 cachePolicy={"memory-disk"}
               >
-                {showLikeAnimation && (
-                  <Animated.View
-                    style={[
-                      styles.heartAnimationContainer,
-                      {
-                        transform: [{ scale: heartScale }],
-                        opacity: heartOpacity,
-                      },
-                    ]}
-                  >
-                    <Ionicons name="heart" size={80} color={colors.error} />
-                  </Animated.View>
-                )}
+                <Animated.View
+                  style={[
+                    styles.heartAnimationContainer,
+                    heartAnimationStyle,
+                  ]}
+                >
+                  <Ionicons name="heart" size={80} color={colors.error} />
+                </Animated.View>
               </ImageBackground>
             </View>
           )}
           <View style={styles.postFooter}>
-            <TouchableOpacity
-              onPress={clickLike}
-              style={styles.likesButton}
-              disabled={isLiking}
-            >
-              <Ionicons
-                name={liked ? "heart" : "heart-outline"}
-                size={30}
-                color={liked ? colors.error : theme.textPrimary}
-              />
-            </TouchableOpacity>
+            <Animated.View style={likeButtonStyle}>
+              <TouchableOpacity
+                onPress={clickLike}
+                style={styles.likesButton}
+                disabled={isLiking}
+              >
+                <Ionicons
+                  name={liked ? "heart" : "heart-outline"}
+                  size={30}
+                  color={liked ? colors.error : theme.textPrimary}
+                />
+              </TouchableOpacity>
+            </Animated.View>
             <TouchableOpacity
               style={[styles.likesButton, { marginLeft: 10 }]}
               onPress={() => openLikes(item)}

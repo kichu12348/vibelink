@@ -49,7 +49,7 @@ function AppNavigator() {
   const { error, isError, clearError } = useError();
   const { theme } = useTheme();
 
-  const [isUpdated, setIsUpdated] = React.useState(false);
+  const [isUpdated, setIsUpdated] = React.useState(true);
   const [updateLink, setUpdateLink] = React.useState(null);
   const [isFetchingUpdateLink, setIsFetchingUpdateLink] = React.useState(false);
 

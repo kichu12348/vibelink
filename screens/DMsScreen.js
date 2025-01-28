@@ -1,10 +1,4 @@
-import React, {
-  useEffect,
-  useState,
-  useRef,
-  useLayoutEffect,
-  use,
-} from "react";
+import React, { useEffect, useState, useRef, useLayoutEffect } from "react";
 import {
   View,
   TextInput,
@@ -38,6 +32,7 @@ import ImageViewer from "../utils/imageViewer";
 import * as NavigationBar from "expo-navigation-bar";
 import ViewUserOProfile from "../utils/ViewUserOProfile";
 import { useTheme } from "../context/ThemeContext";
+import LottieView from "lottie-react-native";
 
 const defaultAvatar =
   "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
@@ -76,25 +71,33 @@ const TypingIndicator = () => {
   }, []);
 
   return (
-    <View style={styles.typingContainer}>
-      {dots.map((dot, index) => (
-        <Animated.View
-          key={index}
-          style={[
-            styles.typingDot,
-            {
-              transform: [
-                {
-                  translateY: dot.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0, -6],
-                  }),
-                },
-              ],
-            },
-          ]}
-        />
-      ))}
+    <View
+      style={{
+        justifyContent: "flex-end",
+        alignItems: "flex-end",
+        height: 140,
+      }}
+    >
+      <View style={styles.typingContainer}>
+        {dots.map((dot, index) => (
+          <Animated.View
+            key={index}
+            style={[
+              styles.typingDot,
+              {
+                transform: [
+                  {
+                    translateY: dot.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0, -6],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          />
+        ))}
+      </View>
     </View>
   );
 };
@@ -135,6 +138,7 @@ export default function DMsScreen({ route, navigation }) {
   const { theme } = useTheme();
 
   const scrollViewRef = React.useRef();
+  const lottieViewRef = React.useRef();
   const appState = useRef(AppState.currentState);
 
   async function handleRefresh() {
@@ -332,6 +336,27 @@ export default function DMsScreen({ route, navigation }) {
     ),
     []
   );
+
+  useEffect(() => {
+    const RandomIntervalValue = 20_000;
+
+    const playAnimation = () => {
+      if (lottieViewRef.current) {
+        lottieViewRef.current.play();
+        setTimeout(() => {
+          if (lottieViewRef.current) {
+            lottieViewRef.current.reset();
+          }
+        }, 3500);
+      }
+    };
+
+    const intervalId = setInterval(playAnimation, RandomIntervalValue);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, []);
 
   useEffect(() => {
     if (activeChat) {
@@ -565,28 +590,45 @@ export default function DMsScreen({ route, navigation }) {
             }
           />
           <View style={styles.posRelative}>
-            {imageUri !== "" && (
-              <TouchableOpacity
-                onPress={handleDeleteImage}
+            <View style={styles.inputWrapper}>
+              <View
                 style={{
-                  position: "absolute",
-                  bottom: 60,
-                  left: 10,
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  flexDirection: "row",
+                  height: 140,
+                  position: "relative",
                 }}
               >
-                <Image
-                  source={{ uri: imageUri }}
-                  style={{
-                    width: 50,
-                    height: 50,
-                    borderRadius: 8,
-                    marginBottom: 8,
-                  }}
+                {imageUri !== "" && (
+                  <TouchableOpacity
+                    onPress={handleDeleteImage}
+                    style={{
+                      position: "absolute",
+                      bottom: 10,
+                      left: 10,
+                    }}
+                  >
+                    <Image
+                      source={{ uri: imageUri }}
+                      style={{
+                        width: 50,
+                        height: 50,
+                        borderRadius: 8,
+                        marginBottom: 8,
+                      }}
+                    />
+                  </TouchableOpacity>
+                )}
+                {isTyping && <TypingIndicator />}
+                <LottieView
+                  source={require("../lottie/catAnim.json")}
+                  style={styles.lottieStyles}
+                  ref={lottieViewRef}
+                  autoPlay={false}
+                  loop={false}
                 />
-              </TouchableOpacity>
-            )}
-            <View style={styles.inputWrapper}>
-              {isTyping && <TypingIndicator />}
+              </View>
               {showScrollButton && (
                 <Animated.View
                   style={[styles.scrollButton, { opacity: fadeAnim }]}
@@ -618,7 +660,7 @@ export default function DMsScreen({ route, navigation }) {
               <View style={styles.floatingContainer}>
                 {InputBlurView}
                 <View style={styles.inputContainer}>
-                  {imageUri !== "" && (
+                  {/* {imageUri !== "" && (
                     <View
                       style={{
                         position: "absolute",
@@ -636,7 +678,7 @@ export default function DMsScreen({ route, navigation }) {
                         }}
                       />
                     </View>
-                  )}
+                  )} */}
                   <TouchableOpacity
                     onPress={pickImage}
                     style={{
@@ -966,4 +1008,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  lottieStyles:{
+    width: 140,
+    height: 140,
+    alignSelf: "flex-end",
+    marginLeft: 100
+  }
 });

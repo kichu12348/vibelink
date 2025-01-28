@@ -9,13 +9,26 @@ import {
   Alert,
   Platform,
 } from "react-native";
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useCallback } from "react";
+import Reanimated, {
+  useSharedValue,
+  withTiming,
+  useAnimatedStyle,
+  interpolateColor,
+  withSequence,
+  useAnimatedProps,
+  withSpring,
+  withRepeat,
+  withDelay,
+  runOnJS,
+} from 'react-native-reanimated';
 import { fontSizes } from "../constants/primary";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../context/AuthContext";
 import { useMessage } from "../context/MessageContext";
 import { useTheme } from "../context/ThemeContext";
+import Terms from "./terms&c";
 
 const Settings = ({ close }) => {
   const { signOut } = useAuth();
@@ -29,6 +42,18 @@ const Settings = ({ close }) => {
   const goofyScaleAnim = useRef(new Animated.Value(0)).current;
   const goofyRotateAnim = useRef(new Animated.Value(0)).current;
   const goofyBounceAnim = useRef(new Animated.Value(0)).current;
+  const [previousTheme, setPreviousTheme] = useState(theme);
+  const themeProgress = useSharedValue(0);
+  const [easterEggCount, setEasterEggCount] = useState(0);
+  const footerScale = useSharedValue(1);
+  const footerRotate = useSharedValue(0);
+  const footerY = useSharedValue(0);
+  const heartScale = useSharedValue(1);
+  const goofyScale = useSharedValue(0);
+  const goofyRotate = useSharedValue(0);
+  const goofyY = useSharedValue(0);
+  const sparkleOpacity = useSharedValue(0);
+  const sparkleScale = useSharedValue(0);
 
   const themes = [
     { name: "Default Dark", value: "defaultDarkTheme" },
@@ -55,156 +80,216 @@ const Settings = ({ close }) => {
   }
 
   const handleFooterPress = () => {
-    Animated.sequence([
-      Animated.spring(scaleAnim, {
-        toValue: 1.2,
-        useNativeDriver: true,
-      }),
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        useNativeDriver: true,
-      }),
-      Animated.timing(spinAnim, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      spinAnim.setValue(0);
-    });
+    setEasterEggCount(prev => prev + 1);
+    
+    // Different animations based on number of clicks
+    if (easterEggCount >= 5) {
+      // Super fancy animation after 5 clicks
+      footerScale.value = withSpring(1);
+      footerRotate.value = withRepeat(withTiming(4 * Math.PI, { duration: 1000 }), 2, true);
+      footerY.value = withSequence(
+        withSpring(-50, { damping: 2 }),
+        withSpring(0, { damping: 3 })
+      );
+      heartScale.value = withSequence(
+        withSpring(1.5, { damping: 2 }),
+        withSpring(0.5, { damping: 2 }),
+        withSpring(1, { damping: 2 })
+      );
+    } else {
+      // Simple bounce animation for initial clicks
+      footerScale.value = withSequence(
+        withSpring(1.2, { damping: 2 }),
+        withSpring(1, { damping: 4 })
+      );
+      heartScale.value = withSequence(
+        withSpring(1.4, { damping: 2 }),
+        withSpring(1, { damping: 4 })
+      );
+    }
   };
 
-  function showGoofyAnimation() {
+  const animateThemeTransition = useCallback((newTheme) => {
+    setPreviousTheme(theme);
+    themeProgress.value = 0;
+    switchTheme(newTheme);
+    themeProgress.value = withTiming(1, { duration: 500 });
+  }, [theme, switchTheme]);
+
+  const showGoofyAnimation = useCallback(() => {
     setShowGoofyAnim(true);
-    goofyScaleAnim.setValue(0);
-    goofyRotateAnim.setValue(0);
-    goofyBounceAnim.setValue(0);
+    goofyScale.value = 0;
+    goofyRotate.value = 0;
+    goofyY.value = 0;
+    sparkleOpacity.value = 0;
+    sparkleScale.value = 0;
 
-    Animated.parallel([
-      Animated.sequence([
-        Animated.spring(goofyScaleAnim, {
-          toValue: 1,
-          tension: 50,
-          friction: 3,
-          useNativeDriver: true,
-        }),
-        Animated.timing(goofyScaleAnim, {
-          toValue: 1,
-          duration: 2000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(goofyScaleAnim, {
-          toValue: 0,
-          duration: 800,
-          useNativeDriver: true,
-        }),
-      ]),
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(goofyRotateAnim, {
-            toValue: 1,
-            duration: 400,
-            useNativeDriver: true,
-          }),
-          Animated.timing(goofyRotateAnim, {
-            toValue: 0,
-            duration: 400,
-            useNativeDriver: true,
-          }),
-        ]),
-        { iterations: 4 }
+    // Main container animation
+    goofyScale.value = withSequence(
+      withSpring(1.2, { damping: 4 }),
+      withSpring(1, { damping: 6 })
+    );
+    
+    // Rotation animation
+    goofyRotate.value = withSequence(
+      withTiming(Math.PI / 8, { duration: 200 }),
+      withSpring(0, { damping: 4 }),
+      withRepeat(
+        withSequence(
+          withTiming(-Math.PI / 16, { duration: 150 }),
+          withTiming(Math.PI / 16, { duration: 150 })
+        ),
+        3,
+        true
+      )
+    );
+
+    // Bounce animation with modified timing
+    goofyY.value = withSequence(
+      withSpring(-30, { damping: 3 }),
+      withSpring(0, { damping: 4 }),
+      withTiming(0, { duration: 300 }, () => {
+        goofyY.value = withSequence(
+          withSpring(-15, { damping: 3 }),
+          withSpring(0, { damping: 4 })
+        );
+      })
+    );
+
+    // Sparkle effects
+    sparkleOpacity.value = withSequence(
+      withTiming(1, { duration: 200 }),
+      withTiming(1, { duration: 1500 }),
+      withTiming(0, { duration: 300 })
+    );
+    sparkleScale.value = withSequence(
+      withSpring(1.2, { damping: 4 }),
+      withSpring(1, { damping: 6 }),
+      withTiming(1, { duration: 1500 }),
+      withTiming(0, { duration: 300 })
+    );
+
+    // Auto hide after animation
+    setTimeout(() => {
+      setShowGoofyAnim(false);
+    }, 1900);
+  }, []);
+
+  const animatedContainerStyle = useAnimatedStyle(() => {
+    return {
+      backgroundColor: interpolateColor(
+        themeProgress.value,
+        [0, 1],
+        [previousTheme.background, theme.background]
       ),
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(goofyBounceAnim, {
-            toValue: 1,
-            duration: 300,
-            useNativeDriver: true,
-          }),
-          Animated.timing(goofyBounceAnim, {
-            toValue: 0,
-            duration: 300,
-            useNativeDriver: true,
-          }),
-        ]),
-        { iterations: 5 }
+    };
+  });
+
+  const animatedCardStyle = useAnimatedStyle(() => {
+    return {
+      backgroundColor: interpolateColor(
+        themeProgress.value,
+        [0, 1],
+        [previousTheme.card, theme.card]
       ),
-    ]).start(() => {
-      setTimeout(() => {
-        setShowGoofyAnim(false);
-      }, 100);
-    });
-  }
-
-  const spin = spinAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["0deg", "360deg"],
+    };
   });
 
-  const goofySpin = goofyRotateAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["-15deg", "15deg"],
+  const animatedTextStyle = useAnimatedStyle(() => {
+    return {
+      color: interpolateColor(
+        themeProgress.value,
+        [0, 1],
+        [previousTheme.textPrimary, theme.textPrimary]
+      ),
+    };
   });
 
-  const bounce = goofyBounceAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, -20],
-  });
+  const animatedFooterStyle = useAnimatedStyle(() => ({
+    transform: [
+      { scale: footerScale.value },
+      { translateY: footerY.value },
+      { rotate: `${footerRotate.value}rad` }
+    ],
+  }));
+
+  const animatedHeartStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: heartScale.value }],
+    display: 'flex',
+  }));
+
+  const goofyAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { scale: goofyScale.value },
+      { translateY: goofyY.value },
+      { rotate: `${goofyRotate.value}rad` }
+    ],
+    opacity: goofyScale.value,
+  }));
+
+  const sparkleAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: sparkleOpacity.value,
+    transform: [{ scale: sparkleScale.value }],
+  }));
+
+  const AnimatedTouchableOpacity = Reanimated.createAnimatedComponent(TouchableOpacity);
+
+
 
   return (
-    <View
+    <Reanimated.View
       style={[
         styles.container,
         {
           paddingTop: insets.top,
           paddingBottom: insets.bottom,
-          backgroundColor: theme.background,
         },
+        animatedContainerStyle,
       ]}
     >
       <View style={styles.header}>
-        <Text
+        <Reanimated.Text
           style={[
             styles.text,
             {
               fontWeight: "bold",
-              color: theme.textPrimary,
             },
+            animatedTextStyle,
           ]}
         >
           Settings
-        </Text>
+        </Reanimated.Text>
         <TouchableOpacity onPress={close}>
           <Ionicons name="close" size={30} color={theme.textPrimary} />
         </TouchableOpacity>
       </View>
       <View style={styles.contentContainer}>
-        <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>
+        <Reanimated.Text style={[styles.sectionTitle, animatedTextStyle]}>
           Appearance
-        </Text>
+        </Reanimated.Text>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.themesContainer}
         >
           {themes.map((item) => (
-            <TouchableOpacity
+            <AnimatedTouchableOpacity
               key={item.value}
               style={[
                 styles.themeButton,
-                { backgroundColor: theme.card },
+                animatedCardStyle,
                 item.value === currentTheme && {
                   ...styles.selectedTheme,
                   borderColor: theme.primary,
                   shadowColor: theme.primary,
                 },
               ]}
-              onPress={() => switchTheme(item.value)}
+              onPress={() => animateThemeTransition(item.value)}
             >
-              <Text
+              <Reanimated.Text
                 style={[
                   styles.themeText,
-                  { color: theme.textPrimary },
+                  animatedTextStyle,
                   item.value === currentTheme && {
                     color: theme.primary,
                     shadowColor: theme.primary,
@@ -216,8 +301,8 @@ const Settings = ({ close }) => {
                 ]}
               >
                 {item.name}
-              </Text>
-            </TouchableOpacity>
+              </Reanimated.Text>
+            </AnimatedTouchableOpacity>
           ))}
         </ScrollView>
         <TouchableOpacity onPress={() => setShowTerms(true)}>
@@ -286,134 +371,53 @@ const Settings = ({ close }) => {
         </TouchableOpacity>
       </View>
       <TouchableOpacity onPress={handleFooterPress}>
-        <Animated.Text
-          style={[
-            styles.footerText,
-            {
-              transform: [{ scale: scaleAnim }, { rotate: spin }],
-            },
-            { color: theme.textSecondary },
-          ]}
-        >
-          Made wid ❤️ by Kichu
-        </Animated.Text>
+        <Reanimated.View style={animatedFooterStyle}>
+          <Text style={[styles.footerText, { color: theme.textSecondary }]}>
+            Made wid{' '}
+            <Reanimated.Text style={animatedHeartStyle}>❤️</Reanimated.Text>
+            {' '}by Kichu
+            {easterEggCount >= 5 && ' 🚀✨'}
+          </Text>
+        </Reanimated.View>
       </TouchableOpacity>
       <Modal visible={showTerms} animationType="slide" transparent={false}>
-        <View
-          style={[
-            styles.termsModalContainer,
-            { paddingTop: insets.top, paddingBottom: insets.bottom },
-            { backgroundColor: theme.background },
-          ]}
-        >
-          <View style={styles.termsHeader}>
-            <Text
-              style={[
-                styles.text,
-                {
-                  fontWeight: "bold",
-                  color: theme.textPrimary,
-                },
-              ]}
-            >
-              Terms & Conditions
-            </Text>
-            <TouchableOpacity
-              style={styles.termsCloseButton}
-              onPress={() => {
-                setShowTerms(false);
-                showGoofyAnimation();
-              }}
-            >
-              <Ionicons name="close" size={30} color={theme.textPrimary} />
-            </TouchableOpacity>
-          </View>
-          <ScrollView
-            style={styles.termsScrollView}
-            showsVerticalScrollIndicator={false}
-          >
-            <Text style={[styles.termsText, { color: theme.textPrimary }]}>
-              1. By using VibeLink, you agree to send at least one text message
-              a day that could confuse even Sherlock Holmes.{"\n\n"} Bonus
-              points for sending it with an image that makes it even weirder.
-              🕵️‍♂️💬🖼️{"\n\n"} 2. You promise to share images that spread joy,
-              confusion, or both.{"\n\n"} If your image causes someone to
-              laugh-snort, you win the day. 😂📸🎉{"\n\n"} 3. Sharing blurry
-              photos “accidentally” is completely acceptable. {"\n\n"} We call
-              it artistic expression, and we’re here for it. 🎨📷✨ {"\n\n"} 4.
-              You agree to use captions that make people go, “Wait, what?” every
-              once in a while.{"\n\n"} It’s good for the vibe. 🤔🖼️📜{"\n\n"} 5.
-              If you send the wrong image to the wrong person, you must laugh it
-              off and pretend it was intentional.{"\n\n"} It’s the VibeLink way.
-              🤷‍♀️📱😂{"\n\n"} 6. By using this app, you agree to embrace the
-              beauty of typos in your messages.{"\n\n"} They’re not mistakes;
-              they’re personality quirks. 😜✍️✨{"\n\n"} 7. Posting pictures of
-              food that look way too good to eat is allowed, but you’ll need to
-              send the recipe too.{"\n\n"} Sharing is caring. 🍕📸🍴{"\n\n"} 8.
-              By using VibeLink, you promise not to use the app to send cryptic
-              texts like “We need to talk” unless you’re also sending a picture
-              of something harmless, like a kitten.{"\n\n"} 🐱💬💓{"\n\n"} 9.
-              You agree to celebrate your friends’ blurry sunset photos like
-              they’re professional photographers.{"\n\n"} It’s about the vibes,
-              not the megapixels. 🌅📷💖{"\n\n"} 10. Sharing an image of your
-              coffee? Cool.{"\n\n"} But remember: the more ridiculous the
-              caption, the better. ☕😂🖋️ {"\n\n"} 11. Any overuse of filters
-              must be accompanied by a caption that says, “Yes, this is 100%
-              real and not filtered at all.”{"\n\n"} Honesty is key. 😇📸🎨
-              {"\n\n"} 12. You promise not to ghost your group chats.{"\n\n"} If
-              you go quiet for too long, you owe them a picture of something
-              random in your house.{"\n\n"} Bonus points for creativity. 🏠📷💬
-              {"\n\n"} 13. By agreeing to these terms, you understand that
-              sending a single text without an accompanying image is totally
-              acceptable—but slightly less vibey.{"\n\n"} Try to balance it out.
-              ⚖️🖼️💬{"\n\n"}
-              14. VibeLink reserves the right to cheer you up with random image
-              suggestions if your vibes seem off.{"\n\n"} We can’t help it; we
-              care too much. 💖📱🎭{"\n\n"} 15. By using this app, you
-              acknowledge that sometimes the best way to say something is to not
-              say anything at all and just send a perfectly random image
-              instead.{"\n\n"} 🖼️🤔🌈{"\n\n"}
-            </Text>
-          </ScrollView>
-        </View>
+        <Terms
+          setShowTerms={setShowTerms}
+          showGoofyAnimation={showGoofyAnimation}
+          theme={theme}
+          insets={insets}
+          styles={styles}
+        />
       </Modal>
       {showGoofyAnim && (
-        <Animated.View
+        <Reanimated.View
           style={[
             styles.goofyAnimContainer,
-            {
-              opacity: goofyScaleAnim,
-              transform: [
-                { scale: goofyScaleAnim },
-                { rotate: goofySpin },
-                { translateY: bounce },
-              ],
-            },
             { backgroundColor: theme.card },
+            goofyAnimatedStyle,
           ]}
         >
           <View style={styles.goofyContent}>
-            <Ionicons name="rocket" size={24} color="#FFD700" />
-            <Text
-              style={[
-                styles.goofyAnimText,
-                {
-                  color: theme.textPrimary,
-                },
-              ]}
-            >
+            <Reanimated.View style={sparkleAnimatedStyle}>
+              <Ionicons name="rocket" size={24} color="#FFD700" />
+            </Reanimated.View>
+            <Text style={[styles.goofyAnimText, { color: theme.textPrimary }]}>
               Terms Accepted YAYYY!!
             </Text>
-            <Ionicons name="happy" size={24} color="#FFD700" />
+            <Reanimated.View style={sparkleAnimatedStyle}>
+              <Ionicons name="happy" size={24} color="#FFD700" />
+            </Reanimated.View>
           </View>
-          <View style={styles.goofyIconsRow}>
+          <Reanimated.View style={[styles.goofyIconsRow, sparkleAnimatedStyle]}>
             <Ionicons name="sparkles" size={20} color="#FF69B4" />
             <Ionicons name="star" size={20} color="#87CEEB" />
             <Ionicons name="heart" size={20} color="#FF69B4" />
-          </View>
-        </Animated.View>
+            <Ionicons name="sparkles" size={20} color="#87CEEB" />
+            <Ionicons name="star" size={20} color="#FF69B4" />
+          </Reanimated.View>
+        </Reanimated.View>
       )}
-    </View>
+    </Reanimated.View>
   );
 };
 
@@ -457,6 +461,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: "center",
     marginBottom: 20,
+    letterSpacing: 0.5,
   },
   termsModalContainer: {
     flex: 1,
@@ -486,11 +491,12 @@ const styles = StyleSheet.create({
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 4,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
+    zIndex: 1000,
   },
   goofyContent: {
     flexDirection: "row",
@@ -501,7 +507,8 @@ const styles = StyleSheet.create({
   goofyIconsRow: {
     flexDirection: "row",
     justifyContent: "space-around",
-    marginTop: 8,
+    marginTop: 12,
+    paddingHorizontal: 10,
   },
   goofyAnimText: {
     fontWeight: "bold",
@@ -518,6 +525,7 @@ const styles = StyleSheet.create({
   themesContainer: {
     flexGrow: 0,
     marginBottom: 20,
+    padding: 10,
   },
   themeButton: {
     padding: 12,
@@ -544,84 +552,5 @@ const styles = StyleSheet.create({
   themeText: {
     fontSize: fontSizes.md,
     fontWeight: "500",
-  },
-  footerText: {
-    fontSize: 14,
-    textAlign: "center",
-    marginBottom: 20,
-  },
-  termsModalContainer: {
-    flex: 1,
-  },
-  termsCloseButton: {
-    alignSelf: "flex-end",
-    margin: 15,
-  },
-  termsScrollView: {
-    padding: 20,
-  },
-  termsText: {
-    fontSize: fontSizes.md,
-  },
-  termsHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 15,
-  },
-  goofyAnimContainer: {
-    position: "absolute",
-    bottom: 100,
-    alignSelf: "center",
-    padding: 15,
-    borderRadius: 20,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-
-  goofyContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-  },
-  goofyIconsRow: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginTop: 8,
-  },
-
-  goofyAnimText: {
-    fontWeight: "bold",
-    fontSize: 16,
-    marginHorizontal: 8,
-  },
-
-  sectionTitle: {
-    fontSize: fontSizes.lg,
-    fontWeight: "bold",
-    marginTop: 20,
-    marginBottom: 10,
-    paddingHorizontal: 5,
-  },
-
-  themesContainer: {
-    flexGrow: 0,
-    marginBottom: 20,
-    padding: 10,
-  },
-
-  themeButton: {
-    padding: 12,
-    borderRadius: 12,
-    marginRight: 10,
-    borderWidth: 1,
-    borderColor: "transparent",
   },
 });
