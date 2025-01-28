@@ -782,6 +782,7 @@ export default function DMsScreen({ route, navigation }) {
   );
 }
 
+//styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
