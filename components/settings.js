@@ -3,25 +3,21 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Animated,
   Modal,
   ScrollView,
   Alert,
   Platform,
 } from "react-native";
-import React, { useRef, useState, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import Reanimated, {
   useSharedValue,
   withTiming,
   useAnimatedStyle,
   interpolateColor,
   withSequence,
-  useAnimatedProps,
   withSpring,
   withRepeat,
-  withDelay,
-  runOnJS,
-} from 'react-native-reanimated';
+} from "react-native-reanimated";
 import { fontSizes } from "../constants/primary";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -35,13 +31,8 @@ const Settings = ({ close }) => {
   const { handleRegisterPushNotification } = useMessage();
   const insets = useSafeAreaInsets();
   const { theme, switchTheme, currentTheme } = useTheme();
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-  const spinAnim = useRef(new Animated.Value(0)).current;
   const [showTerms, setShowTerms] = useState(false);
   const [showGoofyAnim, setShowGoofyAnim] = useState(false);
-  const goofyScaleAnim = useRef(new Animated.Value(0)).current;
-  const goofyRotateAnim = useRef(new Animated.Value(0)).current;
-  const goofyBounceAnim = useRef(new Animated.Value(0)).current;
   const [previousTheme, setPreviousTheme] = useState(theme);
   const themeProgress = useSharedValue(0);
   const [easterEggCount, setEasterEggCount] = useState(0);
@@ -62,7 +53,7 @@ const Settings = ({ close }) => {
     { name: "Crimson", value: "crimsonTheme" },
     { name: "Cyberpunk", value: "cyberpunkTheme" },
     { name: "Obsidian", value: "obsidianTheme" },
-    { name: "AMOLED", value: "amoledTheme" }
+    { name: "AMOLED", value: "amoledTheme" },
   ];
 
   async function handleSignOut() {
@@ -80,13 +71,17 @@ const Settings = ({ close }) => {
   }
 
   const handleFooterPress = () => {
-    setEasterEggCount(prev => prev + 1);
-    
+    setEasterEggCount((prev) => prev + 1);
+
     // Different animations based on number of clicks
     if (easterEggCount >= 5) {
       // Super fancy animation after 5 clicks
       footerScale.value = withSpring(1);
-      footerRotate.value = withRepeat(withTiming(4 * Math.PI, { duration: 1000 }), 2, true);
+      footerRotate.value = withRepeat(
+        withTiming(4 * Math.PI, { duration: 1000 }),
+        2,
+        true
+      );
       footerY.value = withSequence(
         withSpring(-50, { damping: 2 }),
         withSpring(0, { damping: 3 })
@@ -109,12 +104,16 @@ const Settings = ({ close }) => {
     }
   };
 
-  const animateThemeTransition = useCallback((newTheme) => {
-    setPreviousTheme(theme);
-    themeProgress.value = 0;
-    switchTheme(newTheme);
-    themeProgress.value = withTiming(1, { duration: 500 });
-  }, [theme, switchTheme]);
+  const animateThemeTransition = useCallback(
+    (newTheme) => {
+      if (newTheme === currentTheme) return;
+      setPreviousTheme(theme);
+      themeProgress.value = 0;
+      switchTheme(newTheme);
+      themeProgress.value = withTiming(1, { duration: 500 });
+    },
+    [theme, switchTheme]
+  );
 
   const showGoofyAnimation = useCallback(() => {
     setShowGoofyAnim(true);
@@ -129,7 +128,7 @@ const Settings = ({ close }) => {
       withSpring(1.2, { damping: 4 }),
       withSpring(1, { damping: 6 })
     );
-    
+
     // Rotation animation
     goofyRotate.value = withSequence(
       withTiming(Math.PI / 8, { duration: 200 }),
@@ -205,24 +204,34 @@ const Settings = ({ close }) => {
     };
   });
 
+  const animatedTextStyleForSelectedTheme = useAnimatedStyle(() => {
+    return {
+      color: interpolateColor(
+        themeProgress.value,
+        [0, 1],
+        [previousTheme.textPrimary, theme.primary]
+      ),
+    };
+  });
+
   const animatedFooterStyle = useAnimatedStyle(() => ({
     transform: [
       { scale: footerScale.value },
       { translateY: footerY.value },
-      { rotate: `${footerRotate.value}rad` }
+      { rotate: `${footerRotate.value}rad` },
     ],
   }));
 
   const animatedHeartStyle = useAnimatedStyle(() => ({
     transform: [{ scale: heartScale.value }],
-    display: 'flex',
+    display: "flex",
   }));
 
   const goofyAnimatedStyle = useAnimatedStyle(() => ({
     transform: [
       { scale: goofyScale.value },
       { translateY: goofyY.value },
-      { rotate: `${goofyRotate.value}rad` }
+      { rotate: `${goofyRotate.value}rad` },
     ],
     opacity: goofyScale.value,
   }));
@@ -232,9 +241,8 @@ const Settings = ({ close }) => {
     transform: [{ scale: sparkleScale.value }],
   }));
 
-  const AnimatedTouchableOpacity = Reanimated.createAnimatedComponent(TouchableOpacity);
-
-
+  const AnimatedTouchableOpacity =
+    Reanimated.createAnimatedComponent(TouchableOpacity);
 
   return (
     <Reanimated.View
@@ -289,7 +297,9 @@ const Settings = ({ close }) => {
               <Reanimated.Text
                 style={[
                   styles.themeText,
-                  animatedTextStyle,
+                  item.value === currentTheme
+                    ? animatedTextStyleForSelectedTheme
+                    : animatedTextStyle,
                   item.value === currentTheme && {
                     color: theme.primary,
                     shadowColor: theme.primary,
@@ -373,10 +383,10 @@ const Settings = ({ close }) => {
       <TouchableOpacity onPress={handleFooterPress}>
         <Reanimated.View style={animatedFooterStyle}>
           <Text style={[styles.footerText, { color: theme.textSecondary }]}>
-            Made wid{' '}
-            <Reanimated.Text style={animatedHeartStyle}>❤️</Reanimated.Text>
-            {' '}by Kichu
-            {easterEggCount >= 5 && ' 🚀✨'}
+            Made wid{" "}
+            <Reanimated.Text style={animatedHeartStyle}>❤️</Reanimated.Text> by
+            Kichu
+            {easterEggCount >= 5 && " 🚀✨"}
           </Text>
         </Reanimated.View>
       </TouchableOpacity>
