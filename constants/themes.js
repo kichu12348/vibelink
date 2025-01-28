@@ -69,3 +69,20 @@ export const obsidianTheme = {
   error: "#FF6E6E", // Light Coral
   accent: "#FFD700", // Gold
 };
+
+export const amoledTheme = {
+  primary: "#E91E63", // Bold Pink
+  background: "#000000", // True Black
+  secondary: "#3F51B5", // Deep Indigo
+  card: "#121212", // Soft Charcoal Black
+  textPrimary: "#FFFFFF", // Pure White
+  textSecondary: "#888888", // Subtle Gray
+  success: "#00C853", // Bright Emerald Green
+  error: "#D50000", // Intense Crimson
+  accent: "#FFAB00", // Vibrant Amber
+};
+
+
+
+
+

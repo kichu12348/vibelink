@@ -82,15 +82,35 @@ function AppNavigator() {
         onRequestClose={clearError}
         hardwareAccelerated
       >
-        <View style={styles.errorContainer}>
-          <View style={styles.errorBox}>
-            <View style={styles.errorIcon}>
-              <Text style={styles.errorIconText}>!</Text>
+        <View
+          style={[
+            styles.errorContainer,
+            { backgroundColor: `${theme.background}aa` },
+          ]}
+        >
+          <View style={[styles.errorBox, { backgroundColor: theme.card }]}>
+            <View style={[styles.errorIcon, { backgroundColor: theme.error }]}>
+              <Text
+                style={[styles.errorIconText, { color: theme.textPrimary }]}
+              >
+                !
+              </Text>
             </View>
-            <Text style={styles.errorTitle}>Error</Text>
-            <Text style={styles.errorMessage}>{error}</Text>
-            <TouchableOpacity onPress={clearError} style={styles.closeButton}>
-              <Text style={styles.closeButtonText}>Dismiss</Text>
+            <Text style={[styles.errorTitle, { color: theme.textPrimary }]}>
+              Error
+            </Text>
+            <Text style={[styles.errorMessage, { color: theme.textPrimary }]}>
+              {error}
+            </Text>
+            <TouchableOpacity
+              onPress={clearError}
+              style={[styles.closeButton, { backgroundColor: theme.error }]}
+            >
+              <Text
+                style={[styles.closeButtonText, { color: theme.textPrimary }]}
+              >
+                Dismiss
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -158,20 +178,16 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: (theme) => theme.background,
   },
   flex1: {
     flex: 1,
-    backgroundColor: (theme) => theme.background,
   },
   errorContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.7)",
   },
   errorBox: {
-    backgroundColor: (theme) => theme.card,
     borderRadius: 16,
     width: "85%",
     maxWidth: 400,
@@ -188,7 +204,6 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: (theme) => theme.error,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 16,
@@ -199,20 +214,17 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   errorTitle: {
-    color: (theme) => theme.error,
     fontSize: fontSizes.xl,
     fontWeight: "bold",
     marginBottom: 8,
   },
   errorMessage: {
-    color: (theme) => theme.textPrimary,
     fontSize: fontSizes.lg,
     textAlign: "center",
     marginBottom: 24,
     lineHeight: 22,
   },
   closeButton: {
-    backgroundColor: (theme) => theme.error,
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 18,
@@ -220,7 +232,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   closeButtonText: {
-    color: "#fff",
     fontSize: fontSizes.lg,
     fontWeight: "600",
   },

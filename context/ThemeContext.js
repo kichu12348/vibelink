@@ -7,6 +7,7 @@ import {
   crimsonTheme,
   cyberpunkTheme,
   obsidianTheme,
+  amoledTheme
 } from "../constants/themes";
 
 const themes = {
@@ -16,6 +17,7 @@ const themes = {
   crimsonTheme,
   cyberpunkTheme,
   obsidianTheme,
+  amoledTheme
 };
 
 const ThemeContext = createContext();

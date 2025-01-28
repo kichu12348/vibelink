@@ -37,6 +37,7 @@ const Settings = ({ close }) => {
     { name: "Crimson", value: "crimsonTheme" },
     { name: "Cyberpunk", value: "cyberpunkTheme" },
     { name: "Obsidian", value: "obsidianTheme" },
+    { name: "AMOLED", value: "amoledTheme" }
   ];
 
   async function handleSignOut() {
