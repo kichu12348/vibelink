@@ -139,7 +139,7 @@ const CommentsModal = ({ close, post, currentUser, addComment, addReply }) => {
   };
 
   return (
-    <View style={styles(theme).container}>
+    <View style={[styles(theme).container]}>
       <BlurView
         intensity={20}
         style={styles(theme).blur}
@@ -221,7 +221,7 @@ const CommentsModal = ({ close, post, currentUser, addComment, addReply }) => {
 const styles = (theme) =>
   StyleSheet.create({
     container: {
-      flex: 1,
+      flex: 1
     },
     blur: {
       flex: 1,

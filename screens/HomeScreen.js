@@ -201,9 +201,12 @@ export default function HomeScreen({ navigation }) {
       </Modal>
       <Modal
         visible={isCommentsVisible}
-        animationType="slide"
+        //animationType="slide"
         onRequestClose={() => setIsCommentsVisible(false)}
         transparent={true}
+        hardwareAccelerated
+        navigationBarTranslucent={true}
+        statusBarTranslucent={true}
       >
         {selectedPost && (
           <CommentsModal
@@ -215,6 +218,7 @@ export default function HomeScreen({ navigation }) {
             addReply={addReply}
           />
         )}
+        
       </Modal>
       <Modal
         visible={isLikedUsersVisible}
