@@ -180,6 +180,8 @@ export default function HomeScreen({ navigation }) {
         onRequestClose={handleClosePost}
         hardwareAccelerated={true}
         transparent={true}
+        navigationBarTranslucent={true}
+        statusBarTranslucent={true}
       >
         {postContent && (
           <ViewPostScreen post={postContent} close={handleClosePost} />
@@ -191,6 +193,8 @@ export default function HomeScreen({ navigation }) {
         onRequestClose={() => setIsUserProfileOpen(false)}
         hardwareAccelerated={true}
         transparent={true}
+        navigationBarTranslucent={true}
+        statusBarTranslucent={true}
       >
         {item && (
           <ViewUserOProfile
@@ -204,6 +208,9 @@ export default function HomeScreen({ navigation }) {
         animationType="slide"
         onRequestClose={() => setIsCommentsVisible(false)}
         transparent={true}
+        hardwareAccelerated={true}
+        navigationBarTranslucent={true}
+        statusBarTranslucent={true}
       >
         {selectedPost && (
           <CommentsModal
@@ -221,6 +228,9 @@ export default function HomeScreen({ navigation }) {
         animationType="slide"
         onRequestClose={() => setIsLikedUsersVisible(false)}
         transparent={true}
+        hardwareAccelerated={true}
+        navigationBarTranslucent={true}
+        statusBarTranslucent={true}
       >
         {likedUsers.length !== 0 && (
           <LikedUsersModal
@@ -236,6 +246,9 @@ export default function HomeScreen({ navigation }) {
         animationType="fade"
         onRequestClose={() => setIsStoryVisible(false)}
         transparent={true}
+        hardwareAccelerated={true}
+        navigationBarTranslucent={true}
+        statusBarTranslucent={true}
       >
         {storyContent && (
           <StoryModal

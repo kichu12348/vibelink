@@ -682,6 +682,8 @@ export default function DMsScreen({ route, navigation }) {
           visible={postModalVisible}
           onRequestClose={() => setPostModalVisible(false)}
           hardwareAccelerated={true}
+          statusBarTranslucent
+          navigationBarTranslucent
         >
           {postContent && (
             <ViewPostScreen
@@ -696,6 +698,8 @@ export default function DMsScreen({ route, navigation }) {
           visible={imageModalVisible}
           onRequestClose={() => setImageModalVisible(false)}
           hardwareAccelerated={true}
+          statusBarTranslucent
+          navigationBarTranslucent
         >
           <ImageViewer
             uri={imageUriModal}
@@ -708,6 +712,8 @@ export default function DMsScreen({ route, navigation }) {
           visible={!!selectedMessage}
           onRequestClose={() => setSelectedMessage(null)}
           hardwareAccelerated={true}
+          statusBarTranslucent
+          navigationBarTranslucent
         >
           <TouchableWithoutFeedback onPress={() => setSelectedMessage(null)}>
             <BlurView
@@ -765,6 +771,8 @@ export default function DMsScreen({ route, navigation }) {
           visible={showUserProfile}
           onRequestClose={() => setShowUserProfile(false)}
           hardwareAccelerated={true}
+          statusBarTranslucent
+          navigationBarTranslucent
         >
           {activeChat && (
             <ViewUserOProfile

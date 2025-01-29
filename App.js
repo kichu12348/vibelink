@@ -2,7 +2,7 @@ import React from "react";
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { AuthProvider, useAuth } from "./context/AuthContext";
-import { PostProvider } from "./context/PostContext";
+import { PostProvider, usePost } from "./context/PostContext";
 import AuthStack from "./navigation/AuthStack";
 import TabNavigator from "./navigation/TabNavigator";
 import { fontSizes } from "./constants/primary";
@@ -17,9 +17,9 @@ import {
   TouchableOpacity,
   View,
   ActivityIndicator,
-  Linking,
+  Linking
 } from "react-native";
-import { MessageProvider } from "./context/MessageContext";
+import { MessageProvider, useMessage } from "./context/MessageContext";
 import * as Notifications from "expo-notifications";
 import * as Updates from "expo-updates";
 import { enableScreens } from "react-native-screens";
@@ -45,13 +45,66 @@ Notifications.setNotificationHandler({
 });
 
 function AppNavigator() {
-  const { token, currentUser, authChecking } = useAuth();
+  const { token, currentUser, authChecking, setUserModalData, setIsUserModalOpen } = useAuth();
   const { error, isError, clearError } = useError();
   const { theme } = useTheme();
+  const { setActiveChat, setIsDmsModalOpen } = useMessage();
+  const { getPost, setIsPostOpen, setPostContent, getPostCommentUser } = usePost();
 
-  const [isUpdated, setIsUpdated] = React.useState(false);
+  const [isUpdated, setIsUpdated] = React.useState(true);
   const [updateLink, setUpdateLink] = React.useState(null);
   const [isFetchingUpdateLink, setIsFetchingUpdateLink] = React.useState(false);
+
+  async function handlePostNotifClicked(postId) {
+    if (!postId) return;
+    const post = await getPost(postId);
+    if (post) {
+      setPostContent(post);
+      setIsPostOpen(true);
+    }
+  }
+
+  async function handleFollowerNotifClicked(userId) {
+    const user = await getPostCommentUser(userId);
+    if (user) {
+      setUserModalData(user);
+      setIsUserModalOpen(true);
+    }
+  }
+
+  React.useEffect(() => {
+    const subscription = Notifications.addNotificationResponseReceivedListener(
+      (response) => {
+        const {
+          conversationId,
+          receiverId,
+          username,
+          profileImage,
+          participants,
+          PostId,
+          type,
+          userId,
+        } = response.notification.request.content.data || {};
+        if (PostId) {
+          handlePostNotifClicked(PostId);
+        }
+        if (conversationId && receiverId) {
+          setActiveChat({
+            _id: conversationId,
+            participants,
+            receiverId,
+            username,
+            profileImage,
+          });
+          setIsDmsModalOpen(true);
+        }
+        if (type && type === "follow") {
+          handleFollowerNotifClicked(userId);
+        }
+      }
+    );
+    return () => subscription.remove();
+  }, []);
 
   React.useLayoutEffect(() => {
     async function checkIfUpdateLinkExists() {
@@ -114,6 +167,8 @@ function AppNavigator() {
         transparent
         onRequestClose={clearError}
         hardwareAccelerated
+        navigationBarTranslucent={true}
+        statusBarTranslucent={true}
       >
         <View
           style={[

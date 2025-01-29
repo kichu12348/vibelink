@@ -298,7 +298,15 @@ const Settings = ({ close }) => {
           Made wid ❤️ by Kichu
         </Animated.Text>
       </TouchableOpacity>
-      <Modal visible={showTerms} animationType="slide" transparent={false}>
+      <Modal 
+      visible={showTerms} 
+      animationType="slide"
+       transparent={true}
+       hardwareAccelerated={true}
+        onRequestClose={() => setShowTerms(false)}
+        statusBarTranslucent={true}
+        navigationBarTranslucent={true}
+      >
         <View
           style={[
             styles.termsModalContainer,

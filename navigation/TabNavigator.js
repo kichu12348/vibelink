@@ -7,7 +7,6 @@ import SearchScreen from "../screens/SearchScreen";
 import AddPostScreen from "../screens/AddPostScreen";
 import AccountScreen from "../screens/AccountScreen";
 import DMsScreen from "../screens/DMsScreen";
-import { fontSizes } from "../constants/primary";
 import { Platform, StyleSheet, TouchableOpacity, Modal } from "react-native";
 import { useAuth } from "../context/AuthContext";
 import { BlurView } from "expo-blur";
@@ -19,7 +18,6 @@ import { usePost } from "../context/PostContext";
 import ViewPostScreen from "../screens/ViewPostScreen";
 import DMsModal from "../components/DMsModal";
 import ViewUserOProfile from "../utils/ViewUserOProfile";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { useTheme } from "../context/ThemeContext";
 
@@ -35,66 +33,9 @@ const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
 function Tabs({ navigation }) {
-  const { setActiveChat, setIsDmsModalOpen } = useMessage();
-  const { getPost, setIsPostOpen, setPostContent, getPostCommentUser } =
-    usePost();
-  const { setUserModalData, setIsUserModalOpen } = useAuth();
   const { theme } = useTheme();
 
   const [settingsOpen, setSettingsOpen] = React.useState(false);
-
-  async function handlePostNotifClicked(postId) {
-    if (!postId) return;
-    const post = await getPost(postId);
-    if (post) {
-      setPostContent(post);
-      setIsPostOpen(true);
-    }
-  }
-
-  async function handleFollowerNotifClicked(userId) {
-    const user = await getPostCommentUser(userId);
-    if (user) {
-      setUserModalData(user);
-      setIsUserModalOpen(true);
-    }
-  }
-
-  const insets = useSafeAreaInsets();
-
-  React.useEffect(() => {
-    const subscription = Notifications.addNotificationResponseReceivedListener(
-      (response) => {
-        const {
-          conversationId,
-          receiverId,
-          username,
-          profileImage,
-          participants,
-          PostId,
-          type,
-          userId,
-        } = response.notification.request.content.data || {};
-        if (PostId) {
-          handlePostNotifClicked(PostId);
-        }
-        if (conversationId && receiverId) {
-          setActiveChat({
-            _id: conversationId,
-            participants, // ensures activeChat has the "_id" property
-            receiverId,
-            username,
-            profileImage,
-          });
-          setIsDmsModalOpen(true);
-        }
-        if (type && type === "follow") {
-          handleFollowerNotifClicked(userId);
-        }
-      }
-    );
-    return () => subscription.remove();
-  }, [navigation]);
 
   return (
     <>
@@ -244,6 +185,8 @@ function Tabs({ navigation }) {
           setSettingsOpen(false);
         }}
         hardwareAccelerated={true}
+        navigationBarTranslucent={true}
+        statusBarTranslucent={true}
       >
         <Settings
           close={() => {
@@ -294,6 +237,8 @@ export default function TabNavigator({ navigation }) {
           setIsPostOpen(false);
         }}
         hardwareAccelerated={true}
+        navigationBarTranslucent={true}
+        statusBarTranslucent={true}
       >
         {postContent && (
           <ViewPostScreen
@@ -310,6 +255,8 @@ export default function TabNavigator({ navigation }) {
           setIsDmsModalOpen(false);
         }}
         hardwareAccelerated={true}
+        navigationBarTranslucent={true}
+        statusBarTranslucent={true}
       >
         {activeChat && (
           <DMsModal
@@ -332,6 +279,8 @@ export default function TabNavigator({ navigation }) {
           setIsUserModalOpen(false);
         }}
         hardwareAccelerated={true}
+        navigationBarTranslucent={true}
+        statusBarTranslucent={true}
       >
         {userModalData && (
           <ViewUserOProfile

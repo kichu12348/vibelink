@@ -129,7 +129,7 @@ export default function DMsModal({ close, params }) {
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
 
-  const {theme}=useTheme();
+  const { theme } = useTheme();
 
   const scrollViewRef = React.useRef();
   const appState = useRef(AppState.currentState);
@@ -572,7 +572,7 @@ export default function DMsModal({ close, params }) {
                       {
                         transform: [{ scale: scaleAnim }, { rotate: spin }],
                       },
-                      {backgroundColor:theme.primary}
+                      { backgroundColor: theme.primary },
                     ]}
                   >
                     <TouchableOpacity
@@ -632,9 +632,13 @@ export default function DMsModal({ close, params }) {
                     numberOfLines={3}
                   />
                   <TouchableOpacity
-                    style={[styles.sendButton,{
-                      backgroundColor:theme.primary
-                    }, sending && { opacity: 0.5 }]}
+                    style={[
+                      styles.sendButton,
+                      {
+                        backgroundColor: theme.primary,
+                      },
+                      sending && { opacity: 0.5 },
+                    ]}
                     onPress={handleSend}
                     disabled={sending}
                   >
@@ -655,6 +659,8 @@ export default function DMsModal({ close, params }) {
           visible={postModalVisible}
           onRequestClose={() => setPostModalVisible(false)}
           hardwareAccelerated={true}
+          statusBarTranslucent={true}
+          navigationBarTranslucent={true}
         >
           {postContent && (
             <ViewPostScreen
@@ -669,6 +675,8 @@ export default function DMsModal({ close, params }) {
           visible={imageModalVisible}
           onRequestClose={() => setImageModalVisible(false)}
           hardwareAccelerated={true}
+          statusBarTranslucent={true}
+          navigationBarTranslucent={true}
         >
           <ImageViewer
             uri={imageUriModal}
@@ -681,6 +689,8 @@ export default function DMsModal({ close, params }) {
           visible={!!selectedMessage}
           onRequestClose={() => setSelectedMessage(null)}
           hardwareAccelerated={true}
+          statusBarTranslucent={true}
+          navigationBarTranslucent={true}
         >
           <TouchableNativeFeedback onPress={() => setSelectedMessage(null)}>
             <BlurView
@@ -738,6 +748,8 @@ export default function DMsModal({ close, params }) {
           visible={showUserProfile}
           onRequestClose={() => setShowUserProfile(false)}
           hardwareAccelerated={true}
+          statusBarTranslucent={true}
+          navigationBarTranslucent={true}
         >
           {activeChat && (
             <ViewUserOProfile

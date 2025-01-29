@@ -456,6 +456,8 @@ export default function AccountScreen() {
           onRequestClose={() => setIsEditModalVisible(false)}
           transparent={true}
           hardwareAccelerated={true}
+          navigationBarTranslucent={true}
+          statusBarTranslucent={true}
         >
           <EditProfileModal
             styles={styles}
@@ -479,6 +481,9 @@ export default function AccountScreen() {
         animationType="slide"
         transparent={true}
         onRequestClose={() => setShowFollowModal(false)}
+        hardwareAccelerated={true}
+        navigationBarTranslucent={true}
+        statusBarTranslucent={true}
       >
         <View
           style={[
@@ -516,6 +521,9 @@ export default function AccountScreen() {
         animationType="slide"
         transparent={true}
         onRequestClose={() => setIsUserProfileOpen(false)}
+        hardwareAccelerated={true}
+        navigationBarTranslucent={true}
+        statusBarTranslucent={true}
       >
         {selectedUser && (
           <ViewUserOProfile
