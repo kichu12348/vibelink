@@ -17,7 +17,7 @@ import {
   TouchableOpacity,
   View,
   ActivityIndicator,
-  Linking
+  Linking,
 } from "react-native";
 import { MessageProvider, useMessage } from "./context/MessageContext";
 import * as Notifications from "expo-notifications";
@@ -30,6 +30,7 @@ import { ThemeProvider, useTheme } from "./context/ThemeContext";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 import axios from "axios";
 import { endPoint } from "./constants/endpoints";
+import { JournalProvider } from "./context/JournalContext";
 
 enableScreens();
 
@@ -45,11 +46,18 @@ Notifications.setNotificationHandler({
 });
 
 function AppNavigator() {
-  const { token, currentUser, authChecking, setUserModalData, setIsUserModalOpen } = useAuth();
+  const {
+    token,
+    currentUser,
+    authChecking,
+    setUserModalData,
+    setIsUserModalOpen,
+  } = useAuth();
   const { error, isError, clearError } = useError();
   const { theme } = useTheme();
   const { setActiveChat, setIsDmsModalOpen } = useMessage();
-  const { getPost, setIsPostOpen, setPostContent, getPostCommentUser } = usePost();
+  const { getPost, setIsPostOpen, setPostContent, getPostCommentUser } =
+    usePost();
 
   const [isUpdated, setIsUpdated] = React.useState(true);
   const [updateLink, setUpdateLink] = React.useState(null);
@@ -108,7 +116,7 @@ function AppNavigator() {
 
   React.useLayoutEffect(() => {
     async function checkIfUpdateLinkExists() {
-      if(isUpdated) return;
+      if (isUpdated) return;
       try {
         setIsFetchingUpdateLink(true);
         const { data } = await axios.get(
@@ -203,11 +211,7 @@ function AppNavigator() {
           </View>
         </View>
       </Modal>
-      <Modal
-        visible={!isUpdated}
-        transparent
-        hardwareAccelerated
-      >
+      <Modal visible={!isUpdated} transparent hardwareAccelerated>
         <View
           style={[
             styles.errorContainer,
@@ -282,12 +286,14 @@ export default function App() {
               <PostProvider>
                 <MessageProvider>
                   <StoryProvider>
-                    <StatusBar
-                      style="light"
-                      backgroundColor="transparent"
-                      translucent
-                    />
-                    <AppNavigator />
+                    <JournalProvider>
+                      <StatusBar
+                        style="light"
+                        backgroundColor="transparent"
+                        translucent
+                      />
+                      <AppNavigator />
+                    </JournalProvider>
                   </StoryProvider>
                 </MessageProvider>
               </PostProvider>

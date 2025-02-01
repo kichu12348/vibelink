@@ -20,6 +20,8 @@ import DMsModal from "../components/DMsModal";
 import ViewUserOProfile from "../utils/ViewUserOProfile";
 import { StatusBar } from "expo-status-bar";
 import { useTheme } from "../context/ThemeContext";
+import JournalScreen from "../screens/JournalScreen";
+import ViewJournalScreen from "../screens/ViewJournalScreen";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -228,6 +230,8 @@ export default function TabNavigator({ navigation }) {
         <Stack.Screen name="Tabs" component={Tabs} />
         <Stack.Screen name="DMs" component={AllChatsScreen} />
         <Stack.Screen name="single-chat" component={DMsScreen} />
+        <Stack.Screen name="Journal" component={JournalScreen} />
+        <Stack.Screen name="ViewJournal" component={ViewJournalScreen} />
       </Stack.Navigator>
       <Modal
         animationType="slide"

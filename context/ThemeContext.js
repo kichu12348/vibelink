@@ -1,4 +1,9 @@
-import React, { createContext, useState, useContext, useLayoutEffect } from "react";
+import React, {
+  createContext,
+  useState,
+  useContext,
+  useLayoutEffect,
+} from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   defaultDarkTheme,
@@ -7,7 +12,7 @@ import {
   crimsonTheme,
   cyberpunkTheme,
   obsidianTheme,
-  amoledTheme
+  amoledTheme,
 } from "../constants/themes";
 
 const themes = {
@@ -17,7 +22,7 @@ const themes = {
   crimsonTheme,
   cyberpunkTheme,
   obsidianTheme,
-  amoledTheme
+  amoledTheme,
 };
 
 const ThemeContext = createContext();
@@ -48,6 +53,7 @@ export const ThemeProvider = ({ children }) => {
         setTheme(themes[themeName]);
         setCurrentTheme(themeName);
         await AsyncStorage.setItem("currentTheme", themeName);
+        return themes[themeName];
       }
     } catch (error) {
       console.log("Error saving theme to AsyncStorage", error.message);

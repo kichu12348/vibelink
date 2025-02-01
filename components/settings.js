@@ -8,8 +8,9 @@ import {
   ScrollView,
   Alert,
   Platform,
+  Easing,
 } from "react-native";
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { fontSizes } from "../constants/primary";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -29,6 +30,35 @@ const Settings = ({ close }) => {
   const goofyScaleAnim = useRef(new Animated.Value(0)).current;
   const goofyRotateAnim = useRef(new Animated.Value(0)).current;
   const goofyBounceAnim = useRef(new Animated.Value(0)).current;
+  const [prevBgColor, setPrevBgColor] = useState(theme.background);
+  const [nextBgColor, setNextBgColor] = useState(theme.background);
+  const backgroundColorAnim = useRef(new Animated.Value(0)).current;
+
+  function startBackgroundColorAnimation(targetColor) {
+    backgroundColorAnim.setValue(0);
+    Animated.timing(backgroundColorAnim, {
+      toValue: 1,
+      duration: 500,
+      easing: Easing.inOut(Easing.ease),
+      useNativeDriver: false,
+    }).start(() => {
+      setPrevBgColor(targetColor);
+    });
+  }
+
+  const switchOutTheme = async (themeName) => {
+    const oldColor = theme.background;
+    const newTheme = await switchTheme(themeName);
+    const newColor = newTheme.background;
+    setPrevBgColor(oldColor);
+    setNextBgColor(newColor);
+    startBackgroundColorAnimation(newColor);
+  };
+
+  const interpolatedBgColor = backgroundColorAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [prevBgColor, nextBgColor],
+  });
 
   const themes = [
     { name: "Default Dark", value: "defaultDarkTheme" },
@@ -37,7 +67,7 @@ const Settings = ({ close }) => {
     { name: "Crimson", value: "crimsonTheme" },
     { name: "Cyberpunk", value: "cyberpunkTheme" },
     { name: "Obsidian", value: "obsidianTheme" },
-    { name: "AMOLED", value: "amoledTheme" }
+    { name: "Amoled", value: "amoledTheme" }
   ];
 
   async function handleSignOut() {
@@ -53,6 +83,8 @@ const Settings = ({ close }) => {
       Alert.alert("Success", "Push Notification Registered Successfully");
     }
   }
+
+
 
   const handleFooterPress = () => {
     Animated.sequence([
@@ -152,13 +184,13 @@ const Settings = ({ close }) => {
   });
 
   return (
-    <View
+    <Animated.View
       style={[
         styles.container,
         {
           paddingTop: insets.top,
           paddingBottom: insets.bottom,
-          backgroundColor: theme.background,
+          backgroundColor: interpolatedBgColor,
         },
       ]}
     >
@@ -199,7 +231,7 @@ const Settings = ({ close }) => {
                   shadowColor: theme.primary,
                 },
               ]}
-              onPress={() => switchTheme(item.value)}
+              onPress={() => switchOutTheme(item.value)}
             >
               <Text
                 style={[
@@ -421,7 +453,7 @@ const Settings = ({ close }) => {
           </View>
         </Animated.View>
       )}
-    </View>
+    </Animated.View>
   );
 };
 

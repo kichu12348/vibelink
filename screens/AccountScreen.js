@@ -9,6 +9,7 @@ import {
   Modal,
   FlatList,
   Animated,
+  TextInput,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { colors } from "../constants/primary";
@@ -26,6 +27,8 @@ import { Image } from "expo-image";
 import { useError } from "../context/ErrorContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../context/ThemeContext";
+import { useNavigation } from '@react-navigation/native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const RenderPost = ({
   post,
@@ -129,6 +132,8 @@ export default function AccountScreen() {
   const { showError } = useError();
 
   const { theme } = useTheme();
+
+  const navigation = useNavigation();
 
   React.useEffect(() => {
     setPosts(() => {
@@ -423,6 +428,16 @@ export default function AccountScreen() {
               color={colors.textSecondary}
             />
           </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.postsHeaderTab}
+            onPress={() => navigation.navigate("Journal")}
+          >
+            <MaterialCommunityIcons 
+              name="notebook-outline" 
+              size={24} 
+              color={colors.textSecondary}
+            />
+          </TouchableOpacity>
         </View>
 
         <View style={styles.postsGrid}>
@@ -619,6 +634,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderBottomWidth: 1,
     marginBottom: 2,
+    justifyContent: "space-around",
   },
   postsHeaderTab: {
     flex: 1,
