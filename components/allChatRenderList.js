@@ -46,6 +46,6 @@ const RenderItem = memo(
   }
 );
 
-RenderItem.displayName = "RenderItem"; // Add a display name for React DevTools
+//RenderItem.displayName = "RenderItem"; // Add a display name for React DevTools
 
 export default RenderItem;
