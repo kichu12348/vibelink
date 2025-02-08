@@ -41,13 +41,9 @@ const RenderItem = memo(({ item, openStory, theme }) => {
 });
 
 const Stories = ({ openStory }) => {
-  const { stories, loading, fetchStories, createStory } = useStory();
+  const { stories, loading, createStory } = useStory();
 
   const { theme } = useTheme();
-
-  useEffect(() => {
-    fetchStories();
-  }, []);
 
   const handleAddStory = async () => {
     if (loading) return;

@@ -12,6 +12,7 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [token, setToken] = useState(null);
@@ -46,6 +47,7 @@ export const AuthProvider = ({ children }) => {
             setCurrentUser(localUser);
           }
           setToken(token);
+          setIsAuthenticated(true);
         } catch (err) {
           showError(err.response?.data?.message || err.message);
         }
@@ -218,6 +220,7 @@ export const AuthProvider = ({ children }) => {
         .catch((err) => console.log(err.response?.data || err.message));
       setCurrentUser(null);
       setToken(null);
+      setIsAuthenticated(false);
     } catch (err) {
       showError(err.response?.data?.message || err.message);
     } finally {
@@ -241,6 +244,7 @@ export const AuthProvider = ({ children }) => {
         setIsUserModalOpen,
         userModalData,
         setUserModalData,
+        isAuthenticated,
       }}
     >
       {children}

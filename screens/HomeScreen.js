@@ -56,31 +56,6 @@ export default function HomeScreen({ navigation }) {
   const [storyContent, setStoryContent] = useState(null);
 
   const { theme } = useTheme();
-
-  useEffect(() => {
-    const controller = new AbortController();
-
-    const loadData = async () => {
-      try {
-        await Promise.all([
-          fetchPosts(controller.signal),
-          fetchStories(controller.signal),
-        ]);
-      } catch (err) {
-        if (!err.name === "AbortError") {
-          console.log("Failed to fetch data:", err.message);
-        }
-      }
-    };
-
-    const timeOut = setTimeout(loadData, 100);
-
-    return () => {
-      clearTimeout(timeOut);
-      controller.abort();
-    };
-  }, []);
-
   const handleClosePost = () => {
     setIsPostVisible(false);
     setPostContent(null);
