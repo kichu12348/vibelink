@@ -24,7 +24,7 @@ import ImageViewer from "../utils/imageViewer";
 import { useTheme } from "../context/ThemeContext";
 
 const defaultAvatar =
-  "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
+  "https://storage.googleapis.com/vibelink-pub-bucket2/default-user.webp";
 
 const Comment = ({ comment, postId, setComments, theme }) => {
   const [showReplyInput, setShowReplyInput] = useState(false);
@@ -61,7 +61,7 @@ const Comment = ({ comment, postId, setComments, theme }) => {
   };
 
   const defaultAvatar =
-    "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
+    "https://storage.googleapis.com/vibelink-pub-bucket2/default-user.webp";
 
   return (
     <View style={styles.commentContainer}>

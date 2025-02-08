@@ -20,7 +20,7 @@ const { width, height } = Dimensions.get("window");
 const STORY_DURATION = 5000; // 5 seconds per story
 
 const defaultAvatar =
-  "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
+  "https://storage.googleapis.com/vibelink-pub-bucket2/default-user.webp";
 
 const StoryModal = ({ visible, story: storyContent, onClose }) => {
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);

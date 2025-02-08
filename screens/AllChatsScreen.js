@@ -19,7 +19,7 @@ import { Image } from "expo-image";
 import { useTheme } from "../context/ThemeContext";
 
 const defaultAvatar =
-  "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
+  "https://storage.googleapis.com/vibelink-pub-bucket2/default-user.webp";
 
 const AllChatsScreen = ({ navigation }) => {
   const { conversations, setActiveChat, searchUsers, setMessages } =

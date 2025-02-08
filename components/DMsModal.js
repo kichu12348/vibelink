@@ -39,7 +39,7 @@ import ViewUserOProfile from "../utils/ViewUserOProfile";
 import { useTheme } from "../context/ThemeContext";
 
 const defaultAvatar =
-  "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
+  "https://storage.googleapis.com/vibelink-pub-bucket2/default-user.webp";
 
 const SpacerItem = () => <View style={styles.height} />;
 

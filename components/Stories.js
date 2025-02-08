@@ -5,18 +5,16 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from "react-native";
-import React, { memo, useEffect, useLayoutEffect, useState } from "react";
+import React, { memo, useEffect} from "react";
 import { colors, fontSizes } from "../constants/primary";
 import { useStory } from "../context/StoryContext";
 import * as ImagePicker from "expo-image-picker";
 import { AntDesign } from "@expo/vector-icons";
-import { endPoint } from "../constants/endpoints";
-import axios from "axios";
 import { Image } from "expo-image";
 import { useTheme } from "../context/ThemeContext";
 
 const defaultAvatar =
-  "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
+  "https://storage.googleapis.com/vibelink-pub-bucket2/default-user.webp";
 
 const RenderItem = memo(({ item, openStory, theme }) => {
   const [borderColor, setBorderColor] = React.useState(

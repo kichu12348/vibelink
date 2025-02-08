@@ -59,7 +59,7 @@ const RenderPost = memo(
   }) => {
     if (!item) return null;
     const defaultAvatar =
-      "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
+      "https://storage.googleapis.com/vibelink-pub-bucket2/default-user.webp";
 
     const hasLiked = (item) => {
       const find = item.likes.find((like) => like?._id === currentUser?._id);

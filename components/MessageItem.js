@@ -12,7 +12,7 @@ import { colors } from "../constants/primary";
 import { BlurView } from "expo-blur";
 import { useTheme } from "../context/ThemeContext";
 const defaultAvatar =
-  "https://storage.googleapis.com/vibe-link-public/default-user.jpg";
+  "https://storage.googleapis.com/vibelink-pub-bucket2/default-user.webp";
 
 const OWN_MESSAGE_COLOR = colors.primary;
 const OTHER_MESSAGE_COLOR = colors.card;
