@@ -11,15 +11,13 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useMessage } from "../context/MessageContext";
 import { useAuth } from "../context/AuthContext";
 import { StatusBar } from "expo-status-bar";
-import { Image } from "expo-image";
 import { useTheme } from "../context/ThemeContext";
+import RenderItem from "../components/allChatRenderList";
 
-const defaultAvatar =
-  "https://storage.googleapis.com/vibelink-pub-bucket2/default-user.webp";
 
 const AllChatsScreen = ({ navigation }) => {
   const { conversations, setActiveChat, searchUsers, setMessages } =
@@ -162,6 +160,25 @@ const AllChatsScreen = ({ navigation }) => {
     },
   });
 
+  const renderSearchItem = ({ item }) => (
+    <RenderItem
+      styles={styles}
+      item={item}
+      startNewChat={startNewChat}
+      isSearchResult={true}
+    />
+  );
+
+  const renderChatItem = ({ item }) => (
+    <RenderItem
+      styles={styles}
+      item={item}
+      handleChatPress={handleChatPress}
+      getOtherParticipant={getOtherParticipant}
+      isSearchResult={false}
+    />
+  );
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" backgroundColor={theme.background} />
@@ -196,19 +213,11 @@ const AllChatsScreen = ({ navigation }) => {
             padding: 16,
             paddingBottom: insets.bottom + 16,
           }}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.chatItem}
-              onPress={() => startNewChat(item)}
-            >
-              <Image
-                source={{ uri: item.profileImage || defaultAvatar }}
-                style={styles.avatar}
-                cachePolicy={"memory-disk"}
-              />
-              <Text style={styles.username}>{item.username}</Text>
-            </TouchableOpacity>
-          )}
+          renderItem={renderSearchItem}
+          removeClippedSubviews={true}
+          maxToRenderPerBatch={10}
+          windowSize={10}
+          initialNumToRender={10}
         />
       ) : (
         <FlatList
@@ -220,31 +229,11 @@ const AllChatsScreen = ({ navigation }) => {
             padding: 16,
             paddingBottom: insets.bottom + 16,
           }}
-          renderItem={({ item }) => {
-            const otherParticipant = getOtherParticipant(item);
-            return (
-              <TouchableOpacity
-                style={styles.chatItem}
-                onPress={() => handleChatPress(item)}
-              >
-                <Image
-                  source={{
-                    uri: otherParticipant.profileImage || defaultAvatar,
-                  }}
-                  style={styles.avatar}
-                  cachePolicy={"memory-disk"}
-                />
-                <View style={styles.chatInfo}>
-                  <Text style={styles.username}>
-                    {otherParticipant.username}
-                  </Text>
-                  <Text style={styles.lastMessage}>
-                    {item.lastMessage?.content || "Start a conversation"}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            );
-          }}
+          renderItem={renderChatItem}
+          removeClippedSubviews={true}
+          maxToRenderPerBatch={10}
+          windowSize={10}
+          initialNumToRender={10}
         />
       )}
     </SafeAreaView>
