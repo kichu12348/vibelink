@@ -69,12 +69,12 @@ export default function JournalScreen() {
       ]}
     >
       <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={26} color={theme.textPrimary} />
+        </TouchableOpacity>
         <Text style={[styles.title, { color: theme.textPrimary }]}>
           Your Journal
         </Text>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="close" size={26} color={theme.textPrimary} />
-        </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.journalList}>

@@ -11,6 +11,7 @@ import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
+import { BlurView } from "expo-blur";
 
 export default function LikedUsersModal({
   visible,
@@ -26,9 +27,18 @@ export default function LikedUsersModal({
 
   const styles = StyleSheet.create({
     modalContainer: {
-      flex: 1,
       backgroundColor: theme.background,
-      paddingTop: 40,
+      width: "100%",
+      height: "70%",
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      paddingTop: 30,
+    },
+    mainContainer: {
+      flex: 1,
+      flexDirection: "column",
+      justifyContent: "flex-end",
+      alignItems: "center",
     },
     modalHeader: {
       flexDirection: "row",
@@ -71,6 +81,7 @@ export default function LikedUsersModal({
       color: theme.textSecondary,
       marginLeft: 8,
     },
+    
   });
 
   const renderUserItem = ({ item }) => {
@@ -100,23 +111,31 @@ export default function LikedUsersModal({
   };
 
   return (
-    <View
-      style={[
-        styles.modalContainer,
-        { paddingBottom: insets.bottom, paddingTop: insets.top },
-      ]}
+    <BlurView
+      intensity={20}
+      tint={"dark"}
+      style={styles.mainContainer}
+      experimentalBlurMethod="dimezisBlurView"
+      blurReductionFactor={24}
     >
-      <View style={styles.modalHeader}>
-        <Text style={styles.modalTitle}>Liked By</Text>
-        <TouchableOpacity style={styles.closeButton} onPress={close}>
-          <Ionicons name="close" size={24} color={theme.textPrimary} />
-        </TouchableOpacity>
+      <View
+        style={[
+          styles.modalContainer,
+          { paddingBottom: insets.bottom},
+        ]}
+      >
+        <View style={styles.modalHeader}>
+          <Text style={styles.modalTitle}>Liked By</Text>
+          <TouchableOpacity style={styles.closeButton} onPress={close}>
+            <Ionicons name="close" size={24} color={theme.textPrimary} />
+          </TouchableOpacity>
+        </View>
+        <FlatList
+          data={users}
+          keyExtractor={(item, index) => item?._id || index.toString()}
+          renderItem={renderUserItem}
+        />
       </View>
-      <FlatList
-        data={users}
-        keyExtractor={(item, index) => item?._id || index.toString()}
-        renderItem={renderUserItem}
-      />
-    </View>
+    </BlurView>
   );
 }
