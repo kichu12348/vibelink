@@ -1,6 +1,6 @@
 import { io } from "socket.io-client";
 
-const endPoint = "https://vibelink.ddns.net"; 
+const endPoint = "https://vibelink.onthewifi.com"; 
 
 const socket = io(endPoint);
 
