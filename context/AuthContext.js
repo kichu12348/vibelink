@@ -20,7 +20,7 @@ export const AuthProvider = ({ children }) => {
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [userModalData, setUserModalData] = useState(null);
 
-  const {showError}=useError();
+  const { showError } = useError();
 
   const checkUser = async () => {
     const token = await AsyncStorage.getItem("token");
@@ -83,8 +83,8 @@ export const AuthProvider = ({ children }) => {
       if (currentUser) {
         if (currentUser._id === followerId) {
           setCurrentUser((prev) => {
-            const doesExist = prev.following.find((id) =>{
-              if(typeof id === "object"){
+            const doesExist = prev.following.find((id) => {
+              if (typeof id === "object") {
                 return id._id.toString() === followedId.toString();
               }
               return id.toString() === followedId.toString();
@@ -96,8 +96,8 @@ export const AuthProvider = ({ children }) => {
           });
         } else if (currentUser._id === followedId) {
           setCurrentUser((prev) => {
-            const doesExist = prev.followers.find((id) =>{
-              if(typeof id === "object"){
+            const doesExist = prev.followers.find((id) => {
+              if (typeof id === "object") {
                 return id._id.toString() === followerId.toString();
               }
               return id.toString() === followerId.toString();
@@ -117,8 +117,8 @@ export const AuthProvider = ({ children }) => {
         if (currentUser._id === userId) {
           setCurrentUser((prev) => ({
             ...prev,
-            following: prev.following.filter((id) =>{
-              if(typeof id === "object"){
+            following: prev.following.filter((id) => {
+              if (typeof id === "object") {
                 return id._id.toString() !== unfollowedId;
               }
               return id !== unfollowedId;
@@ -127,8 +127,8 @@ export const AuthProvider = ({ children }) => {
         } else if (currentUser._id === unfollowedId) {
           setCurrentUser((prev) => ({
             ...prev,
-            followers: prev.followers.filter((id) =>{
-              if(typeof id === "object"){
+            followers: prev.followers.filter((id) => {
+              if (typeof id === "object") {
                 return id._id.toString() !== userId;
               }
               return id !== userId;
@@ -158,10 +158,13 @@ export const AuthProvider = ({ children }) => {
       });
 
       const { token, ...user } = response.data;
-      await AsyncStorage.setItem("token", token);
-      await AsyncStorage.setItem("user", JSON.stringify(user));
+
       setCurrentUser(user);
       setToken(token);
+      setIsAuthenticated(true);
+
+      await AsyncStorage.setItem("token", token);
+      await AsyncStorage.setItem("user", JSON.stringify(user));
 
       // Configure axios defaults for future requests
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -187,10 +190,13 @@ export const AuthProvider = ({ children }) => {
       });
 
       const { token, ...user } = response.data;
-      await AsyncStorage.setItem("token", token);
-      await AsyncStorage.setItem("user", JSON.stringify(user));
+
       setCurrentUser(user);
       setToken(token);
+      setIsAuthenticated(true);
+
+      await AsyncStorage.setItem("token", token);
+      await AsyncStorage.setItem("user", JSON.stringify(user));
 
       // Configure axios defaults for future requests
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
