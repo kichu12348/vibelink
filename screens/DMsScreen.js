@@ -746,19 +746,40 @@ export default function DMsScreen({ route, navigation }) {
                       {
                         month: "short",
                         day: "numeric",
+                        hour: "numeric",
+                        minute: "numeric",
+                        year: "numeric",
                       }
                     )}
                   </Text>
                   {selectedMessage?.sender?._id === currentUser?._id && (
                     <TouchableOpacity
-                      style={styles.deleteButton}
+                      style={[styles.deleteButton,{
+                        borderColor: theme.error,
+                        borderWidth: 1,
+                      }]}
                       onPress={handleDeleteMessage}
                     >
-                      <Text style={styles.deleteButtonText}>Delete</Text>
+                      <Text style={[styles.deleteButtonText,{
+                        color: theme.error,
+                      }]}>Delete</Text>
+                      <Ionicons
+                        name="trash"
+                        size={24}
+                        color={theme.error}
+                      />
                     </TouchableOpacity>
                   )}
-                  <TouchableOpacity onPress={() => setSelectedMessage(null)}>
+                  <TouchableOpacity 
+                  onPress={() => setSelectedMessage(null)}
+                  style={styles.deleteButton}
+                  >
                     <Text style={styles.cancelText}>Cancel</Text>
+                    <Ionicons
+                      name="return-up-back"
+                      size={24}
+                      color={colors.textPrimary}
+                    />
                   </TouchableOpacity>
                 </View>
               )}
@@ -946,19 +967,21 @@ const styles = StyleSheet.create({
   },
   modalTimestamp: {
     color: colors.textSecondary,
-    fontSize: fontSizes.md,
+    fontSize: fontSizes.sm,
     marginBottom: 8,
   },
   deleteButton: {
-    backgroundColor: colors.error,
+    backgroundColor:"transparent",
     borderRadius: 20,
     padding: 10,
     marginVertical: 12,
     width: "50%",
     alignSelf: "center",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-evenly",
   },
   deleteButtonText: {
-    color: "#fff",
     textAlign: "center",
     fontSize: fontSizes.md,
     fontWeight: "600",

@@ -380,7 +380,10 @@ const ViewPostScreen = ({ post, close = () => {} }) => {
             <Text style={styles.content}>{post.content}</Text>
 
             {post.image && (
-              <TouchableOpacity onPress={() => setShowImageViewer(true)}>
+              <TouchableOpacity 
+              onPress={() => setShowImageViewer(true)}
+              activeOpacity={1}
+              >
                 <Image
                   source={{ uri: post.image }}
                   style={styles.postImage}
@@ -651,7 +654,7 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: "row",
-    justifyContent: "flex-start",
+    justifyContent: "flex-end",
     alignItems: "center",
     padding: 8,
   },

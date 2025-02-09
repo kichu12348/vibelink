@@ -156,14 +156,6 @@ const MessageItem = React.memo(
         </Text>
       );
     };
-
-    const timestamp = React.useMemo(() => {
-      const date = new Date(message.createdAt);
-      return date.toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "numeric",
-      });
-    }, [message.createdAt]);
     if (!message?.content && !message?.media?.url && !message.sharedPost)
       return null;
 
@@ -182,19 +174,6 @@ const MessageItem = React.memo(
             disabled={disabled}
             isOwn={isOwn}
           />
-          <Text
-            style={[
-              styles.timestamp,
-              {
-                alignSelf: isOwn ? "flex-end" : "flex-start",
-              },
-              {
-                color: theme.textSecondary,
-              },
-            ]}
-          >
-            {timestamp}
-          </Text>
         </View>
       );
     }
@@ -203,7 +182,7 @@ const MessageItem = React.memo(
       return (
         <TouchableOpacity
           onLongPress={onLongPress}
-          activeOpacity={0.8}
+          activeOpacity={1}
           style={bubbleStyle}
           disabled={disabled}
         >
@@ -221,16 +200,6 @@ const MessageItem = React.memo(
             />
           </TouchableOpacity>
           {message.content && renderTextWithLinks(message.content)}
-          <Text
-            style={[
-              styles.timestamp,
-              {
-                color: theme.textSecondary,
-              },
-            ]}
-          >
-            {timestamp}
-          </Text>
         </TouchableOpacity>
       );
     }
@@ -243,25 +212,11 @@ const MessageItem = React.memo(
     return (
       <TouchableOpacity
         onLongPress={onLongPress}
-        activeOpacity={0.8}
+        activeOpacity={1}
         style={[bubbleStyle, isOnlyEmoji && { backgroundColor: "transparent" }]}
         disabled={disabled}
       >
         {renderTextWithLinks(message.content)}
-        <Text
-          style={[
-            styles.timestamp,
-            {
-              color: theme.textSecondary,
-            },
-            isOnlyEmoji && {
-              alignSelf: "flex-end",
-              padding: 4,
-            },
-          ]}
-        >
-          {timestamp}
-        </Text>
       </TouchableOpacity>
     );
   },
@@ -277,8 +232,9 @@ const styles = StyleSheet.create({
   messageBubble: {
     padding: 12,
     marginBottom: 8,
-    borderRadius: 16,
+    borderRadius: 20,
     maxWidth: "80%",
+    minWidth: 50,
     alignSelf: "flex-start",
   },
   ownMessage: {
@@ -286,6 +242,7 @@ const styles = StyleSheet.create({
   },
   messageText: {
     color: colors.textPrimary,
+    alignSelf: "center",
     fontSize: 16,
   },
   timestamp: {
