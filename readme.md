@@ -14,7 +14,7 @@ Vibelink is like your digital hangout spot where you can:
 ## 🚀 Features That'll Blow Your Mind
 
 ### 🎨 Theme-tastic!
-- Want your app to look like a cyberpunk dream? We got you!
+- Want your app to look like a cyberpunk dream?I got you!
 - Feeling more midnight blue? Say no more!
 - Obsidian black for the AMOLED enthusiasts? Check!
 
