@@ -6,7 +6,6 @@ import {
   RefreshControl,
   Modal,
 } from "react-native";
-import { colors } from "../constants/primary";
 import { usePost } from "../context/PostContext";
 import ViewPostScreen from "./ViewPostScreen";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";

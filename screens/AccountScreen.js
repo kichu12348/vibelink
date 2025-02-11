@@ -27,8 +27,8 @@ import { Image } from "expo-image";
 import { useError } from "../context/ErrorContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../context/ThemeContext";
-import { useNavigation } from '@react-navigation/native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useNavigation } from "@react-navigation/native";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const RenderPost = ({
   post,
@@ -428,13 +428,13 @@ export default function AccountScreen() {
               color={colors.textSecondary}
             />
           </TouchableOpacity>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.postsHeaderTab}
             onPress={() => navigation.navigate("Journal")}
           >
-            <MaterialCommunityIcons 
-              name="notebook-outline" 
-              size={24} 
+            <MaterialCommunityIcons
+              name="notebook-outline"
+              size={24}
               color={colors.textSecondary}
             />
           </TouchableOpacity>

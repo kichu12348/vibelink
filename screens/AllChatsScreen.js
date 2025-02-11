@@ -18,7 +18,6 @@ import { StatusBar } from "expo-status-bar";
 import { useTheme } from "../context/ThemeContext";
 import RenderItem from "../components/allChatRenderList";
 
-
 const AllChatsScreen = ({ navigation }) => {
   const { conversations, setActiveChat, searchUsers, setMessages } =
     useMessage();

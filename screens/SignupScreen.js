@@ -1,27 +1,34 @@
-import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import { colors, fontSizes } from '../constants/primary';
-import { globalStyles } from '../constants/styles';
-import { useAuth } from '../context/AuthContext';
+import React, { useState } from "react";
+import {
+  View,
+  TextInput,
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+} from "react-native";
+import { colors, fontSizes } from "../constants/primary";
+import { globalStyles } from "../constants/styles";
+import { useAuth } from "../context/AuthContext";
 
 export default function SignupScreen({ navigation }) {
   const { signUp, loading, error, setError } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [username, setUsername] = useState('');
- 
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
+
   const handleSignup = async () => {
     if (!email || !password || !username) {
-        setError('Please fill in all fields');
-        return;
+      setError("Please fill in all fields");
+      return;
     }
-    
+
     const success = await signUp({ email, password, username });
     if (success) {
-        navigation.reset({
-            index: 0,
-            routes: [{ name: 'MainApp' }],
-        });
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "MainApp" }],
+      });
     }
   };
 
@@ -29,7 +36,7 @@ export default function SignupScreen({ navigation }) {
     <View style={[globalStyles.container, styles.container]}>
       <Text style={styles.title}>Create Account</Text>
       <Text style={styles.subtitle}>Sign up to get started</Text>
-      
+
       <View style={styles.form}>
         <TextInput
           style={globalStyles.input}
@@ -55,14 +62,14 @@ export default function SignupScreen({ navigation }) {
           value={password}
           secureTextEntry
         />
-        
+
         {error && <Text style={styles.errorText}>{error}</Text>}
-        
-        <TouchableOpacity 
+
+        <TouchableOpacity
           style={[
-            globalStyles.button, 
+            globalStyles.button,
             styles.signupButton,
-            loading && styles.disabledButton
+            loading && styles.disabledButton,
           ]}
           onPress={handleSignup}
           disabled={loading}
@@ -74,12 +81,13 @@ export default function SignupScreen({ navigation }) {
           )}
         </TouchableOpacity>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.loginLink}
         >
           <Text style={styles.loginText}>
-            Already have an account? <Text style={styles.loginTextBold}>Login</Text>
+            Already have an account?{" "}
+            <Text style={styles.loginTextBold}>Login</Text>
           </Text>
         </TouchableOpacity>
       </View>
@@ -89,12 +97,12 @@ export default function SignupScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: {
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   title: {
     fontSize: fontSizes.xxl,
     color: colors.textPrimary,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 8,
   },
   subtitle: {
@@ -103,7 +111,7 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   form: {
-    width: '100%',
+    width: "100%",
   },
   signupButton: {
     backgroundColor: colors.primary,
@@ -111,7 +119,7 @@ const styles = StyleSheet.create({
   },
   loginLink: {
     marginTop: 16,
-    alignItems: 'center',
+    alignItems: "center",
   },
   loginText: {
     color: colors.textSecondary,
@@ -119,13 +127,13 @@ const styles = StyleSheet.create({
   },
   loginTextBold: {
     color: colors.primary,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   errorText: {
     color: colors.error,
     fontSize: fontSizes.sm,
     marginBottom: 16,
-    textAlign: 'center',
+    textAlign: "center",
   },
   disabledButton: {
     opacity: 0.7,

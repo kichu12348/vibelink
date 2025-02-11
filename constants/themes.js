@@ -81,8 +81,3 @@ export const amoledTheme = {
   error: "#D50000", // Intense Crimson
   accent: "#FFAB00", // Vibrant Amber
 };
-
-
-
-
-

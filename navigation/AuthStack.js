@@ -8,7 +8,7 @@ import { useAuth } from "../context/AuthContext";
 const Stack = createStackNavigator();
 
 export default function AuthStack({ navigation }) {
-  const {token,currentUser} = useAuth();
+  const { token, currentUser } = useAuth();
 
   React.useEffect(() => {
     if (token && currentUser) {
@@ -17,7 +17,7 @@ export default function AuthStack({ navigation }) {
         routes: [{ name: "MainApp" }],
       });
     }
-  } , [token,currentUser]);
+  }, [token, currentUser]);
 
   return (
     <Stack.Navigator

@@ -81,7 +81,6 @@ export default function LikedUsersModal({
       color: theme.textSecondary,
       marginLeft: 8,
     },
-    
   });
 
   const renderUserItem = ({ item }) => {
@@ -118,12 +117,7 @@ export default function LikedUsersModal({
       experimentalBlurMethod="dimezisBlurView"
       blurReductionFactor={24}
     >
-      <View
-        style={[
-          styles.modalContainer,
-          { paddingBottom: insets.bottom},
-        ]}
-      >
+      <View style={[styles.modalContainer, { paddingBottom: insets.bottom }]}>
         <View style={styles.modalHeader}>
           <Text style={styles.modalTitle}>Liked By</Text>
           <TouchableOpacity style={styles.closeButton} onPress={close}>

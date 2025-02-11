@@ -6,29 +6,29 @@ import {
   Text,
   StyleSheet,
   ActivityIndicator,
-  Platform
+  Platform,
 } from "react-native";
 import { colors, fontSizes } from "../constants/primary";
 import { globalStyles } from "../constants/styles";
 import { useAuth } from "../context/AuthContext";
- 
-export default function LoginScreen({ navigation}) {
+
+export default function LoginScreen({ navigation }) {
   const { signIn, loading, error } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const handleLogin = async () => {
     if (!email || !password) {
-        setError('Please fill in all fields');
-        return;
+      setError("Please fill in all fields");
+      return;
     }
-    
+
     const success = await signIn({ email, password });
     if (success) {
-        navigation.reset({
-            index: 0,
-            routes: [{ name: 'MainApp' }],
-        });
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "MainApp" }],
+      });
     }
   };
 
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
     ...Platform.select({
       ios: {
         ShadowColor: colors.primary,
-        ShadowOffset: { width: 0, height:4 },
+        ShadowOffset: { width: 0, height: 4 },
         ShadowOpacity: 0.3,
         ShadowRadius: 10,
       },

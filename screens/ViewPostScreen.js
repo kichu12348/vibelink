@@ -380,9 +380,9 @@ const ViewPostScreen = ({ post, close = () => {} }) => {
             <Text style={styles.content}>{post.content}</Text>
 
             {post.image && (
-              <TouchableOpacity 
-              onPress={() => setShowImageViewer(true)}
-              activeOpacity={1}
+              <TouchableOpacity
+                onPress={() => setShowImageViewer(true)}
+                activeOpacity={1}
               >
                 <Image
                   source={{ uri: post.image }}

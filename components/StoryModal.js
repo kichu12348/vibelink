@@ -28,11 +28,9 @@ const StoryModal = ({ visible, story: storyContent, onClose }) => {
   const animationRef = useRef(null);
 
   const [story, setStoryContent] = useState(storyContent);
-
+  
   const { stories } = useStory();
-
   const { theme } = useTheme();
-
   const insets = useSafeAreaInsets();
 
   useEffect(() => {

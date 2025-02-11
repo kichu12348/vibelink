@@ -13,7 +13,7 @@ export function ErrorProvider({ children }) {
     if (timerRef.current) {
       clearTimeout(timerRef.current);
     }
-    
+
     setError(message);
     setIsError(true);
 

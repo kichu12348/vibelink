@@ -67,7 +67,7 @@ const Settings = ({ close }) => {
     { name: "Crimson", value: "crimsonTheme" },
     { name: "Cyberpunk", value: "cyberpunkTheme" },
     { name: "Obsidian", value: "obsidianTheme" },
-    { name: "Amoled", value: "amoledTheme" }
+    { name: "Amoled", value: "amoledTheme" },
   ];
 
   async function handleSignOut() {
@@ -83,8 +83,6 @@ const Settings = ({ close }) => {
       Alert.alert("Success", "Push Notification Registered Successfully");
     }
   }
-
-
 
   const handleFooterPress = () => {
     Animated.sequence([
@@ -330,11 +328,11 @@ const Settings = ({ close }) => {
           Made wid ❤️ by Kichu
         </Animated.Text>
       </TouchableOpacity>
-      <Modal 
-      visible={showTerms} 
-      animationType="slide"
-       transparent={true}
-       hardwareAccelerated={true}
+      <Modal
+        visible={showTerms}
+        animationType="slide"
+        transparent={true}
+        hardwareAccelerated={true}
         onRequestClose={() => setShowTerms(false)}
         statusBarTranslucent={true}
         navigationBarTranslucent={true}

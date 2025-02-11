@@ -129,7 +129,7 @@ export function MessageProvider({ children }) {
       // Update messages if in current chat
       if (activeChat?._id === conversation._id) {
         setMessages((prev) => {
-          return [...prev, message]
+          return [...prev, message];
         });
       }
 
@@ -149,8 +149,8 @@ export function MessageProvider({ children }) {
     socket.on("newMessage", handleNewMessage);
 
     socket.on("deletedMessage", ({ messageId }) => {
-      setMessages((prev) =>{ 
-        const filteredMessages=prev.filter((m) => m._id !== messageId)
+      setMessages((prev) => {
+        const filteredMessages = prev.filter((m) => m._id !== messageId);
         return filteredMessages;
       });
     });
@@ -261,7 +261,7 @@ export function MessageProvider({ children }) {
         return [data.conversation, ...p];
       });
       setMessages((prev) => {
-        return [...prev, data.message]
+        return [...prev, data.message];
       });
       return data;
     } catch (error) {
@@ -276,7 +276,9 @@ export function MessageProvider({ children }) {
         headers: { Authorization: `Bearer ${token}` },
       });
       setMessages((prev) => {
-        const filteredMessages=prev.filter((m) => m._id.toString() !== messageId);
+        const filteredMessages = prev.filter(
+          (m) => m._id.toString() !== messageId
+        );
         return filteredMessages;
       });
     } catch (error) {

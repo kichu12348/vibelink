@@ -1,5 +1,5 @@
-import { StyleSheet } from 'react-native';
-import { colors, fontSizes } from './primary';
+import { StyleSheet } from "react-native";
+import { colors, fontSizes } from "./primary";
 
 export const globalStyles = StyleSheet.create({
   container: {
@@ -20,19 +20,19 @@ export const globalStyles = StyleSheet.create({
     padding: 15,
     borderRadius: 12,
     marginVertical: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   buttonText: {
     color: colors.textPrimary,
     fontSize: fontSizes.md,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   card: {
     backgroundColor: colors.card,
     borderRadius: 16,
     padding: 15,
     marginVertical: 8,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,

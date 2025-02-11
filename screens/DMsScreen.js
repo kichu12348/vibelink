@@ -754,25 +754,31 @@ export default function DMsScreen({ route, navigation }) {
                   </Text>
                   {selectedMessage?.sender?._id === currentUser?._id && (
                     <TouchableOpacity
-                      style={[styles.deleteButton,{
-                        borderColor: theme.error,
-                        borderWidth: 1,
-                      }]}
+                      style={[
+                        styles.deleteButton,
+                        {
+                          borderColor: theme.error,
+                          borderWidth: 1,
+                        },
+                      ]}
                       onPress={handleDeleteMessage}
                     >
-                      <Text style={[styles.deleteButtonText,{
-                        color: theme.error,
-                      }]}>Delete</Text>
-                      <Ionicons
-                        name="trash"
-                        size={24}
-                        color={theme.error}
-                      />
+                      <Text
+                        style={[
+                          styles.deleteButtonText,
+                          {
+                            color: theme.error,
+                          },
+                        ]}
+                      >
+                        Delete
+                      </Text>
+                      <Ionicons name="trash" size={24} color={theme.error} />
                     </TouchableOpacity>
                   )}
-                  <TouchableOpacity 
-                  onPress={() => setSelectedMessage(null)}
-                  style={styles.deleteButton}
+                  <TouchableOpacity
+                    onPress={() => setSelectedMessage(null)}
+                    style={styles.deleteButton}
                   >
                     <Text style={styles.cancelText}>Cancel</Text>
                     <Ionicons
@@ -971,7 +977,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   deleteButton: {
-    backgroundColor:"transparent",
+    backgroundColor: "transparent",
     borderRadius: 20,
     padding: 10,
     marginVertical: 12,
