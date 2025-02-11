@@ -5,7 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from "react-native";
-import React, { memo, useEffect} from "react";
+import React, { memo } from "react";
 import { colors, fontSizes } from "../constants/primary";
 import { useStory } from "../context/StoryContext";
 import * as ImagePicker from "expo-image-picker";
