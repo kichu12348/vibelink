@@ -9,7 +9,7 @@ import {
   StatusBar,
   Platform,
 } from "react-native";
-import { colors, fontSizes } from "../constants/primary";
+import { fontSizes } from "../constants/primary";
 import { AntDesign } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
@@ -32,6 +32,8 @@ const StoryModal = ({ visible, story: storyContent, onClose }) => {
   const { stories } = useStory();
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
+
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
 
   useEffect(() => {
     if (visible) {
@@ -67,6 +69,7 @@ const StoryModal = ({ visible, story: storyContent, onClose }) => {
   }, [currentMediaIndex]);
 
   const startProgress = () => {
+    if(!isImageLoaded) return;
     if (animationRef.current) {
       animationRef.current.stop();
     }
@@ -174,10 +177,15 @@ const StoryModal = ({ visible, story: storyContent, onClose }) => {
             ))}
           </View>
           <Image
-            source={{ uri: story.media[currentMediaIndex].url }}
+            source={{ uri: story?.media[currentMediaIndex]?.url }}
             style={styles.storyImage}
             contentFit="contain"
             cachePolicy={"memory-disk"}
+            onLoadStart={() => setIsImageLoaded(false)}
+            onLoadEnd={() => {
+              setIsImageLoaded(true);
+              startProgress();
+            }}
           />
         </TouchableOpacity>
       </View>

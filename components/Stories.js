@@ -51,7 +51,7 @@ const Stories = ({ openStory }) => {
       mediaTypes: ["images"],
       allowsEditing: true,
       aspect: [9, 16],
-      quality: 1,
+      quality: 0.5,
     });
     if (!result.canceled) {
       await createStory(result.assets[0]);
@@ -62,7 +62,6 @@ const Stories = ({ openStory }) => {
     openStory(story);
   };
 
-  const handleCloseStory = () => {};
 
   return (
     <View style={styles.container}>
