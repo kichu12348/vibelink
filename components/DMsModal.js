@@ -196,7 +196,7 @@ export default function DMsModal({ close, params }) {
       });
 
       return () => {
-        socket.emit("leaveChat", conversationId);
+        // socket.emit("leaveChat", conversationId);
         socket.off("message", handleNewMessage);
         socket.off("userTyping");
         socket.off("userStopTyping");

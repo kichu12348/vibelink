@@ -206,7 +206,7 @@ export default function DMsScreen({ route, navigation }) {
       });
 
       return () => {
-        socket.emit("leaveChat", conversationId);
+        //socket.emit("leaveChat", conversationId);
         socket.off("message", handleNewMessage);
         socket.off("userTyping");
         socket.off("userStopTyping");

@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useCallback,
   useRef,
+  use,
 } from "react";
 import { useAuth } from "./AuthContext";
 import * as Notifications from "expo-notifications";
@@ -64,6 +65,8 @@ export function MessageProvider({ children }) {
   const { currentUser, token } = useAuth();
   const [socket, setSocket] = useState(null);
   const [isDmsModalOpen, setIsDmsModalOpen] = useState(false);
+
+  const messagesMap = useRef(new Map());
 
   const { showError } = useError();
 
@@ -125,7 +128,22 @@ export function MessageProvider({ children }) {
   useEffect(() => {
     if (!socket || !currentUser) return;
 
+    const handleMessageForMap = ({ message, conversation }) => {
+      if (message) {
+        const checkIfMessageExists = messagesMap.current.get(conversation._id);
+        if (checkIfMessageExists) {
+          messagesMap.current.set(conversation._id, [
+            ...checkIfMessageExists,
+            message,
+          ]);
+        } else messagesMap.current.set(conversation._id, [message]);
+      }
+    };
+
     const handleNewMessage = async ({ message, conversation }) => {
+      // Update messages map
+      if (message) handleMessageForMap({ message, conversation });
+
       // Update messages if in current chat
       if (activeChat?._id === conversation._id) {
         setMessages((prev) => {
@@ -146,17 +164,44 @@ export function MessageProvider({ children }) {
       });
     };
 
+    conversations.map((c) => {
+      socket.emit("joinChat", c._id.toString());
+    });
+
     socket.on("newMessage", handleNewMessage);
 
-    socket.on("deletedMessage", ({ messageId }) => {
+    socket.on("deletedMessage", ({ messageId, conversationId }) => {
       setMessages((prev) => {
         const filteredMessages = prev.filter((m) => m._id !== messageId);
         return filteredMessages;
       });
+      //setConversations
+      setConversations((prev) => {
+        const idx = prev.findIndex((c) => c._id.toString() === conversationId);
+        const lastMessages = messagesMap.current.get(conversationId) // get last message from map
+        const newLastMessage = lastMessages[lastMessages.length - 1]; // get last message from map
+        if (idx > -1) {
+          prev[idx].lastMessage = newLastMessage;
+          return prev;
+        }
+      return prev;
+      });
+      const checkIfMessageExistsInMap = messagesMap.current.get(conversationId);
+      if (checkIfMessageExistsInMap) {
+        const filteredMessages = checkIfMessageExistsInMap.filter(
+          (m) => m._id !== messageId
+        );
+        if(filteredMessages.length < 10) fetchMessages(conversationId).then(data => messagesMap.current.set(conversationId, data));
+        else messagesMap.current.set(conversationId, filteredMessages);
+      }
     });
 
     return () => {
       socket.off("newMessage", handleNewMessage);
+      socket.off("deletedMessage");
+      conversations.map((c) => {
+        socket.emit("leaveChat", c._id.toString());
+      });
     };
   }, [socket, currentUser, activeChat]);
 
@@ -171,6 +216,13 @@ export function MessageProvider({ children }) {
         }
       );
       setConversations(data);
+
+      data.map(async c=>{
+        const data = await fetchMessages(c._id);
+        messagesMap.current.set(c._id, data);
+      })
+
+
     } catch (error) {
       console.log(
         "Error fetching conversations:",
@@ -181,6 +233,13 @@ export function MessageProvider({ children }) {
 
   const fetchMessages = useCallback(
     async (conversationId, topMessageId = "nope") => {
+      if (topMessageId === "nope") {
+        const hasMessagesInMap = messagesMap.current.get(conversationId);
+        if (hasMessagesInMap) {
+          setMessages(hasMessagesInMap);
+          return hasMessagesInMap;
+        }
+      }
       try {
         if (!conversationId) return;
         const { data } = await axios.get(
@@ -201,8 +260,10 @@ export function MessageProvider({ children }) {
               return [...data, ...prev];
             });
           }
+          return data;
         } else {
           setMessages([]);
+          return [];
         }
       } catch (error) {
         console.log(
@@ -210,6 +271,7 @@ export function MessageProvider({ children }) {
           error.response?.data || error.message
         );
         setMessages([]);
+        return [];
       }
     },
     [token]
@@ -261,7 +323,9 @@ export function MessageProvider({ children }) {
         return [data.conversation, ...p];
       });
       setMessages((prev) => {
-        return [...prev, data.message];
+        const newMessageArr = [...prev, data.message];
+        messagesMap.current.set(conversationId, newMessageArr);
+        return newMessageArr;
       });
       return data;
     } catch (error) {
@@ -279,6 +343,7 @@ export function MessageProvider({ children }) {
         const filteredMessages = prev.filter(
           (m) => m._id.toString() !== messageId
         );
+        messagesMap.current.set(activeChat._id,filteredMessages);
         return filteredMessages;
       });
     } catch (error) {

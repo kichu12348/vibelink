@@ -526,6 +526,7 @@ export default function AccountScreen() {
               renderItem={renderUserItem}
               keyExtractor={(item) => item._id}
               contentContainerStyle={styles.userList}
+              showsVerticalScrollIndicator={false}
             />
           </View>
         </View>
