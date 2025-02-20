@@ -62,6 +62,7 @@ export function JournalProvider({ children }) {
         addJournal,
         updateJournal,
         deleteJournal,
+        setJournals
       }}
     >
       {children}

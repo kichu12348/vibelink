@@ -9,7 +9,6 @@ import {
   Modal,
   FlatList,
   Animated,
-  TextInput,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { colors } from "../constants/primary";
@@ -29,6 +28,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../context/ThemeContext";
 import { useNavigation } from "@react-navigation/native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { BlurView } from "expo-blur";
+import { useJournal } from "../context/JournalContext";
 
 const RenderPost = ({
   post,
@@ -101,7 +102,14 @@ const RenderPost = ({
 export default function AccountScreen() {
   const bottomTabBarHeight = useBottomTabBarHeight();
   const postContext = usePost();
-  const { currentUser, setCurrentUser } = useAuth();
+  const {
+    currentUser,
+    setCurrentUser,
+    isJournalLoggedIn,
+    setIsJournalLoggedIn,
+    journalToken,
+    setJournalToken,
+  } = useAuth();
   const [image, setImage] = useState(currentUser?.profileImage);
   const [bio, setBio] = useState(currentUser?.bio || ""); // Added default value
   const [followers, setFollowers] = useState(null);
@@ -120,6 +128,9 @@ export default function AccountScreen() {
   const [followModalType, setFollowModalType] = useState(""); // 'followers' or 'following'
   const [selectedUser, setSelectedUser] = useState(null);
   const [isUserProfileOpen, setIsUserProfileOpen] = useState(false);
+  const [readInPin, setReadInPin] = useState([]);
+  const [errorPin, setErrorPin] = useState(null);
+  const [invalidCount, setInvalidCount] = useState(0);
   const [followerCount, setFollowerCount] = useState(
     currentUser?.followers.length || 0
   ); // Added default value
@@ -127,11 +138,17 @@ export default function AccountScreen() {
     currentUser?.following.length || 0
   ); // Added default value
   const [isSaving, setIsSaving] = useState(false);
+  const [
+    openPersonalIdentificationNumberModal,
+    setOpenPersonalIdentificationNumberModal,
+  ] = useState(false);
   const insets = useSafeAreaInsets();
 
   const { showError } = useError();
 
   const { theme } = useTheme();
+
+  const { setJournals } = useJournal();
 
   const navigation = useNavigation();
 
@@ -207,6 +224,69 @@ export default function AccountScreen() {
     });
     if (!result.cancelled) {
       setEditImage(result.assets[0].uri);
+    }
+  };
+
+  const ShowErrorPin = (msg) => {
+    setErrorPin(msg);
+  };
+
+  async function setUpPin(num) {
+    if (num === "->") {
+      if (readInPin.length !== 4) return;
+      const pin = readInPin.join("");
+      if (!journalToken) {
+        await AsyncStorage.setItem("journalToken", pin);
+        setJournalToken(pin);
+        setOpenPersonalIdentificationNumberModal(false);
+        setIsJournalLoggedIn(true);
+        navigation.navigate("Journal");
+        return;
+      }
+      if (pin !== journalToken) {
+        setInvalidCount(async (prev) => {
+          if (prev >= 4) {
+            ShowErrorPin(
+              "Invalid Pin exceeded 4 - Journals is deleted from this device - Please login again"
+            );
+            await AsyncStorage.removeItem("journalToken");
+            await AsyncStorage.removeItem("journals");
+            setJournalToken(null);
+            setIsJournalLoggedIn(false);
+            setJournals([]);
+            setOpenPersonalIdentificationNumberModal(false);
+            navigation.navigate("Journal");
+            return 0;
+          }
+          ShowErrorPin("Invalid Pin");
+          return prev + 1;
+        });
+        setReadInPin([]);
+        return;
+      }
+      setOpenPersonalIdentificationNumberModal(false);
+      setIsJournalLoggedIn(true);
+      navigation.navigate("Journal");
+      return;
+    }
+    if (num === "⌫") {
+      if (readInPin.length === 0) return;
+      setReadInPin((prev) => prev.slice(0, prev.length - 1));
+    } else {
+      if (readInPin.length === 4) return;
+      setReadInPin((prev) => [...prev, num]);
+    }
+  }
+
+  const handleJournalOpening = () => {
+    if (isJournalLoggedIn) {
+      navigation.navigate("Journal");
+      return;
+    }
+    setOpenPersonalIdentificationNumberModal(true);
+    try {
+    } catch (err) {
+      console.log(err.message);
     }
   };
 
@@ -430,7 +510,7 @@ export default function AccountScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.postsHeaderTab}
-            onPress={() => navigation.navigate("Journal")}
+            onPress={handleJournalOpening}
           >
             <MaterialCommunityIcons
               name="notebook-outline"
@@ -547,6 +627,135 @@ export default function AccountScreen() {
             close={() => setIsUserProfileOpen(false)}
           />
         )}
+      </Modal>
+      <Modal
+        visible={openPersonalIdentificationNumberModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setOpenPersonalIdentificationNumberModal(false)}
+        hardwareAccelerated={true}
+        navigationBarTranslucent={true}
+        statusBarTranslucent={true}
+      >
+        <BlurView
+          intensity={50}
+          style={[
+            styles.modalContainer,
+            {
+              paddingTop: insets.top,
+              alignItems: "center",
+              justifyContent: "flex-end",
+              gap: 30,
+            },
+          ]}
+          tint="dark"
+        >
+          <View
+            style={{
+              width: "100%",
+              height: "70%",
+              alignItems: "center",
+              justifyContent: "flex-end",
+              gap: 30,
+              paddingBottom: insets.bottom,
+              backgroundColor: theme.background,
+              borderTopEndRadius: 30,
+              borderTopStartRadius: 30,
+            }}
+          >
+            {errorPin && (
+              <Text
+                style={{
+                  color: theme.error,
+                  fontSize: 16,
+                  fontWeight: "bold",
+                  padding: 10,
+                  borderRadius: 10,
+                }}
+              >
+                *{errorPin}
+              </Text>
+            )}
+            <TouchableOpacity
+              onPress={() => setOpenPersonalIdentificationNumberModal(false)}
+              style={{
+                alignSelf: "flex-end",
+                marginRight: 20,
+              }}
+            >
+              <Ionicons name="close" size={30} color={theme.textPrimary} />
+            </TouchableOpacity>
+            <View
+              style={{
+                padding: 20,
+                width: "90%",
+                gap: 20,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-evenly",
+              }}
+            >
+              {[1, 2, 3, 4].map((_, index) => (
+                <Text
+                  key={index}
+                  style={{
+                    color: "white",
+                    fontSize: 20,
+                    fontWeight: "bold",
+                    backgroundColor: theme.card,
+                    padding: 15,
+                    borderRadius: 10,
+                  }}
+                >
+                  {readInPin[index] || "•"}
+                </Text>
+              ))}
+            </View>
+
+            <View
+              style={{
+                width: "80%",
+                aspectRatio: 1,
+              }}
+            >
+              {/* Number grid container */}
+              <View
+                style={{
+                  flex: 1,
+                  flexDirection: "row",
+                  flexWrap: "wrap",
+                  justifyContent: "space-between",
+                  alignContent: "space-between",
+                }}
+              >
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, "⌫", 0, "->"].map((num, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={{
+                      width: "30%",
+                      height: "23%",
+                      backgroundColor: theme.card,
+                      borderRadius: 10,
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                    onPress={() => num !== null && setUpPin(num)}
+                  >
+                    <Text
+                      style={{
+                        color: "white",
+                        fontSize: 24,
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {num}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          </View>
+        </BlurView>
       </Modal>
     </>
   );
@@ -755,7 +964,7 @@ const styles = StyleSheet.create({
   saveButton: {
     backgroundColor: colors.primary,
     padding: 16,
-    borderRadius: 8,
+    borderRadius: 24,
     alignItems: "center",
   },
   saveButtonText: {

@@ -19,11 +19,17 @@ export const AuthProvider = ({ children }) => {
   const [authChecking, setAuthChecking] = useState(true);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [userModalData, setUserModalData] = useState(null);
+  const [isJournalLoggedIn, setIsJournalLoggedIn] = useState(false);
+  const [journalToken, setJournalToken] = useState(null);
 
   const { showError } = useError();
 
   const checkUser = async () => {
     const token = await AsyncStorage.getItem("token");
+    const journalToken = await AsyncStorage.getItem("journalToken");
+
+    if (journalToken) setJournalToken(journalToken);
+    
     if (token) {
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       const localUser = JSON.parse(await AsyncStorage.getItem("user"));
@@ -251,6 +257,10 @@ export const AuthProvider = ({ children }) => {
         userModalData,
         setUserModalData,
         isAuthenticated,
+        isJournalLoggedIn,
+        setIsJournalLoggedIn,
+        journalToken,
+        setJournalToken,
       }}
     >
       {children}
