@@ -278,7 +278,7 @@ export default function AccountScreen() {
       }
       setOpenPersonalIdentificationNumberModal(false);
       setIsJournalLoggedIn(true);
-      showError(null)
+      ShowErrorPin(null)
       navigation.navigate("Journal");
       return;
     }
