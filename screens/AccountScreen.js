@@ -130,6 +130,7 @@ export default function AccountScreen() {
   const [isUserProfileOpen, setIsUserProfileOpen] = useState(false);
   const [readInPin, setReadInPin] = useState([]);
   const [errorPin, setErrorPin] = useState(null);
+  const [isKeysDisabled, setIsKeysDisabled] = useState(false);
   const [invalidCount, setInvalidCount] = useState(0);
   const [followerCount, setFollowerCount] = useState(
     currentUser?.followers.length || 0
@@ -232,6 +233,7 @@ export default function AccountScreen() {
   };
 
   async function setUpPin(num) {
+    if (isKeysDisabled) return;
     if (num === "->") {
       if (readInPin.length !== 4) return;
       const pin = readInPin.join("");
@@ -240,32 +242,42 @@ export default function AccountScreen() {
         setJournalToken(pin);
         setOpenPersonalIdentificationNumberModal(false);
         setIsJournalLoggedIn(true);
+        showError(null);
         navigation.navigate("Journal");
         return;
       }
       if (pin !== journalToken) {
-        setInvalidCount(async (prev) => {
-          if (prev >= 4) {
+        setInvalidCount((prev) => {
+          if (prev === 4) {
             ShowErrorPin(
-              "Invalid Pin exceeded 4 - Journals is deleted from this device - Please login again"
+              "Invalid Pin exceeded 4 - All Journals have been deleted from this device - Setting this as new pin"
             );
-            await AsyncStorage.removeItem("journalToken");
-            await AsyncStorage.removeItem("journals");
-            setJournalToken(null);
-            setIsJournalLoggedIn(false);
-            setJournals([]);
-            setOpenPersonalIdentificationNumberModal(false);
-            navigation.navigate("Journal");
+            setIsKeysDisabled(true);
+            setTimeout(async () => {
+              await AsyncStorage.setItem("journalToken",readInPin.join("")).then(async () => {
+                await AsyncStorage.removeItem("journals");
+                setJournalToken(readInPin.join(""));
+                setIsJournalLoggedIn(true);
+                setJournals([]);
+                setOpenPersonalIdentificationNumberModal(false);
+                navigation.navigate("Journal");
+                ShowErrorPin(null);
+                setIsKeysDisabled(false);
+                setReadInPin([]);
+              });
+            }, 5000);
+
             return 0;
           }
           ShowErrorPin("Invalid Pin");
+          setReadInPin([]);
           return prev + 1;
         });
-        setReadInPin([]);
         return;
       }
       setOpenPersonalIdentificationNumberModal(false);
       setIsJournalLoggedIn(true);
+      showError(null)
       navigation.navigate("Journal");
       return;
     }
@@ -651,27 +663,22 @@ export default function AccountScreen() {
           tint="dark"
         >
           <View
-            style={{
-              width: "100%",
-              height: "70%",
-              alignItems: "center",
-              justifyContent: "flex-end",
-              gap: 30,
-              paddingBottom: insets.bottom,
-              backgroundColor: theme.background,
-              borderTopEndRadius: 30,
-              borderTopStartRadius: 30,
-            }}
+            style={[
+              styles.pinContainer,
+              {
+                paddingBottom: insets.bottom,
+                backgroundColor: theme.background,
+              },
+            ]}
           >
             {errorPin && (
               <Text
-                style={{
-                  color: theme.error,
-                  fontSize: 16,
-                  fontWeight: "bold",
-                  padding: 10,
-                  borderRadius: 10,
-                }}
+                style={[
+                  styles.pinError,
+                  {
+                    color: theme.error,
+                  },
+                ]}
               >
                 *{errorPin}
               </Text>
@@ -685,27 +692,16 @@ export default function AccountScreen() {
             >
               <Ionicons name="close" size={30} color={theme.textPrimary} />
             </TouchableOpacity>
-            <View
-              style={{
-                padding: 20,
-                width: "90%",
-                gap: 20,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-evenly",
-              }}
-            >
+            <View style={styles.pinBoxes}>
               {[1, 2, 3, 4].map((_, index) => (
                 <Text
                   key={index}
-                  style={{
-                    color: "white",
-                    fontSize: 20,
-                    fontWeight: "bold",
-                    backgroundColor: theme.card,
-                    padding: 15,
-                    borderRadius: 10,
-                  }}
+                  style={[
+                    styles.pinBox,
+                    {
+                      backgroundColor: theme.card,
+                    },
+                  ]}
                 >
                   {readInPin[index] || "•"}
                 </Text>
@@ -719,31 +715,17 @@ export default function AccountScreen() {
               }}
             >
               {/* Number grid container */}
-              <View
-                style={{
-                  flex: 1,
-                  flexDirection: "row",
-                  flexWrap: "wrap",
-                  justifyContent: "space-between",
-                  alignContent: "space-between",
-                }}
-              >
+              <View style={styles.pinKeysContainer}>
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, "⌫", 0, "->"].map((num, index) => (
                   <TouchableOpacity
                     key={index}
-                    style={{
-                      width: "30%",
-                      height: "23%",
-                      backgroundColor: theme.card,
-                      borderRadius: 10,
-                      justifyContent: "center",
-                      alignItems: "center",
-                    }}
+                    style={[styles.pinKey, { backgroundColor: theme.card }]}
                     onPress={() => num !== null && setUpPin(num)}
+                    disabled={isKeysDisabled}
                   >
                     <Text
                       style={{
-                        color: "white",
+                        color: theme.textPrimary,
                         fontSize: 24,
                         fontWeight: "bold",
                       }}
@@ -992,5 +974,49 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.textPrimary,
     fontWeight: "500",
+  },
+  pinContainer: {
+    width: "100%",
+    height: "70%",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    gap: 30,
+    borderTopEndRadius: 30,
+    borderTopStartRadius: 30,
+  },
+  pinError: {
+    fontSize: 16,
+    fontWeight: "bold",
+    padding: 10,
+    borderRadius: 10,
+  },
+  pinBoxes: {
+    padding: 20,
+    width: "90%",
+    gap: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-evenly",
+  },
+  pinBox: {
+    color: "white",
+    fontSize: 20,
+    fontWeight: "bold",
+    padding: 15,
+    borderRadius: 10,
+  },
+  pinKeysContainer: {
+    flex: 1,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    alignContent: "space-between",
+  },
+  pinKey: {
+    width: "30%",
+    height: "23%",
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
