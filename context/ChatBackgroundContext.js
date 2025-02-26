@@ -1,5 +1,6 @@
-import { useContext, createContext } from "react";
+import { useContext, createContext, useLayoutEffect,useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useMessage } from "./MessageContext";
 
 const backgroundContext = createContext();
 
@@ -34,10 +35,38 @@ const backgroundImages = [
     image: require("../images/Sunsetflower.png"),
   },
 ];
+const convoMap = new Map();
 
 export const BackgroundProvider = ({ children }) => {
+  const { conversations } = useMessage();
+  const [ran, setRan] = useState(false);
+  const getBackgroundsForAllConvos = async (conversations) => {
+    try {
+      const bgImages = await AsyncStorage.multiGet(
+        conversations.map((convo) => `bg-${convo?._id}`)
+      );
+      bgImages.forEach((image, index) => {
+        const [key, value] = image;
+        if (value) {
+          convoMap.set(key, backgroundImages[value - 1]);
+        }
+      });
+    } catch (error) {
+      return [null, error.message];
+    }
+  };
+
+  useLayoutEffect(() => {
+    if (ran) return;
+    getBackgroundsForAllConvos(conversations).then(() => setRan(true));
+
+    return () => {
+      setRan(false);
+    };
+  }, [conversations]);
   const changeBackgroundImage = async (image, convoId) => {
     try {
+      convoMap.set(`bg-${convoId}`, backgroundImages[image - 1]);
       await AsyncStorage.setItem(`bg-${convoId}`, `${image}`);
       return [backgroundImages[image - 1], null];
     } catch (error) {
@@ -47,10 +76,9 @@ export const BackgroundProvider = ({ children }) => {
 
   const getBackgroundImage = async (convoId) => {
     try {
-      const imageId = await AsyncStorage.getItem(`bg-${convoId}`);
-      if (imageId) return backgroundImages[imageId - 1];
-
-      return backgroundImages[0];
+      const checkInMap = convoMap.get(`bg-${convoId}`);
+      if (checkInMap) return checkInMap;
+      else return backgroundImages[0];
     } catch (error) {
       return backgroundImages[0];
     }

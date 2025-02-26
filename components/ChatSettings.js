@@ -8,7 +8,7 @@ import {
   ScrollView,
   Platform,
 } from "react-native";
-import { Image, ImageBackground } from "expo-image";
+import { Image } from "expo-image";
 import ViewUserOProfile from "../utils/ViewUserOProfile";
 import { useTheme } from "../context/ThemeContext";
 import { Ionicons } from "@expo/vector-icons";
@@ -51,7 +51,10 @@ export default function ChatSettings({
           <Ionicons name="close" size={30} color={theme.textPrimary} />
         </TouchableOpacity>
       </View>
-      <View style={styles.scrollContent}>
+      <ScrollView 
+      style={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
+      >
         <View style={styles.contentContainer}>
           <Image
             source={{ uri: OtherUser?.profileImage || defaultAvatar }}
@@ -96,7 +99,7 @@ export default function ChatSettings({
             </Text>
           </TouchableOpacity>
         </View>
-      </View>
+      
       <Text
         style={[
           styles.sectionTitle,
@@ -108,10 +111,8 @@ export default function ChatSettings({
       >
         Background Images
       </Text>
-      <ScrollView
+      <View
         style={styles.settingsSection}
-        contentContainerStyle={{ padding: 20 }}
-        showsVerticalScrollIndicator={false}
       >
         {backgroundImages.map(
           (image) =>
@@ -120,7 +121,7 @@ export default function ChatSettings({
                 key={image?.id}
                 style={styles.settingItem}
                 onPress={() => changeBackground(image?.id)}
-                activeOpacity={0.7}
+                activeOpacity={background?.id === image?.id ? 1 : 0.7}
               >
                 <View
                   style={[
@@ -155,8 +156,8 @@ export default function ChatSettings({
               </TouchableOpacity>
             )
         )}
-      </ScrollView>
-
+      </View>
+</ScrollView>
       <Modal
         animationType="slide"
         transparent
@@ -236,8 +237,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   settingsSection: {
-    width: "100%",
-    height: "60%",
+    flex:1
   },
   sectionTitle: {
     fontSize: 18,

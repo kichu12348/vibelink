@@ -172,7 +172,7 @@ export const AuthProvider = ({ children }) => {
       });
 
       const { token, ...user } = response.data;
-
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       setCurrentUser(user);
       setToken(token);
       setIsAuthenticated(true);
@@ -181,7 +181,7 @@ export const AuthProvider = ({ children }) => {
       await AsyncStorage.setItem("user", JSON.stringify(user));
 
       // Configure axios defaults for future requests
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      
 
       return true;
     } catch (err) {
@@ -204,7 +204,7 @@ export const AuthProvider = ({ children }) => {
       });
 
       const { token, ...user } = response.data;
-
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       setCurrentUser(user);
       setToken(token);
       setIsAuthenticated(true);
@@ -213,7 +213,7 @@ export const AuthProvider = ({ children }) => {
       await AsyncStorage.setItem("user", JSON.stringify(user));
 
       // Configure axios defaults for future requests
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      
 
       return true;
     } catch (err) {
@@ -238,6 +238,7 @@ export const AuthProvider = ({ children }) => {
           }
         )
         .catch((err) => console.log(err.response?.data || err.message));
+        axios.defaults.headers.common["Authorization"] = null;
       setCurrentUser(null);
       setToken(null);
       setIsAuthenticated(false);

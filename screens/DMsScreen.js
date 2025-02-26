@@ -31,7 +31,7 @@ import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
 import { StatusBar } from "expo-status-bar";
 import MessageItem from "../components/MessageItem";
-import bgImage from "../images/code_bg.png";
+import bgImage from "../images/backImage.jpeg";
 import ViewPostScreen from "./ViewPostScreen";
 import ImageViewer from "../utils/imageViewer";
 import * as NavigationBar from "expo-navigation-bar";
