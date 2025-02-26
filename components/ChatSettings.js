@@ -51,9 +51,9 @@ export default function ChatSettings({
           <Ionicons name="close" size={30} color={theme.textPrimary} />
         </TouchableOpacity>
       </View>
-      <ScrollView 
-      style={styles.scrollContent}
-      showsVerticalScrollIndicator={false}
+      <ScrollView
+        style={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
       >
         <View style={styles.contentContainer}>
           <Image
@@ -99,71 +99,70 @@ export default function ChatSettings({
             </Text>
           </TouchableOpacity>
         </View>
-      
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: theme.textPrimary,
-            alignSelf: "center",
-          },
-        ]}
-      >
-        Background Images
-      </Text>
-      <View
-        style={styles.settingsSection}
-      >
-        {backgroundImages.map(
-          (image) =>
-            image.id && (
-              <TouchableOpacity
-                key={image?.id}
-                style={styles.settingItem}
-                onPress={() => changeBackground(image?.id)}
-                activeOpacity={background?.id === image?.id ? 1 : 0.7}
-              >
-                <View
-                  style={[
-                    styles.imageBox,
-                    background?.id === image?.id && {
-                      borderWidth: 2,
-                      borderColor: theme.primary,
-                    },
-                  ]}
+
+        <Text
+          style={[
+            styles.sectionTitle,
+            {
+              color: theme.textPrimary,
+              alignSelf: "center",
+            },
+          ]}
+        >
+          Background Images
+        </Text>
+        <View style={styles.settingsSection}>
+          {backgroundImages.map(
+            (image) =>
+              image.id && (
+                <TouchableOpacity
+                  key={image?.id}
+                  style={styles.settingItem}
+                  onPress={() => changeBackground(image?.id)}
+                  activeOpacity={background?.id === image?.id ? 1 : 0.7}
                 >
-                  <Image
-                    source={image.image}
+                  <View
                     style={[
-                      styles.image,
+                      styles.imageBox,
                       background?.id === image?.id && {
-                        opacity: 0.5,
+                        borderWidth: 2,
+                        borderColor: theme.primary,
                       },
                     ]}
-                    cachePolicy={"memory-disk"}
-                  />
-                  {background?.id === image?.id && (
-                    <Ionicons
-                      name="checkmark-circle"
-                      size={40}
-                      color={theme.primary}
-                      style={{
-                        alignSelf: "center",
-                      }}
+                  >
+                    <Image
+                      source={image.image}
+                      style={[
+                        styles.image,
+                        background?.id === image?.id && {
+                          opacity: 0.5,
+                        },
+                      ]}
+                      cachePolicy={"memory-disk"}
                     />
-                  )}
-                </View>
-              </TouchableOpacity>
-            )
-        )}
-      </View>
-</ScrollView>
+                    {background?.id === image?.id && (
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={40}
+                        color={theme.primary}
+                        style={{
+                          alignSelf: "center",
+                        }}
+                      />
+                    )}
+                  </View>
+                </TouchableOpacity>
+              )
+          )}
+        </View>
+      </ScrollView>
       <Modal
         animationType="slide"
         transparent
         visible={showUserProfile}
         onRequestClose={() => setShowUserProfile(false)}
-        statusBarTranslucent
+        statusBarTranslucent={true}
+        hardwareAccelerated={true}
       >
         <ViewUserOProfile
           user={OtherUser}
@@ -237,7 +236,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   settingsSection: {
-    flex:1
+    flex: 1,
   },
   sectionTitle: {
     fontSize: 18,
