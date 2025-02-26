@@ -1,4 +1,4 @@
-import { useContext, createContext, useLayoutEffect,useState } from "react";
+import { useContext, createContext, useLayoutEffect,useState, useRef } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useMessage } from "./MessageContext";
 
@@ -40,6 +40,7 @@ const convoMap = new Map();
 export const BackgroundProvider = ({ children }) => {
   const { conversations } = useMessage();
   const [ran, setRan] = useState(false);
+  const convoMap = useRef(new Map()).current;
   const getBackgroundsForAllConvos = async (conversations) => {
     try {
       const bgImages = await AsyncStorage.multiGet(
