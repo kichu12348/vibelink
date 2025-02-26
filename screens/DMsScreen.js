@@ -3,7 +3,6 @@ import React, {
   useState,
   useRef,
   useLayoutEffect,
-  use,
 } from "react";
 import {
   View,
@@ -32,12 +31,13 @@ import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
 import { StatusBar } from "expo-status-bar";
 import MessageItem from "../components/MessageItem";
-import bgImage from "../images/backImage.jpeg";
+import bgImage from "../images/code_bg.png";
 import ViewPostScreen from "./ViewPostScreen";
 import ImageViewer from "../utils/imageViewer";
 import * as NavigationBar from "expo-navigation-bar";
-import ViewUserOProfile from "../utils/ViewUserOProfile";
 import { useTheme } from "../context/ThemeContext";
+import ChatSettings from "../components/ChatSettings";
+import { useBackground } from "../context/ChatBackgroundContext";
 
 const defaultAvatar =
   "https://storage.googleapis.com/vibelink-pub-bucket2/default-user.webp";
@@ -100,7 +100,6 @@ const TypingIndicator = () => {
 };
 
 export default function DMsScreen({ route, navigation }) {
-  navigation.on;
   const { conversationId, receiverId, username, profileImage } = route.params;
   const {
     messages,
@@ -116,6 +115,7 @@ export default function DMsScreen({ route, navigation }) {
   } = useMessage();
   const { currentUser } = useAuth();
   const [text, setText] = useState("");
+  const {getBackgroundImage}=useBackground();
   const [imageUri, setImageUri] = useState("");
   const [postModalVisible, setPostModalVisible] = useState(false);
   const [postContent, setPostContent] = useState(null);
@@ -131,6 +131,7 @@ export default function DMsScreen({ route, navigation }) {
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
+  const [backgroundImage, setBackgroundImage] = useState(null);
 
   const { theme } = useTheme();
 
@@ -164,6 +165,15 @@ export default function DMsScreen({ route, navigation }) {
       hideNavigationBar();
     };
   }, []);
+
+
+  useLayoutEffect(()=>{
+    if(conversationId){
+      getBackgroundImage(conversationId).then((image)=>{
+        setBackgroundImage(image);
+      });
+    }
+  },[conversationId]);
 
   async function initialFetch(conversationId) {
     if (loading) return;
@@ -308,7 +318,7 @@ export default function DMsScreen({ route, navigation }) {
   const BackgroundComponent = React.useMemo(
     () => (
       <Image
-        source={bgImage}
+        source={backgroundImage?.image||bgImage}
         style={{
           flex: 1,
           ...StyleSheet.absoluteFillObject,
@@ -316,7 +326,7 @@ export default function DMsScreen({ route, navigation }) {
         contentFit="cover"
       />
     ),
-    []
+    [backgroundImage]
   );
 
   // Memoize the input container blur view
@@ -802,13 +812,14 @@ export default function DMsScreen({ route, navigation }) {
           navigationBarTranslucent
         >
           {activeChat && (
-            <ViewUserOProfile
-              user={
-                activeChat?.participants.find(
-                  (p) => p.user._id !== currentUser._id
-                )?.user
-              }
+            <ChatSettings
+              OtherUser={activeChat?.participants.find(
+                (p) => p.user._id !== currentUser._id
+              )?.user}
               close={() => setShowUserProfile(false)}
+              chat={activeChat}
+              setBackground={setBackgroundImage}
+              background={backgroundImage}
             />
           )}
         </Modal>

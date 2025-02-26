@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { memo, useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -30,6 +30,43 @@ import { useNavigation } from "@react-navigation/native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { useJournal } from "../context/JournalContext";
+
+const PinBox = memo(({ num, setUpPin, theme, isKeysDisabled }) => {
+  return (
+    <View
+      style={{
+        width: "80%",
+        aspectRatio: 1,
+      }}
+    >
+      {/* Number grid container */}
+      <View style={styles.pinKeysContainer}>
+        {[1, 2, 3, 4, 5, 6, 7, 8, 9, "⌫", 0, "->"].map((num, index) => (
+          <TouchableOpacity
+            key={index}
+            style={[styles.pinKey, { backgroundColor: theme.card }]}
+            onPress={() => num !== null && setUpPin(num)}
+            disabled={isKeysDisabled}
+          >
+            {num === "->" ? (
+              <Ionicons name="arrow-forward" size={24} color="white" />
+            ) : (
+              <Text
+                style={{
+                  color: theme.textPrimary,
+                  fontSize: 24,
+                  fontWeight: "bold",
+                }}
+              >
+                {num}
+              </Text>
+            )}
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+  );
+});
 
 const RenderPost = ({
   post,
@@ -255,7 +292,10 @@ export default function AccountScreen() {
             );
             setIsKeysDisabled(true);
             setTimeout(async () => {
-              await AsyncStorage.setItem("journalToken",readInPin.join("")).then(async () => {
+              await AsyncStorage.setItem(
+                "journalToken",
+                readInPin.join("")
+              ).then(async () => {
                 await AsyncStorage.removeItem("journals");
                 setJournalToken(readInPin.join(""));
                 setIsJournalLoggedIn(true);
@@ -278,7 +318,7 @@ export default function AccountScreen() {
       }
       setOpenPersonalIdentificationNumberModal(false);
       setIsJournalLoggedIn(true);
-      ShowErrorPin(null)
+      ShowErrorPin(null);
       navigation.navigate("Journal");
       return;
     }
@@ -662,12 +702,14 @@ export default function AccountScreen() {
             },
           ]}
           tint="dark"
+          experimentalBlurMethod="dimezisBlurView"
+          blurReductionFactor={16}
         >
           <View
             style={[
               styles.pinContainer,
               {
-                paddingBottom: insets.bottom,
+                paddingBottom: insets.bottom+20,
                 backgroundColor: theme.background,
               },
             ]}
@@ -708,35 +750,11 @@ export default function AccountScreen() {
                 </Text>
               ))}
             </View>
-
-            <View
-              style={{
-                width: "80%",
-                aspectRatio: 1,
-              }}
-            >
-              {/* Number grid container */}
-              <View style={styles.pinKeysContainer}>
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, "⌫", 0, "->"].map((num, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    style={[styles.pinKey, { backgroundColor: theme.card }]}
-                    onPress={() => num !== null && setUpPin(num)}
-                    disabled={isKeysDisabled}
-                  >
-                    <Text
-                      style={{
-                        color: theme.textPrimary,
-                        fontSize: 24,
-                        fontWeight: "bold",
-                      }}
-                    >
-                      {num}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
+            <PinBox
+              setUpPin={setUpPin}
+              theme={theme}
+              isKeysDisabled={isKeysDisabled}
+            />
           </View>
         </BlurView>
       </Modal>
@@ -978,7 +996,7 @@ const styles = StyleSheet.create({
   },
   pinContainer: {
     width: "100%",
-    height: "70%",
+    height: "72%",
     alignItems: "center",
     justifyContent: "flex-end",
     gap: 30,

@@ -227,9 +227,20 @@ export default function TabNavigator({ navigation }) {
           headerShown: false,
         }}
       >
-        <Stack.Screen name="Tabs" component={Tabs} />
-        <Stack.Screen name="DMs" component={AllChatsScreen} />
-        <Stack.Screen name="single-chat" component={DMsScreen} />
+        <Stack.Screen
+          name="Tabs"
+          component={Tabs}
+          options={{ detachPreviousScreen: false }}
+        />
+        <Stack.Screen
+          name="DMs"
+          component={AllChatsScreen}
+          options={{ detachPreviousScreen: false }}
+        />
+        <Stack.Screen
+          name="single-chat"
+          component={DMsScreen}
+        />
         <Stack.Screen name="Journal" component={JournalScreen} />
         <Stack.Screen name="ViewJournal" component={ViewJournalScreen} />
       </Stack.Navigator>

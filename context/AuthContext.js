@@ -29,7 +29,7 @@ export const AuthProvider = ({ children }) => {
     const journalToken = await AsyncStorage.getItem("journalToken");
 
     if (journalToken) setJournalToken(journalToken);
-    
+
     if (token) {
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       const localUser = JSON.parse(await AsyncStorage.getItem("user"));
@@ -56,6 +56,14 @@ export const AuthProvider = ({ children }) => {
           setIsAuthenticated(true);
         } catch (err) {
           showError(err.response?.data?.message || err.message);
+          if (err.response?.status === 401) {
+            // Unauthorized
+            setIsAuthenticated(false);
+            setCurrentUser(null);
+            setToken(null);
+            await AsyncStorage.removeItem("token");
+            await AsyncStorage.removeItem("user");
+          }
         }
       }
     }

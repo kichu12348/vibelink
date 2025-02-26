@@ -213,6 +213,7 @@ const ViewUserOProfile = ({ user: viewingUser, close }) => {
     modalContainer: {
       flex: 1,
       backgroundColor: theme.background,
+      paddingTop: insets.top,
     },
     topBar: {
       flexDirection: "row",
@@ -398,11 +399,11 @@ const ViewUserOProfile = ({ user: viewingUser, close }) => {
   return (
     <SafeAreaView style={styles.modalContainer}>
       <View style={styles.topBar}>
+        <View style={styles.placeholder} />
+        <Text style={styles.topBarUsername}>{user.username}</Text>
         <TouchableOpacity style={styles.closeButton} onPress={close}>
           <Ionicons name="close" size={30} color={theme.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.topBarUsername}>{user.username}</Text>
-        <View style={styles.placeholder} />
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -526,21 +527,22 @@ const ViewUserOProfile = ({ user: viewingUser, close }) => {
         >
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
-                {followModalType === "followers" ? "Followers" : "Following"}
-              </Text>
               <TouchableOpacity
                 style={styles.modalCloseButton}
                 onPress={() => setShowFollowModal(false)}
               >
-                <Ionicons name="close" size={24} color={theme.textPrimary} />
+                <Ionicons name="close" size={30} color={theme.textPrimary} />
               </TouchableOpacity>
+              <Text style={styles.modalTitle}>
+                {followModalType === "followers" ? "Followers" : "Following"}
+              </Text>
             </View>
             <FlatList
               data={modalUsers}
               renderItem={renderUserItem}
               keyExtractor={(item) => item._id}
               contentContainerStyle={styles.userList}
+              showsVerticalScrollIndicator={false}
             />
           </View>
         </View>

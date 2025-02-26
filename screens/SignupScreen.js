@@ -10,9 +10,11 @@ import {
 import { colors, fontSizes } from "../constants/primary";
 import { globalStyles } from "../constants/styles";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 
 export default function SignupScreen({ navigation }) {
   const { signUp, loading, error, setError } = useAuth();
+  const { theme } = useTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
@@ -33,51 +35,81 @@ export default function SignupScreen({ navigation }) {
   };
 
   return (
-    <View style={[globalStyles.container, styles.container]}>
-      <Text style={styles.title}>Create Account</Text>
-      <Text style={styles.subtitle}>Sign up to get started</Text>
+    <View
+      style={[
+        globalStyles.container,
+        styles.container,
+        { backgroundColor: theme.background },
+      ]}
+    >
+      <Text style={[styles.title, { color: theme.textPrimary }]}>
+        Create Account
+      </Text>
+      <Text style={[styles.subtitle, { color: theme.textPrimary }]}>
+        Sign up to get started
+      </Text>
 
       <View style={styles.form}>
         <TextInput
-          style={globalStyles.input}
+          style={[
+            globalStyles.input,
+            { color: theme.textPrimary, backgroundColor: theme.card },
+          ]}
           placeholder="Username"
-          placeholderTextColor={colors.textSecondary}
+          placeholderTextColor={theme.textSecondary}
           onChangeText={setUsername}
           value={username}
         />
         <TextInput
-          style={globalStyles.input}
+          style={[
+            globalStyles.input,
+            { color: theme.textPrimary, backgroundColor: theme.card },
+          ]}
           placeholder="Email"
-          placeholderTextColor={colors.textSecondary}
+          placeholderTextColor={theme.textSecondary}
           onChangeText={setEmail}
           value={email}
           keyboardType="email-address"
           autoCapitalize="none"
         />
         <TextInput
-          style={globalStyles.input}
+          style={[
+            globalStyles.input,
+            { color: theme.textPrimary, backgroundColor: theme.card },
+          ]}
           placeholder="Password"
-          placeholderTextColor={colors.textSecondary}
+          placeholderTextColor={theme.textSecondary}
           onChangeText={setPassword}
           value={password}
           secureTextEntry
         />
 
-        {error && <Text style={styles.errorText}>{error}</Text>}
+        {error && (
+          <Text style={[styles.errorText, { color: theme.error }]}>
+            {error}
+          </Text>
+        )}
 
         <TouchableOpacity
           style={[
             globalStyles.button,
             styles.signupButton,
+            {
+              backgroundColor: theme.primary,
+            },
             loading && styles.disabledButton,
           ]}
           onPress={handleSignup}
           disabled={loading}
         >
           {loading ? (
-            <ActivityIndicator color={colors.textPrimary} />
+            <ActivityIndicator color={theme.textPrimary} />
           ) : (
-            <Text style={globalStyles.buttonText}>Create Account</Text>
+            <Text
+              style={[globalStyles.buttonText, { color: theme.textPrimary }]}
+            >
+              Create Account
+            </Text>
           )}
         </TouchableOpacity>
 
@@ -85,9 +117,11 @@ export default function SignupScreen({ navigation }) {
           onPress={() => navigation.goBack()}
           style={styles.loginLink}
         >
-          <Text style={styles.loginText}>
+          <Text style={[styles.loginText, { color: theme.textPrimary }]}>
             Already have an account?{" "}
-            <Text style={styles.loginTextBold}>Login</Text>
+            <Text style={[styles.loginTextBold, { color: theme.primary }]}>
+              Login
+            </Text>
           </Text>
         </TouchableOpacity>
       </View>
@@ -101,7 +135,6 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: fontSizes.xxl,
-    color: colors.textPrimary,
     fontWeight: "bold",
     marginBottom: 8,
   },

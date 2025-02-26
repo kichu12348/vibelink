@@ -31,6 +31,7 @@ import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 import axios from "axios";
 import { endPoint } from "./constants/endpoints";
 import { JournalProvider } from "./context/JournalContext";
+import { BackgroundProvider } from "./context/ChatBackgroundContext";
 
 enableScreens();
 
@@ -287,12 +288,14 @@ export default function App() {
                 <MessageProvider>
                   <StoryProvider>
                     <JournalProvider>
-                      <StatusBar
-                        style="light"
-                        backgroundColor="transparent"
-                        translucent
-                      />
-                      <AppNavigator />
+                      <BackgroundProvider>
+                        <StatusBar
+                          style="light"
+                          backgroundColor="transparent"
+                          translucent
+                        />
+                        <AppNavigator />
+                      </BackgroundProvider>
                     </JournalProvider>
                   </StoryProvider>
                 </MessageProvider>

@@ -35,8 +35,9 @@ import bgImage from "../images/backImage.jpeg";
 import ViewPostScreen from "../screens/ViewPostScreen";
 import ImageViewer from "../utils/imageViewer";
 import * as NavigationBar from "expo-navigation-bar";
-import ViewUserOProfile from "../utils/ViewUserOProfile";
 import { useTheme } from "../context/ThemeContext";
+import ChatSettings from "./ChatSettings";
+import {useBackground} from "../context/ChatBackgroundContext";
 
 const defaultAvatar =
   "https://storage.googleapis.com/vibelink-pub-bucket2/default-user.webp";
@@ -112,6 +113,7 @@ export default function DMsModal({ close, params }) {
     deleteImageFromServer,
   } = useMessage();
   const { currentUser } = useAuth();
+  const {getBackgroundImage}=useBackground();
   const [text, setText] = useState("");
   const [imageUri, setImageUri] = useState("");
   const [postModalVisible, setPostModalVisible] = useState(false);
@@ -128,6 +130,8 @@ export default function DMsModal({ close, params }) {
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
+  const [backgroundImage, setBackgroundImage] = useState(null);
+  
 
   const { theme } = useTheme();
 
@@ -161,6 +165,15 @@ export default function DMsModal({ close, params }) {
       hideNavigationBar();
     };
   }, []);
+
+
+  useLayoutEffect(()=>{
+      if(conversationId){
+        getBackgroundImage(conversationId).then((image)=>{
+          setBackgroundImage(image);
+        });
+      }
+    },[conversationId]);
 
   async function initialFetch(conversationId) {
     if (loading) return;
@@ -287,7 +300,7 @@ export default function DMsModal({ close, params }) {
   const BackgroundComponent = React.useMemo(
     () => (
       <Image
-        source={bgImage}
+        source={backgroundImage?.image || bgImage}
         style={{
           flex: 1,
           ...StyleSheet.absoluteFillObject,
@@ -295,7 +308,7 @@ export default function DMsModal({ close, params }) {
         contentFit="cover"
       />
     ),
-    []
+    [backgroundImage]
   );
 
   // Memoize the input container blur view
@@ -350,6 +363,7 @@ export default function DMsModal({ close, params }) {
     return activeChat?.participants.find((p) => p.user._id !== currentUser._id)
       .user;
   }, [activeChat]);
+
 
   const TYPING_DELAY_MS = 2000;
   let lastTypingTime = 0;
@@ -779,13 +793,12 @@ export default function DMsModal({ close, params }) {
           navigationBarTranslucent={true}
         >
           {activeChat && (
-            <ViewUserOProfile
-              user={
-                activeChat?.participants.find(
-                  (p) => p.user._id !== currentUser._id
-                )?.user
-              }
-              close={() => setShowUserProfile(false)}
+            <ChatSettings 
+            OtherUser={otherParticipant}
+            close={() => setShowUserProfile(false)}
+            chat={activeChat}
+            setBackground={setBackgroundImage}
+            background={backgroundImage}
             />
           )}
         </Modal>

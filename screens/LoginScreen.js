@@ -11,9 +11,11 @@ import {
 import { colors, fontSizes } from "../constants/primary";
 import { globalStyles } from "../constants/styles";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 
 export default function LoginScreen({ navigation }) {
   const { signIn, loading, error } = useAuth();
+  const { theme } = useTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -33,30 +35,50 @@ export default function LoginScreen({ navigation }) {
   };
 
   return (
-    <View style={[globalStyles.container, styles.container]}>
-      <Text style={styles.title}>Welcome Back</Text>
-      <Text style={styles.subtitle}>Login to continue</Text>
+    <View
+      style={[
+        globalStyles.container,
+        styles.container,
+        { backgroundColor: theme.background },
+      ]}
+    >
+      <Text style={[styles.title, { color: theme.textPrimary }]}>
+        Welcome Back
+      </Text>
+      <Text style={[styles.subtitle, { color: theme.textPrimary }]}>
+        Login to continue
+      </Text>
 
       <View style={styles.form}>
         {error && (
           <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
+            <Text style={[styles.errorText, { color: theme.error }]}>
+              {error}
+            </Text>
           </View>
         )}
 
         <TextInput
-          style={[globalStyles.input, error && styles.inputError]}
+          style={[
+            globalStyles.input,
+            { backgroundColor: theme.card, color: theme.textPrimary },
+            error && { ...styles.inputError, borderColor: theme.error },
+          ]}
           placeholder="Email"
-          placeholderTextColor={colors.textSecondary}
+          placeholderTextColor={theme.textSecondary}
           onChangeText={setEmail}
           value={email}
           autoCapitalize="none"
           keyboardType="email-address"
         />
         <TextInput
-          style={[globalStyles.input, error && styles.inputError]}
+          style={[
+            globalStyles.input,
+            { backgroundColor: theme.card, color: theme.textPrimary },
+            error && { ...styles.inputError, borderColor: theme.error },
+          ]}
           placeholder="Password"
-          placeholderTextColor={colors.textSecondary}
+          placeholderTextColor={theme.textSecondary}
           onChangeText={setPassword}
           value={password}
           secureTextEntry
@@ -66,24 +88,47 @@ export default function LoginScreen({ navigation }) {
           style={[
             globalStyles.button,
             styles.loginButton,
+            {
+              backgroundColor: theme.primary,
+              borderColor: theme.primary,
+              shadowColor: theme.primary,
+            },
             loading && styles.disabledButton,
           ]}
           onPress={handleLogin}
           disabled={loading}
         >
           {loading ? (
-            <ActivityIndicator color={colors.textPrimary} />
+            <ActivityIndicator color={theme.textPrimary} />
           ) : (
-            <Text style={globalStyles.buttonText}>Login</Text>
+            <Text
+              style={[
+                globalStyles.buttonText,
+                {
+                  color: theme.textPrimary,
+                },
+              ]}
+            >
+              Login
+            </Text>
           )}
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => navigation.navigate("Signup")}
           style={styles.signupLink}
         >
-          <Text style={styles.signupText}>
+          <Text style={[styles.signupText, { color: theme.textSecondary }]}>
             Don't have an account?{" "}
-            <Text style={styles.signupTextBold}>Sign up</Text>
+            <Text
+              style={[
+                styles.signupTextBold,
+                {
+                  color: theme.primary,
+                },
+              ]}
+            >
+              Sign up
+            </Text>
           </Text>
         </TouchableOpacity>
       </View>
@@ -110,11 +155,9 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   loginButton: {
-    backgroundColor: colors.primary,
     marginTop: 16,
     ...Platform.select({
       ios: {
-        ShadowColor: colors.primary,
         ShadowOffset: { width: 0, height: 4 },
         ShadowOpacity: 0.3,
         ShadowRadius: 10,
@@ -140,7 +183,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   inputError: {
-    borderColor: colors.error,
     borderWidth: 1,
   },
   testButton: {

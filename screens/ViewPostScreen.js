@@ -22,11 +22,18 @@ import { socket } from "../constants/endpoints"; // Add this import
 import * as Notifications from "expo-notifications"; // Add this import
 import ImageViewer from "../utils/imageViewer";
 import { useTheme } from "../context/ThemeContext";
+import ViewUserOProfile from "../utils/ViewUserOProfile";
 
 const defaultAvatar =
   "https://storage.googleapis.com/vibelink-pub-bucket2/default-user.webp";
 
-const Comment = ({ comment, postId, setComments, theme }) => {
+const Comment = ({
+  comment,
+  postId,
+  setComments,
+  theme,
+  handleOpenUserModal,
+}) => {
   const [showReplyInput, setShowReplyInput] = useState(false);
   const { currentUser } = useAuth();
   const [replyContent, setReplyContent] = useState("");
@@ -65,7 +72,11 @@ const Comment = ({ comment, postId, setComments, theme }) => {
 
   return (
     <View style={styles.commentContainer}>
-      <View style={styles.commentHeader}>
+      <TouchableOpacity
+        style={styles.commentHeader}
+        onPress={() => handleOpenUserModal(comment?.user)}
+        disabled={comment?.user?._id === currentUser?._id}
+      >
         <Image
           source={{
             uri: comment.user.profileImage || defaultAvatar,
@@ -74,7 +85,7 @@ const Comment = ({ comment, postId, setComments, theme }) => {
           cachePolicy={"memory-disk"}
         />
         <Text style={styles.commentUsername}>{comment.user.username}</Text>
-      </View>
+      </TouchableOpacity>
       <Text style={styles.commentContent}>{comment.content}</Text>
 
       <TouchableOpacity
@@ -123,7 +134,11 @@ const Comment = ({ comment, postId, setComments, theme }) => {
 
       {comment.replies?.map((reply, index) => (
         <View key={index} style={styles.replyContainer}>
-          <View style={styles.commentHeader}>
+          <TouchableOpacity
+            style={styles.commentHeader}
+            onPress={() => handleOpenUserModal(reply?.user)}
+            disabled={reply?.user?._id === currentUser?._id}
+          >
             <Image
               source={{
                 uri: reply.user.profileImage || defaultAvatar,
@@ -132,7 +147,7 @@ const Comment = ({ comment, postId, setComments, theme }) => {
               cachePolicy={"memory-disk"}
             />
             <Text style={styles.replyUsername}>{reply.user.username}</Text>
-          </View>
+          </TouchableOpacity>
           <Text style={styles.replyContent}>{reply.content}</Text>
         </View>
       ))}
@@ -231,7 +246,9 @@ const ViewPostScreen = ({ post, close = () => {} }) => {
   const [likeCount, setLikeCount] = useState(post.likes?.length || 0);
   const [hasLiked, setHasLiked] = useState(hasLikedPost(post));
   const [showImageViewer, setShowImageViewer] = useState(false);
+  const [showUserModal, setShowUserModal] = useState(false);
   const [isLiking, setIsLiking] = useState(false);
+  const [user, setUser] = useState(null);
 
   const { theme } = useTheme();
 
@@ -243,6 +260,13 @@ const ViewPostScreen = ({ post, close = () => {} }) => {
       year: "numeric",
     });
   }, [post.createdAt]);
+
+
+  const handleOpenUserModal = (user) => {
+    if(!user || user._id === currentUser._id) return;
+    setUser(user);
+    setShowUserModal(true);
+  };
 
   // Add useEffect to update comments when post changes
   useEffect(() => {
@@ -367,14 +391,19 @@ const ViewPostScreen = ({ post, close = () => {} }) => {
         >
           <View style={styles.postContainer}>
             <View style={styles.postHeader}>
-              <Image
-                source={{
-                  uri: post.user?.profileImage || defaultAvatar,
-                }}
-                style={styles.avatar}
-                cachePolicy={"memory-disk"}
-              />
-              <Text style={styles.username}>{post.user?.username || ""}</Text>
+              <TouchableOpacity
+                style={styles.postHeaderUserButton}
+                onPress={() => handleOpenUserModal(post.user)}
+              >
+                <Image
+                  source={{
+                    uri: post.user?.profileImage || defaultAvatar,
+                  }}
+                  style={styles.avatar}
+                  cachePolicy={"memory-disk"}
+                />
+                <Text style={styles.username}>{post.user?.username || ""}</Text>
+              </TouchableOpacity>
             </View>
 
             <Text style={styles.content}>{post.content}</Text>
@@ -452,6 +481,7 @@ const ViewPostScreen = ({ post, close = () => {} }) => {
                 postId={post._id}
                 setComments={setComments}
                 theme={theme}
+                handleOpenUserModal={handleOpenUserModal}
               />
             ))}
           </View>
@@ -500,6 +530,19 @@ const ViewPostScreen = ({ post, close = () => {} }) => {
             close={() => setShowImageViewer(false)}
           />
         </Modal>
+        <Modal
+          visible={showUserModal}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setShowUserModal(false)}
+        >
+          {user && (
+            <ViewUserOProfile
+              user={user}
+              close={() => setShowUserModal(false)}
+            />
+          )}
+        </Modal>
       </KeyboardAvoidingView>
     </View>
   );
@@ -519,6 +562,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 12,
+  },
+  postHeaderUserButton: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   avatar: {
     width: 40,
@@ -656,7 +703,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-end",
     alignItems: "center",
-    padding: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
   modalOverlay: {
     flex: 1,
