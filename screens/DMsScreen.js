@@ -38,6 +38,7 @@ import * as NavigationBar from "expo-navigation-bar";
 import { useTheme } from "../context/ThemeContext";
 import ChatSettings from "../components/ChatSettings";
 import { useBackground } from "../context/ChatBackgroundContext";
+import ViewUserOProfile from "../utils/ViewUserOProfile";
 
 const defaultAvatar =
   "https://storage.googleapis.com/vibelink-pub-bucket2/default-user.webp";
@@ -318,7 +319,8 @@ export default function DMsScreen({ route, navigation }) {
   const BackgroundComponent = React.useMemo(
     () => (
       <Image
-        source={backgroundImage?.image||bgImage}
+        // source={backgroundImage?.image||bgImage}
+        source={bgImage}
         style={{
           flex: 1,
           ...StyleSheet.absoluteFillObject,
@@ -326,7 +328,7 @@ export default function DMsScreen({ route, navigation }) {
         contentFit="cover"
       />
     ),
-    [backgroundImage]
+    []
   );
 
   // Memoize the input container blur view
@@ -812,14 +814,20 @@ export default function DMsScreen({ route, navigation }) {
           navigationBarTranslucent
         >
           {activeChat && (
-            <ChatSettings
-              OtherUser={activeChat?.participants.find(
+            // <ChatSettings
+            //   OtherUser={activeChat?.participants.find(
+            //     (p) => p.user._id !== currentUser._id
+            //   )?.user}
+            //   close={() => setShowUserProfile(false)}
+            //   chat={activeChat}
+            //   setBackground={setBackgroundImage}
+            //   background={backgroundImage}
+            // />
+            <ViewUserOProfile
+              user={activeChat?.participants.find(
                 (p) => p.user._id !== currentUser._id
               )?.user}
               close={() => setShowUserProfile(false)}
-              chat={activeChat}
-              setBackground={setBackgroundImage}
-              background={backgroundImage}
             />
           )}
         </Modal>

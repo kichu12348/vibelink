@@ -38,6 +38,7 @@ import * as NavigationBar from "expo-navigation-bar";
 import { useTheme } from "../context/ThemeContext";
 import ChatSettings from "./ChatSettings";
 import {useBackground} from "../context/ChatBackgroundContext";
+import ViewUserOProfile from "../utils/ViewUserOProfile";
 
 const defaultAvatar =
   "https://storage.googleapis.com/vibelink-pub-bucket2/default-user.webp";
@@ -300,7 +301,8 @@ export default function DMsModal({ close, params }) {
   const BackgroundComponent = React.useMemo(
     () => (
       <Image
-        source={backgroundImage?.image || bgImage}
+        // source={backgroundImage?.image || bgImage}
+        source={bgImage}
         style={{
           flex: 1,
           ...StyleSheet.absoluteFillObject,
@@ -793,12 +795,16 @@ export default function DMsModal({ close, params }) {
           navigationBarTranslucent={true}
         >
           {activeChat && (
-            <ChatSettings 
-            OtherUser={otherParticipant}
-            close={() => setShowUserProfile(false)}
-            chat={activeChat}
-            setBackground={setBackgroundImage}
-            background={backgroundImage}
+            // <ChatSettings 
+            // OtherUser={otherParticipant}
+            // close={() => setShowUserProfile(false)}
+            // chat={activeChat}
+            // setBackground={setBackgroundImage}
+            // background={backgroundImage}
+            // />
+            <ViewUserOProfile
+              user={otherParticipant}
+              close={() => setShowUserProfile(false)}
             />
           )}
         </Modal>
