@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useMemo, useState } from "react";
+import React, { memo, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   Modal,
   FlatList,
   Animated,
+  Alert,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { colors } from "../constants/primary";
@@ -395,7 +396,8 @@ export default function AccountScreen() {
       setIsSaving(false);
       await AsyncStorage.setItem("user", JSON.stringify(currentUser));
     } catch (err) {
-      showError(err.response?.data?.message || err.message);
+      const errorMessage= (err.response?.data?.message || err.message);
+      Alert.alert("Error: ", errorMessage);
       setIsSaving(false);
     }
   };
