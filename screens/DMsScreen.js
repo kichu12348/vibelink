@@ -390,6 +390,7 @@ export default function DMsScreen({ route, navigation }) {
         userId: currentUser._id,
         activeId: activeChat._id,
       });
+      fetchMessages(conversationId);
     }
     appState.current = nextAppState;
   };

@@ -361,6 +361,7 @@ export default function DMsModal({ close, params }) {
         userId: currentUser._id,
         activeId: activeChat._id,
       });
+      fetchMessages(conversationId);
     }
     appState.current = nextAppState;
   };

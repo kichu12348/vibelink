@@ -258,6 +258,7 @@ export function MessageProvider({ children }) {
               setMessages((prev) => {
                 return [...prev, ...filteredData];
               });
+              messagesMap.current.set(conversationId, [...hasMessagesInMap, ...filteredData]);
             }
           }
           return hasMessagesInMap;
