@@ -57,14 +57,14 @@ export const BackgroundProvider = ({ children }) => {
     }
   };
 
-  useLayoutEffect(() => {
-    if (ran) return;
-    getBackgroundsForAllConvos(conversations).then(() => setRan(true));
+  // useLayoutEffect(() => {
+  //   if (ran) return;
+  //   getBackgroundsForAllConvos(conversations).then(() => setRan(true));
 
-    return () => {
-      setRan(false);
-    };
-  }, [conversations]);
+  //   return () => {
+  //     setRan(false);
+  //   };
+  // }, [conversations]);
   const changeBackgroundImage = async (image, convoId) => {
     try {
       convoMap.set(`bg-${convoId}`, backgroundImages[image - 1]);
