@@ -43,6 +43,10 @@ import ViewUserOProfile from "../utils/ViewUserOProfile";
 const defaultAvatar =
   "https://storage.googleapis.com/vibelink-pub-bucket2/default-user.webp";
 
+  const backImageUri =
+  "https://storage.googleapis.com/vibelink-pub-bucket2/backImage.jpeg";
+
+
 const SpacerItem = () => <View style={styles.height} />;
 
 const TypingIndicator = () => {
@@ -168,13 +172,13 @@ export default function DMsScreen({ route, navigation }) {
   }, []);
 
 
-  useLayoutEffect(()=>{
-    if(conversationId){
-      getBackgroundImage(conversationId).then((image)=>{
-        setBackgroundImage(image);
-      });
-    }
-  },[conversationId]);
+  // useLayoutEffect(()=>{
+  //   if(conversationId){
+  //     getBackgroundImage(conversationId).then((image)=>{
+  //       setBackgroundImage(image);
+  //     });
+  //   }
+  // },[conversationId]);
 
   async function initialFetch(conversationId) {
     if (loading) return;
@@ -320,7 +324,10 @@ export default function DMsScreen({ route, navigation }) {
     () => (
       <Image
         // source={backgroundImage?.image||bgImage}
-        source={bgImage}
+        source={{
+          uri:backImageUri
+        }}
+        cachePolicy={"memory-disk"}
         style={{
           flex: 1,
           ...StyleSheet.absoluteFillObject,

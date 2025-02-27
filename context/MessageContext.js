@@ -65,6 +65,7 @@ export function MessageProvider({ children }) {
   const { currentUser, token } = useAuth();
   const [socket, setSocket] = useState(null);
   const [isDmsModalOpen, setIsDmsModalOpen] = useState(false);
+  const [isFetchingConversations, setIsFetchingConversations] = useState(false);
 
   const messagesMap = useRef(new Map());
 
@@ -178,20 +179,23 @@ export function MessageProvider({ children }) {
       //setConversations
       setConversations((prev) => {
         const idx = prev.findIndex((c) => c._id.toString() === conversationId);
-        const lastMessages = messagesMap.current.get(conversationId) // get last message from map
+        const lastMessages = messagesMap.current.get(conversationId); // get last message from map
         const newLastMessage = lastMessages[lastMessages.length - 1]; // get last message from map
         if (idx > -1) {
           prev[idx].lastMessage = newLastMessage;
           return prev;
         }
-      return prev;
+        return prev;
       });
       const checkIfMessageExistsInMap = messagesMap.current.get(conversationId);
       if (checkIfMessageExistsInMap) {
         const filteredMessages = checkIfMessageExistsInMap.filter(
           (m) => m._id !== messageId
         );
-        if(filteredMessages.length < 10) fetchMessages(conversationId).then(data => messagesMap.current.set(conversationId, data));
+        if (filteredMessages.length < 10)
+          fetchMessages(conversationId).then((data) =>
+            messagesMap.current.set(conversationId, data)
+          );
         else messagesMap.current.set(conversationId, filteredMessages);
       }
     });
@@ -208,6 +212,7 @@ export function MessageProvider({ children }) {
   // API functions
   const fetchConversations = useCallback(async () => {
     if (!token) return;
+    setIsFetchingConversations(true);
     try {
       const { data } = await axios.get(
         `${API_URL}/api/messages/conversations`,
@@ -216,14 +221,15 @@ export function MessageProvider({ children }) {
         }
       );
       setConversations(data);
-
-      data.map(async c=>{
-        const data = await fetchMessages(c._id);
-        messagesMap.current.set(c._id, data);
-      })
-
-
+      await Promise.all(
+        data.map(async (c) => {
+          const data = await fetchMessages(c._id, "nope", true);
+          messagesMap.current.set(c._id, data);
+        })
+      );
+      setIsFetchingConversations(false);
     } catch (error) {
+      setIsFetchingConversations(false);
       console.log(
         "Error fetching conversations:",
         error.response?.data || error.message
@@ -232,11 +238,28 @@ export function MessageProvider({ children }) {
   }, [token]);
 
   const fetchMessages = useCallback(
-    async (conversationId, topMessageId = "nope") => {
+    async (conversationId, topMessageId = "nope", mapFetch = false) => {
       if (topMessageId === "nope") {
         const hasMessagesInMap = messagesMap.current.get(conversationId);
         if (hasMessagesInMap) {
           setMessages(hasMessagesInMap);
+          //Check if there are messages in server that are not in map
+          if (!mapFetch) {
+            const { data } = await axios.get(
+              `${API_URL}/api/messages/${conversationId}/nope`,
+              {
+                headers: { Authorization: `Bearer ${token}` },
+              }
+            );
+            if (data.length > 0) {
+              filteredData = data.filter(
+                (m) => !hasMessagesInMap.some((m2) => m2._id.toString() === m._id.toString())
+              );
+              setMessages((prev) => {
+                return [...prev, ...filteredData];
+              });
+            }
+          }
           return hasMessagesInMap;
         }
       }
@@ -343,7 +366,7 @@ export function MessageProvider({ children }) {
         const filteredMessages = prev.filter(
           (m) => m._id.toString() !== messageId
         );
-        messagesMap.current.set(activeChat._id,filteredMessages);
+        messagesMap.current.set(activeChat._id, filteredMessages);
         return filteredMessages;
       });
     } catch (error) {
@@ -408,6 +431,7 @@ export function MessageProvider({ children }) {
         isDmsModalOpen,
         setIsDmsModalOpen,
         deleteImageFromServer,
+        isFetchingConversations,
       }}
     >
       {children}

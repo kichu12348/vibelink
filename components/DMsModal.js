@@ -37,11 +37,14 @@ import ImageViewer from "../utils/imageViewer";
 import * as NavigationBar from "expo-navigation-bar";
 import { useTheme } from "../context/ThemeContext";
 import ChatSettings from "./ChatSettings";
-import {useBackground} from "../context/ChatBackgroundContext";
+import { useBackground } from "../context/ChatBackgroundContext";
 import ViewUserOProfile from "../utils/ViewUserOProfile";
 
 const defaultAvatar =
   "https://storage.googleapis.com/vibelink-pub-bucket2/default-user.webp";
+
+const backImageUri =
+  "https://storage.googleapis.com/vibelink-pub-bucket2/backImage.jpeg";
 
 const SpacerItem = () => <View style={styles.height} />;
 
@@ -114,7 +117,7 @@ export default function DMsModal({ close, params }) {
     deleteImageFromServer,
   } = useMessage();
   const { currentUser } = useAuth();
-  const {getBackgroundImage}=useBackground();
+  const { getBackgroundImage } = useBackground();
   const [text, setText] = useState("");
   const [imageUri, setImageUri] = useState("");
   const [postModalVisible, setPostModalVisible] = useState(false);
@@ -132,7 +135,6 @@ export default function DMsModal({ close, params }) {
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [backgroundImage, setBackgroundImage] = useState(null);
-  
 
   const { theme } = useTheme();
 
@@ -167,14 +169,13 @@ export default function DMsModal({ close, params }) {
     };
   }, []);
 
-
-  useLayoutEffect(()=>{
-      if(conversationId){
-        getBackgroundImage(conversationId).then((image)=>{
-          setBackgroundImage(image);
-        });
-      }
-    },[conversationId]);
+  // useLayoutEffect(() => {
+  //   if (conversationId) {
+  //     getBackgroundImage(conversationId).then((image) => {
+  //       setBackgroundImage(image);
+  //     });
+  //   }
+  // }, [conversationId]);
 
   async function initialFetch(conversationId) {
     if (loading) return;
@@ -302,7 +303,10 @@ export default function DMsModal({ close, params }) {
     () => (
       <Image
         // source={backgroundImage?.image || bgImage}
-        source={bgImage}
+        source={{
+          uri:backImageUri,
+        }}
+        cachePolicy={"memory-disk"}
         style={{
           flex: 1,
           ...StyleSheet.absoluteFillObject,
@@ -365,7 +369,6 @@ export default function DMsModal({ close, params }) {
     return activeChat?.participants.find((p) => p.user._id !== currentUser._id)
       .user;
   }, [activeChat]);
-
 
   const TYPING_DELAY_MS = 2000;
   let lastTypingTime = 0;
@@ -795,7 +798,7 @@ export default function DMsModal({ close, params }) {
           navigationBarTranslucent={true}
         >
           {activeChat && (
-            // <ChatSettings 
+            // <ChatSettings
             // OtherUser={otherParticipant}
             // close={() => setShowUserProfile(false)}
             // chat={activeChat}

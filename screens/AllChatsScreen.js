@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TextInput,
   FlatList,
+  RefreshControl,
 } from "react-native";
 import {
   SafeAreaView,
@@ -19,8 +20,14 @@ import { useTheme } from "../context/ThemeContext";
 import RenderItem from "../components/allChatRenderList";
 
 const AllChatsScreen = ({ navigation }) => {
-  const { conversations, setActiveChat, searchUsers, setMessages } =
-    useMessage();
+  const {
+    conversations,
+    setActiveChat,
+    searchUsers,
+    setMessages,
+    fetchConversations,
+    isFetchingConversations,
+  } = useMessage();
   const { currentUser } = useAuth(); // Move this hook to component level
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -233,6 +240,15 @@ const AllChatsScreen = ({ navigation }) => {
           maxToRenderPerBatch={10}
           windowSize={10}
           initialNumToRender={10}
+          refreshControl={
+            <RefreshControl
+              refreshing={isFetchingConversations}
+              onRefresh={fetchConversations}
+              colors={[theme.primary]}
+              tintColor={theme.primary}
+              progressBackgroundColor={theme.background}
+            />
+          }
         />
       )}
     </SafeAreaView>
