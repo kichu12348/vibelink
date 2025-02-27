@@ -398,6 +398,9 @@ export default function AccountScreen() {
     } catch (err) {
       const errorMessage= (err.response?.data?.message || err.message);
       Alert.alert("Error: ", errorMessage);
+      setEditBio(currentUser?.bio);
+      setEditUsername(currentUser?.username);
+      setEditImage(currentUser?.profileImage);
       setIsSaving(false);
     }
   };
