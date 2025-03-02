@@ -1,6 +1,6 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { createStackNavigator } from "@react-navigation/stack";
+import { createStackNavigator, TransitionPresets } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
 import HomeScreen from "../screens/HomeScreen";
 import SearchScreen from "../screens/SearchScreen";
@@ -225,6 +225,9 @@ export default function TabNavigator({ navigation }) {
       <Stack.Navigator
         screenOptions={{
           headerShown: false,
+          ...TransitionPresets.SlideFromRightIOS,
+          gestureEnabled: true,
+          gestureDirection: "horizontal",
         }}
       >
         <Stack.Screen

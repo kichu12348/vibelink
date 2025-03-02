@@ -31,7 +31,7 @@ const RenderItem = memo(
           source={{ uri: user.profileImage || defaultAvatar }}
           style={styles.avatar}
           cachePolicy={"memory-disk"}
-          transition={200}
+          transition={200} // Fade in the image
         />
         <View style={styles.chatInfo}>
           <Text style={styles.username}>{user.username}</Text>
