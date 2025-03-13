@@ -1,6 +1,9 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { createStackNavigator, TransitionPresets } from "@react-navigation/stack";
+import {
+  createStackNavigator,
+  TransitionPresets,
+} from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
 import HomeScreen from "../screens/HomeScreen";
 import SearchScreen from "../screens/SearchScreen";
@@ -240,10 +243,7 @@ export default function TabNavigator({ navigation }) {
           component={AllChatsScreen}
           options={{ detachPreviousScreen: false }}
         />
-        <Stack.Screen
-          name="single-chat"
-          component={DMsScreen}
-        />
+        <Stack.Screen name="single-chat" component={DMsScreen} />
         <Stack.Screen name="Journal" component={JournalScreen} />
         <Stack.Screen name="ViewJournal" component={ViewJournalScreen} />
       </Stack.Navigator>
