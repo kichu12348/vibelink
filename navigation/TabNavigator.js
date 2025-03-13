@@ -231,6 +231,7 @@ export default function TabNavigator({ navigation }) {
           ...TransitionPresets.SlideFromRightIOS,
           gestureEnabled: true,
           gestureDirection: "horizontal",
+          unmountOnBlur: false,
         }}
       >
         <Stack.Screen
@@ -241,7 +242,10 @@ export default function TabNavigator({ navigation }) {
         <Stack.Screen
           name="DMs"
           component={AllChatsScreen}
-          options={{ detachPreviousScreen: false }}
+          options={{ 
+            detachPreviousScreen: false,
+            
+           }}
         />
         <Stack.Screen name="single-chat" component={DMsScreen} />
         <Stack.Screen name="Journal" component={JournalScreen} />

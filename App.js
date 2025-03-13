@@ -33,7 +33,7 @@ import { endPoint } from "./constants/endpoints";
 import { JournalProvider } from "./context/JournalContext";
 import { BackgroundProvider } from "./context/ChatBackgroundContext";
 
-enableScreens();
+enableScreens(false);
 
 const Stack = createStackNavigator();
 
