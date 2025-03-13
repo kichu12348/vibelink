@@ -52,11 +52,11 @@ function AppNavigator() {
     currentUser,
     authChecking,
     setUserModalData,
-    setIsUserModalOpen,
+    setIsUserModalOpen
   } = useAuth();
   const { error, isError, clearError } = useError();
   const { theme } = useTheme();
-  const { setActiveChat, setIsDmsModalOpen } = useMessage();
+  const { setActiveChat, setIsDmsModalOpen, socket } = useMessage();
   const { getPost, setIsPostOpen, setPostContent, getPostCommentUser } =
     usePost();
 
@@ -83,7 +83,7 @@ function AppNavigator() {
 
   React.useEffect(() => {
     const subscription = Notifications.addNotificationResponseReceivedListener(
-      (response) => {
+      async (response) => {
         const {
           conversationId,
           receiverId,
@@ -98,6 +98,9 @@ function AppNavigator() {
           handlePostNotifClicked(PostId);
         }
         if (conversationId && receiverId) {
+          if(!socket || authChecking) await Promise.resolve(
+            new Promise((resolve) => setTimeout(() =>resolve(), 3000))
+          );
           setActiveChat({
             _id: conversationId,
             participants,

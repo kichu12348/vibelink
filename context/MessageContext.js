@@ -4,8 +4,7 @@ import React, {
   useContext,
   useEffect,
   useCallback,
-  useRef,
-  use,
+  useRef
 } from "react";
 import { useAuth } from "./AuthContext";
 import * as Notifications from "expo-notifications";

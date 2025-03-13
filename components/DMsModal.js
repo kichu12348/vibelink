@@ -189,7 +189,7 @@ export default function DMsModal({ close, params }) {
       initialFetch(conversationId).then(() => {
         scrollViewRef.current?.scrollToEnd({ animated: false });
       });
-      socket.emit("joinChat", conversationId);
+      socket?.emit("joinChat", conversationId);
 
       // Listen for new messages
       const handleNewMessage = () => {
@@ -325,14 +325,14 @@ export default function DMsModal({ close, params }) {
 
   useEffect(() => {
     if (activeChat) {
-      socket.emit("addUserToList", {
+      socket?.emit("addUserToList", {
         userId: currentUser._id,
         activeId: activeChat._id,
       });
     }
 
     return () => {
-      socket.emit("removeUserFromList", currentUser._id);
+      socket?.emit("removeUserFromList", currentUser._id);
     };
   }, [activeChat]);
 
@@ -351,13 +351,13 @@ export default function DMsModal({ close, params }) {
       appState.current === "active" &&
       (nextAppState === "inactive" || nextAppState === "background")
     ) {
-      socket.emit("removeUserFromList", currentUser._id);
+      socket?.emit("removeUserFromList", currentUser._id);
     }
     if (
       (appState.current === "inactive" || appState.current === "background") &&
       nextAppState === "active"
     ) {
-      socket.emit("addUserToList", {
+      socket?.emit("addUserToList", {
         userId: currentUser._id,
         activeId: activeChat._id,
       });
@@ -378,14 +378,14 @@ export default function DMsModal({ close, params }) {
     const now = Date.now();
     // Only emit if enough time has passed since last typing event
     if (now - lastTypingTime > 1000) {
-      socket.emit("typing", { conversationId, userId: currentUser._id });
+      socket?.emit("typing", { conversationId, userId: currentUser._id });
       lastTypingTime = now;
     }
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
     typingTimeoutRef.current = setTimeout(() => {
-      socket.emit("stopTyping", { conversationId, userId: currentUser._id });
+      socket?.emit("stopTyping", { conversationId, userId: currentUser._id });
     }, TYPING_DELAY_MS);
   };
 
