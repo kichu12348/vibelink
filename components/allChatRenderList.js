@@ -25,19 +25,26 @@ const RenderItem = memo(
       }
     };
 
+    const content =
+    item.lastMessage?.content?
+    item.lastMessage?.content.length > 20
+      ? item.lastMessage?.content.slice(0, 20) + "..."
+      : item.lastMessage?.content
+    : "Start a conversation";
+
     return (
       <TouchableOpacity style={styles.chatItem} onPress={onPress}>
         <Image
           source={{ uri: user.profileImage || defaultAvatar }}
           style={styles.avatar}
           cachePolicy={"memory-disk"}
-          transition={200} // Fade in the image
+          transition={200} // Fade in the image when it's loaded
         />
         <View style={styles.chatInfo}>
           <Text style={styles.username}>{user.username}</Text>
           {!isSearchResult && (
             <Text style={styles.lastMessage}>
-              {item.lastMessage?.content || "Start a conversation"}
+              {content}
             </Text>
           )}
         </View>

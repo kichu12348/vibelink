@@ -13,6 +13,13 @@ import {
   cyberpunkTheme,
   obsidianTheme,
   amoledTheme,
+  nordTheme,
+  mintChocolateTheme,
+  sunsetTheme,
+  oceanTheme,
+  neonNightTheme,
+  retroVaporTheme,
+  pureBlackTheme
 } from "../constants/themes";
 
 const themes = {
@@ -23,6 +30,13 @@ const themes = {
   cyberpunkTheme,
   obsidianTheme,
   amoledTheme,
+  nordTheme,
+  mintChocolateTheme,
+  sunsetTheme,
+  oceanTheme,
+  neonNightTheme,
+  retroVaporTheme,
+  pureBlackTheme
 };
 
 const ThemeContext = createContext();

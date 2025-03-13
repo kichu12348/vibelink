@@ -81,3 +81,89 @@ export const amoledTheme = {
   error: "#D50000", // Intense Crimson
   accent: "#FFAB00", // Vibrant Amber
 };
+
+export const nordTheme = {
+  primary: "#9D50FF", // Electric Purple
+  background: "#121218", // Deep Space Black
+  secondary: "#4287F5", // Royal Blue
+  card: "#1E1E27", // Cosmic Slate
+  textPrimary: "#F5F5FA", // Starlight White
+  textSecondary: "#A9A9C3", // Nebula Gray
+  success: "#4DCCAA", // Aquamarine
+  error: "#F55252", // Solar Flare Red
+  accent: "#FFB627", // Cosmic Gold
+};
+
+export const sunsetTheme = {
+  primary: "#FF7E5F", // Coral Orange
+  background: "#1A1423", // Deep Purple Black
+  secondary: "#FF5757", // Bright Coral Red
+  card: "#2C1B3D", // Rich Eggplant
+  textPrimary: "#FFF4E9", // Warm Cream
+  textSecondary: "#CCADB5", // Dusty Rose
+  success: "#58B09C", // Teal Green
+  error: "#E63946", // Cherry Red
+  accent: "#FFBE0B", // Golden Yellow
+};
+
+export const oceanTheme = {
+  primary: "#5BA8FF", // Ocean Blue
+  background: "#0B2545", // Deep Sea Blue
+  secondary: "#3895D3", // Sky Blue
+  card: "#1B3B6F", // Navy Blue
+  textPrimary: "#E9F1F7", // Seafoam White
+  textSecondary: "#A5C6E1", // Light Blue Gray
+  success: "#00B4D8", // Aqua Blue
+  error: "#ED6A5A", // Coral Red
+  accent: "#00F5D4", // Turquoise
+};
+
+export const neonNightTheme = {
+  primary: "#F72585", // Hot Pink
+  background: "#10002B", // Deep Purple
+  secondary: "#7209B7", // Magenta Purple
+  card: "#240046", // Dark Purple
+  textPrimary: "#FFFFFF", // Pure White
+  textSecondary: "#B8C0FF", // Soft Lavender
+  success: "#4CC9F0", // Electric Blue
+  error: "#FC2F00", // Bright Orange-Red
+  accent: "#4EE1A0", // Neon Green
+};
+
+export const retroVaporTheme = {
+  primary: "#FF6AD5", // Bright Pink
+  background: "#0D0221", // Deep Blue-Black
+  secondary: "#C774E8", // Lavender
+  card: "#191230", // Dark Purple
+  textPrimary: "#FDFFFC", // Off-White
+  textSecondary: "#AD8BC9", // Muted Purple
+  success: "#54D8B1", // Mint
+  error: "#FF6B6B", // Light Red
+  accent: "#FD8A5E", // Peach
+};
+
+export const mintChocolateTheme = {
+  primary: "#2EC4B6", // Mint
+  background: "#171311", // Dark Chocolate
+  secondary: "#4CD3C5", // Light Mint
+  card: "#2A2118", // Milk Chocolate
+  textPrimary: "#E8FFF9", // Light Mint
+  textSecondary: "#B3B3B3", // Silver
+  success: "#9AE19D", // Pastel Green
+  error: "#CB7119", // Dark Orange
+  accent: "#E6E49F", // Pale Yellow
+};
+
+export const pureBlackTheme = {
+  primary: "#FF0059", // Vibrant Magenta
+  background: "#000000", // True Black
+  secondary: "#31A9B8", // Teal Accent
+  card: "#0A0A0A", // Nearly Black
+  textPrimary: "#FFFFFF", // Pure White
+  textSecondary: "#9E9E9E", // Medium Gray
+  success: "#00E676", // Bright Green
+  error: "#FF1744", // Bright Red
+  accent: "#FFEA00", // Electric Yellow
+};
+
+

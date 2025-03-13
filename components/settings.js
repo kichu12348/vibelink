@@ -10,7 +10,7 @@ import {
   Platform,
   Easing,
 } from "react-native";
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState } from "react";
 import { fontSizes } from "../constants/primary";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -68,6 +68,13 @@ const Settings = ({ close }) => {
     { name: "Cyberpunk", value: "cyberpunkTheme" },
     { name: "Obsidian", value: "obsidianTheme" },
     { name: "Amoled", value: "amoledTheme" },
+    { name: "Phantom", value: "nordTheme" },
+    { name: "Mint Chocolate", value: "mintChocolateTheme" },
+    { name: "Sunset", value: "sunsetTheme" },
+    { name: "Ocean", value: "oceanTheme" },
+    { name: "Jellyfish", value: "neonNightTheme" },
+    { name: "Retro Vapor", value: "retroVaporTheme" },
+    { name: "Pure Amoled", value: "pureBlackTheme" },
   ];
 
   async function handleSignOut() {
