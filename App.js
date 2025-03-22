@@ -16,8 +16,8 @@ import {
   Text,
   TouchableOpacity,
   View,
-  ActivityIndicator,
   Linking,
+  Image,
 } from "react-native";
 import { MessageProvider, useMessage } from "./context/MessageContext";
 import * as Notifications from "expo-notifications";
@@ -32,6 +32,7 @@ import axios from "axios";
 import { endPoint } from "./constants/endpoints";
 import { JournalProvider } from "./context/JournalContext";
 import { BackgroundProvider } from "./context/ChatBackgroundContext";
+import CatType from "./assets/cat-type.gif";
 
 enableScreens(false);
 
@@ -52,7 +53,7 @@ function AppNavigator() {
     currentUser,
     authChecking,
     setUserModalData,
-    setIsUserModalOpen
+    setIsUserModalOpen,
   } = useAuth();
   const { error, isError, clearError } = useError();
   const { theme } = useTheme();
@@ -98,9 +99,10 @@ function AppNavigator() {
           handlePostNotifClicked(PostId);
         }
         if (conversationId && receiverId) {
-          if(!socket || authChecking) await Promise.resolve(
-            new Promise((resolve) => setTimeout(() =>resolve(), 3000))
-          );
+          if (!socket || authChecking)
+            await Promise.resolve(
+              new Promise((resolve) => setTimeout(() => resolve(), 3000))
+            );
           setActiveChat({
             _id: conversationId,
             participants,
@@ -157,7 +159,7 @@ function AppNavigator() {
   if (authChecking) {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <ActivityIndicator size="large" color={theme.primary} />
+        <Image source={CatType} style={{ width: 200, height: 200 }} />
       </View>
     );
   }
