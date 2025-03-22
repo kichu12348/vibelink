@@ -25,49 +25,54 @@ export const AuthProvider = ({ children }) => {
   const { showError } = useError();
 
   const checkUser = async () => {
-    const token = await AsyncStorage.getItem("token");
-    const journalToken = await AsyncStorage.getItem("journalToken");
+    try {
+      const token = await AsyncStorage.getItem("token");
+      const journalToken = await AsyncStorage.getItem("journalToken");
 
-    if (journalToken) setJournalToken(journalToken);
+      if (journalToken) setJournalToken(journalToken);
 
-    if (token) {
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      const localUser = JSON.parse(await AsyncStorage.getItem("user"));
+      if (token) {
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        const localUser = JSON.parse(await AsyncStorage.getItem("user"));
 
-      if (localUser?._id) {
-        try {
-          const { data } = await axios.get(
-            `${endPoint}/api/users/profile/${localUser._id}`
-          );
-          // If server data differs from localUser, update state & AsyncStorage
-          if (
-            localUser.username !== data.username ||
-            localUser.bio !== data.bio ||
-            localUser.profileImage !== data.profileImage ||
-            localUser.followers.length !== data.followers.length ||
-            localUser.following.length !== data.following.length
-          ) {
-            setCurrentUser(data);
-            await AsyncStorage.setItem("user", JSON.stringify(data));
-          } else {
-            setCurrentUser(localUser);
-          }
-          setToken(token);
-          setIsAuthenticated(true);
-        } catch (err) {
-          showError(err.response?.data?.message || err.message);
-          if (err.response?.status === 401) {
-            // Unauthorized
-            setIsAuthenticated(false);
-            setCurrentUser(null);
-            setToken(null);
-            await AsyncStorage.removeItem("token");
-            await AsyncStorage.removeItem("user");
+        if (localUser?._id) {
+          try {
+            const { data } = await axios.get(
+              `${endPoint}/api/users/profile/${localUser._id}`
+            );
+            // If server data differs from localUser, update state & AsyncStorage
+            if (
+              localUser.username !== data.username ||
+              localUser.bio !== data.bio ||
+              localUser.profileImage !== data.profileImage ||
+              localUser.followers.length !== data.followers.length ||
+              localUser.following.length !== data.following.length
+            ) {
+              setCurrentUser(data);
+              await AsyncStorage.setItem("user", JSON.stringify(data));
+            } else {
+              setCurrentUser(localUser);
+            }
+            setToken(token);
+            setIsAuthenticated(true);
+          } catch (err) {
+            showError(err.response?.data?.message || err.message);
+            if (err.response?.status === 401) {
+              // Unauthorized
+              setIsAuthenticated(false);
+              setCurrentUser(null);
+              setToken(null);
+              await AsyncStorage.removeItem("token");
+              await AsyncStorage.removeItem("user");
+            }
           }
         }
       }
+      setAuthChecking(false);
+    } catch (err) {
+      showError(err.response?.data?.message || err.message);
+      setAuthChecking(false);
     }
-    setAuthChecking(false);
   };
 
   useEffect(() => {
@@ -181,7 +186,6 @@ export const AuthProvider = ({ children }) => {
       await AsyncStorage.setItem("user", JSON.stringify(user));
 
       // Configure axios defaults for future requests
-      
 
       return true;
     } catch (err) {
@@ -213,7 +217,6 @@ export const AuthProvider = ({ children }) => {
       await AsyncStorage.setItem("user", JSON.stringify(user));
 
       // Configure axios defaults for future requests
-      
 
       return true;
     } catch (err) {
@@ -238,7 +241,7 @@ export const AuthProvider = ({ children }) => {
           }
         )
         .catch((err) => console.log(err.response?.data || err.message));
-        axios.defaults.headers.common["Authorization"] = null;
+      axios.defaults.headers.common["Authorization"] = null;
       setCurrentUser(null);
       setToken(null);
       setIsAuthenticated(false);
