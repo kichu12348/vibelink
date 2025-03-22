@@ -71,7 +71,7 @@ export const AuthProvider = ({ children }) => {
       setAuthChecking(false);
     } catch (err) {
       showError(err.response?.data?.message || err.message);
-      setAuthChecking(false);
+      setAuthChecking(true);
     }
   };
 
