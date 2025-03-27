@@ -54,6 +54,9 @@ const SharedPost = ({
         <Image
           source={{ uri: user?.profileImage || defaultAvatar }}
           style={styles.sharedPostAvatar}
+          recyclingKey={user?.profileImage || defaultAvatar}
+          cachePolicy="memory-disk"
+          transition={300}
         />
         <Text style={styles.sharedPostUsername}>{user?.username}</Text>
       </View>
@@ -197,6 +200,7 @@ const MessageItem = React.memo(
               style={styles.messageImage}
               cachePolicy="memory-disk"
               recyclingKey={message._id}
+              transition={300}
             />
           </TouchableOpacity>
           {message.content && renderTextWithLinks(message.content)}

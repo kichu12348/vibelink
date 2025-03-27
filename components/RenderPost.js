@@ -219,6 +219,8 @@ const RenderPost = memo(
               }}
               style={styles.avatar}
               cachePolicy={"memory-disk"}
+              transition={300}
+              recyclingKey={item.user.profileImage}
             />
             <Text style={styles.username}>{item.user.username}</Text>
           </TouchableOpacity>
@@ -230,6 +232,8 @@ const RenderPost = memo(
                 source={{ uri: item.image ?? null }}
                 style={styles.postImage}
                 cachePolicy={"memory-disk"}
+                transition={300}
+                recyclingKey={item._id.toString()}
               >
                 {showLikeAnimation && (
                   <Animated.View
