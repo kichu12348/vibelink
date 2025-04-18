@@ -28,7 +28,7 @@ const Comment = ({
   const [replyContent, setReplyContent] = useState("");
   const [isReplying, setIsReplying] = useState(false);
   const defaultAvatar =
-    "https://storage.googleapis.com/vibelink-pub-bucket2/default-user.webp";
+    "https://storage.googleapis.com/vibelink-pub-bucket3/default-user.webp";
 
   const handleReply = async () => {
     if (!replyContent.trim()) return;

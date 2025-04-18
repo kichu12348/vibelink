@@ -16,7 +16,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useBackground } from "../context/ChatBackgroundContext";
 
 const defaultAvatar =
-  "https://storage.googleapis.com/vibelink-pub-bucket2/default-user.webp";
+  "https://storage.googleapis.com/vibelink-pub-bucket3/default-user.webp";
 
 export default function ChatSettings({
   OtherUser,

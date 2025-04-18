@@ -41,10 +41,10 @@ import { useBackground } from "../context/ChatBackgroundContext";
 import ViewUserOProfile from "../utils/ViewUserOProfile";
 
 const defaultAvatar =
-  "https://storage.googleapis.com/vibelink-pub-bucket2/default-user.webp";
+  "https://storage.googleapis.com/vibelink-pub-bucket3/default-user.webp";
 
   const backImageUri =
-  "https://storage.googleapis.com/vibelink-pub-bucket2/backImage.jpeg";
+  "https://storage.googleapis.com/vibelink-pub-bucket3/backImage.jpeg";
 
 
 const SpacerItem = () => <View style={styles.height} />;

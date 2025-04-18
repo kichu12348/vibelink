@@ -3,7 +3,7 @@ import React, { memo } from "react";
 import { Image } from "expo-image";
 
 const defaultAvatar =
-  "https://storage.googleapis.com/vibelink-pub-bucket2/default-user.webp";
+  "https://storage.googleapis.com/vibelink-pub-bucket3/default-user.webp";
 
 const RenderItem = memo(
   ({

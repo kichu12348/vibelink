@@ -25,7 +25,7 @@ import { useTheme } from "../context/ThemeContext";
 import ViewUserOProfile from "../utils/ViewUserOProfile";
 
 const defaultAvatar =
-  "https://storage.googleapis.com/vibelink-pub-bucket2/default-user.webp";
+  "https://storage.googleapis.com/vibelink-pub-bucket3/default-user.webp";
 
 const Comment = ({
   comment,
@@ -68,7 +68,7 @@ const Comment = ({
   };
 
   const defaultAvatar =
-    "https://storage.googleapis.com/vibelink-pub-bucket2/default-user.webp";
+    "https://storage.googleapis.com/vibelink-pub-bucket3/default-user.webp";
 
   return (
     <View style={styles.commentContainer}>
